@@ -3,7 +3,9 @@ name: 石見暦を収集して公開
 on:
   schedule:
     - cron: "0 21 * * *"     # 毎朝 JST 6:00
-  workflow_dispatch:          # 手動実行もできる
+  push:
+    branches: [main]          # コード修正・承認をpushしたら再生成する
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -23,28 +25,24 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt
 
-      # 重要: 承認データはリポジトリ内(./data)に置く。
-      # config.yaml の data_dir は手元用に ~/iwami-events-data を指しているが、
-      # GitHub上ではホームに置くと毎回消えてしまうため --data-dir で上書きする。
+      # push のときは収集しない。生成と公開だけ行う。
+      # 情報源に余計な負荷をかけず、ボットのpushで自分が回り続けるのも防ぐ。
       - name: 収集
+        if: github.event_name != 'push'
         run: python main.py collect --data-dir ./data
 
       - name: サイト生成
         run: python main.py build --data-dir ./data
 
-      # 承認状態と生成物をリポジトリに戻す（次回の実行に引き継ぐため）
       - name: 変更を保存
-        run: |
-          git config user.name  "iwami-goyomi-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+     m"
           git add data out
           git diff --staged --quiet || git commit -m "chore: 収集 $(date +%Y-%m-%d)"
           git pull --rebase origin main || true
           git push
 
-      # 情報源が壊れていたらここで失敗させる。GitHubからメールが届く。
-      # 公開自体は上で済んでいるので、サイトは止まらない。
       - name: 情報源の健康診断
+        if: github.event_name != 'push'
         run: python main.py health
 
       - uses: actions/configure-pages@v5
