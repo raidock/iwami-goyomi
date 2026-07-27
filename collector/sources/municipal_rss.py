@@ -14,7 +14,7 @@ from datetime import date, datetime, timedelta
 
 from bs4 import BeautifulSoup
 
-from ..models import Event
+from ..models import Event, today_jst
 from .base import Source
 
 FEED_TYPES = ("application/rss+xml", "application/atom+xml", "application/rdf+xml")
@@ -110,7 +110,7 @@ class MunicipalRSS(Source):
 
     def parse_feed(self, xml: str) -> list[Event]:
         soup = BeautifulSoup(xml, "xml")
-        cutoff = date.today() - timedelta(days=self.max_age_days)
+        cutoff = today_jst() - timedelta(days=self.max_age_days)
         events: list[Event] = []
 
         for item in soup.find_all(["item", "entry"]):

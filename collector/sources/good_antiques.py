@@ -12,7 +12,7 @@ from datetime import date
 
 from bs4 import BeautifulSoup, NavigableString
 
-from ..models import Event, _FULL_DATE
+from ..models import Event, _FULL_DATE, today_jst
 from .base import Source
 
 BASE = "https://good-antiques.com"
@@ -27,7 +27,7 @@ ARTICLE_SELECTORS = ["article", ".article__content", ".article-content",
 
 
 def _target_month_tokens(months_ahead: int) -> list[str]:
-    today = date.today()
+    today = today_jst()
     tokens = []
     y, m = today.year, today.month
     for _ in range(months_ahead + 1):

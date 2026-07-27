@@ -6,7 +6,7 @@ import json
 from datetime import date, datetime, timedelta
 
 from .filters import TIER_LABEL
-from .models import Event
+from .models import Event, now_jst
 
 
 def dedup(events: list[Event]) -> list[Event]:
@@ -91,7 +91,7 @@ def _tag_card(ev: Event) -> str:
 
 
 def to_html(events: list[Event], home_base: str = "浜田") -> str:
-    generated = datetime.now().strftime("%Y.%m.%d %H:%M")
+    generated = now_jst().strftime("%Y.%m.%d %H:%M")
     events = sorted(
         events,
         key=lambda e: (e.date_start or date.max,

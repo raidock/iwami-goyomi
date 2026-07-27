@@ -146,6 +146,41 @@ def test_past_events_move_to_collapsed_section():
     assert "催し 1" in html, "件数表示に終了分が混ざっている"
 
 
+
+# --- 時差の扱い（2026-07 本番で発覚）------------------------------------------
+# GitHub Actions は UTC で動くため、日本時間の 0時〜9時 は日付が1日前になる。
+# 地域の暦なので、必ず日本時間で判定する。
+
+def test_uses_japan_time_not_utc():
+    from datetime import datetime, timezone
+    from collector.models import now_jst, today_jst
+    n = now_jst()
+    assert str(n.tzinfo) == "Asia/Tokyo", n.tzinfo
+    # UTCとの差は常に9時間
+    diff = n.utcoffset().total_seconds() / 3600
+    assert diff == 9, diff
+    # 日付も日本時間のもの
+    assert today_jst() == n.date()
+
+
+def test_utc_early_morning_would_be_previous_day():
+    """UTCで判定すると1日ずれることの確認（この差が実害だった）。"""
+    from datetime import datetime, timezone
+    from collector.models import JST
+    # 日本時間 2026-07-28 の朝8時 = UTC では 7/27 の23時
+    jst_morning = datetime(2026, 7, 28, 8, 0, tzinfo=JST)
+    assert jst_morning.astimezone(timezone.utc).date().day == 27
+    assert jst_morning.date().day == 28
+
+
+def test_past_judgement_uses_given_today():
+    """当日の催しは、その日のうちは「これから」に残る。"""
+    from datetime import date
+    e = _ev("今日の催し", "催し", start=date(2026, 7, 28))
+    assert not is_past(e, date(2026, 7, 28))
+    assert is_past(e, date(2026, 7, 29))
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

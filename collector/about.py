@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import html as _html
-from datetime import datetime
+from .models import now_jst
 
 from . import __version__
 
@@ -57,7 +57,7 @@ def to_about_page(site: dict, sources: list[dict]) -> str:
         operator=(f"<p>運営: {_html.escape(operator)}</p>" if operator else ""),
         contact_block=contact_block,
         src_rows=src_rows,
-        updated=datetime.now().strftime("%Y年%m月%d日"),
+        updated=now_jst().strftime("%Y年%m月%d日"),
         version=__version__,
     )
 

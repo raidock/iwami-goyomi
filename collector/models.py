@@ -4,7 +4,8 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field, asdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 from typing import Optional
 
 
@@ -125,6 +126,22 @@ class Event:
         return cls(**d)
 
 
+# ---------------------------------------------------------------- 日本時間
+# GitHub Actions のサーバーは協定世界時(UTC)で動く。
+# そのまま date.today() を使うと、日本時間の 0時〜9時 のあいだ日付が1日ずれ、
+# 「あと○日」の計算も「終わった催し」への振り分けも狂う。
+# 地域の暦なので、必ず日本時間で判断する。
+JST = ZoneInfo("Asia/Tokyo")
+
+
+def now_jst() -> datetime:
+    return datetime.now(JST)
+
+
+def today_jst() -> date:
+    return now_jst().date()
+
+
 # ---------------------------------------------------------------- 和暦
 # はまナビ（浜田市観光協会）は「令和7年11月8日」のように和暦で書く。
 # 西暦しか読めないと観光協会の日付が1件も取れない。
@@ -176,7 +193,7 @@ def _to_date(month: int, day: int, ref: Optional[date] = None) -> Optional[date]
     1月に出た記事の「3/8開催」は、今が7月でも 2026年3月8日 を指すため。
     （掲載日を今日にすると翌年と誤認する。実際に踏んだバグ）
     """
-    ref = ref or date.today()
+    ref = ref or today_jst()
     for year in (ref.year, ref.year + 1):
         try:
             d = date(year, month, day)

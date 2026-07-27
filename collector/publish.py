@@ -15,7 +15,7 @@ import html as _html
 from collections import defaultdict
 from datetime import date, datetime
 
-from .models import Event
+from .models import Event, now_jst, today_jst
 
 _WD = ["月", "火", "水", "木", "金", "土", "日"]
 URGENT_DAYS = 14          # これ以内の締切があれば募集を最上段へ
@@ -121,8 +121,8 @@ def _block(title: str, lead: str, evs: list[Event], today: date, kind_cls: str) 
 
 def to_public_site(events: list[Event], region: str = "石見",
                    today: date | None = None, site: dict | None = None) -> str:
-    today = today or date.today()
-    generated = datetime.now().strftime("%Y年%m月%d日 %H:%M")
+    today = today or today_jst()
+    generated = now_jst().strftime("%Y年%m月%d日 %H:%M")
 
     by_kind: dict[str, list[Event]] = defaultdict(list)
     for ev in events:
