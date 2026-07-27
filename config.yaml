@@ -6,18 +6,18 @@ home_base: 浜田
 # 「掲載をやめてほしい」という連絡を受ける窓口がないまま公開してはいけません。
 site:
   title: 石見暦
-  reading: いわみごよみ        # 見出しにふりがなを振る（空にすると出ません）
-  title_accent: 暦             # この文字だけ石州瓦の色で強調します
+  reading: いわみごよみ # 見出しにふりがなを振る（空にすると出ません）
+  title_accent: 暦 # この文字だけ石州瓦の色で強調します
   tagline: 浜田・江津の催しと締切を、ひとつの暦に。
   # 例: https://<ユーザー名>.github.io/<リポジトリ名>/   OGP画像や共有に使います
-  url: ""
+  url: 'https://raidock.github.io/iwami-goyomi/'
   # 例: メールアドレス、問い合わせフォームのURL、SNSアカウント
-  contact: "https://forms.gle/5ayQ1xFfUFX9kva69"
+  contact: 'https://forms.gle/5ayQ1xFfUFX9kva69'
   # 運営者の名乗り。公開するなら誰がやっているか示したほうが信頼されます
-  operator: "TandN Design"
+  operator: 'TandN Design'
 region_name: 石見
 out_dir: out
-data_dir: ~/iwami-events-data   # コードの外に置くのでバージョンを上げても引き継がれる
+data_dir: ~/iwami-events-data # コードの外に置くのでバージョンを上げても引き継がれる
 
 # 掲載日がこれより古い記事は捨てる（RSSに古い記事が残り続けるため）
 max_age_days: 400
@@ -35,7 +35,7 @@ municipalities:
   - key: gotsu_city
     municipality: 江津市
     site: https://www.city.gotsu.lg.jp
-    feed_url: https://www.city.gotsu.lg.jp/rss/10/list1.xml   # 新着情報（本文の<a>にあり自動発見が届かなかったため明示）
+    feed_url: https://www.city.gotsu.lg.jp/rss/10/list1.xml # 新着情報（本文の<a>にあり自動発見が届かなかったため明示）
 
 # 観光協会。イベント専用のRSSなのでノイズが少なく、trust: high で扱う。
 # （自治体と同じ厳しさで仕分けると、語彙にない催しを取りこぼすため）
@@ -53,6 +53,6 @@ tourism:
     trust: high
     # サイト全体のRSSしかないため、お知らせ記事だけに絞る
     # （/kankou/see/ などの観光スポット紹介ページを除外）
-    url_include: "/news/"
+    url_include: '/news/'
 
 # 今後の追加候補: 益田市 / 大田市 / 邑南町 / 川本町 / 美郷町 / 津和野町 / 吉賀町
