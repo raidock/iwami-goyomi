@@ -1,0 +1,62 @@
+name: 石見暦を収集して公開
+
+on:
+  schedule:
+    - cron: "0 21 * * *"     # 毎朝 JST 6:00
+  workflow_dispatch:          # 手動実行もできる
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+
+      # 重要: 承認データはリポジトリ内(./data)に置く。
+      # config.yaml の data_dir は手元用に ~/iwami-events-data を指しているが、
+      # GitHub上ではホームに置くと毎回消えてしまうため --data-dir で上書きする。
+      - name: 収集
+        run: python main.py collect --data-dir ./data
+
+      - name: サイト生成
+        run: python main.py build --data-dir ./data
+
+      # 承認状態と生成物をリポジトリに戻す（次回の実行に引き継ぐため）
+      - name: 変更を保存
+        run: |
+          git config user.name  "iwami-events-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data out
+          git diff --staged --quiet || git commit -m "収集: $(date +%Y-%m-%d)"
+          git pull --rebase origin main || true
+          git push
+
+      # 情報源が壊れていたらここで失敗させる。GitHubからメールが届く。
+      # 公開自体は上で済んでいるので、サイトは止まらない。
+      - name: 情報源の健康診断
+        run: python main.py health
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: out }
+
+  deploy:
+    needs: collect
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>石見暦</title>
+<meta name="description" content="浜田・江津の催しと締切を、ひとつの暦に。">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="石見暦">
+<meta property="og:description" content="浜田・江津の催しと締切を、ひとつの暦に。">
+<meta property="og:locale" content="ja_JP">
+
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:#eae6dc; --card:#f6f3ec; --ink:#23211c; --soft:#5f5a4f;
+    --sekishu:#8a3a2b; --ai:#33595c; --line:#d2ccbd; --alert:#a8321f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Zen Kaku Gothic New",system-ui,sans-serif;line-height:1.65}
+  .wrap{max-width:1040px;margin:0 auto;padding:clamp(1.2rem,4vw,3rem) 1.1rem 4rem}
+  header{border-bottom:2px solid var(--ink);padding-bottom:.9rem}
+  h1{font-family:"Zen Old Mincho",serif;font-weight:900;margin:0;
+    font-size:clamp(1.8rem,5.5vw,3rem);letter-spacing:.05em}
+  h1 .r{color:var(--sekishu)}
+  h1 ruby rt{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:400;
+    font-size:.26em;color:var(--soft);letter-spacing:.26em;
+    text-indent:.26em;transform:translateY(.35em)}
+  .lead{color:var(--soft);font-size:.8rem;margin-top:.4rem}
+  .counts{display:flex;gap:.5rem;flex-wrap:wrap;margin:.8rem 0 1.4rem;font-size:.72rem}
+  .counts span{border:1px solid var(--line);border-radius:999px;padding:.1rem .6rem;
+    background:var(--card)}
+  .notice{background:var(--card);border-left:3px solid var(--sekishu);
+    padding:.7rem .9rem;font-size:.75rem;color:var(--soft);margin-bottom:1.6rem;
+    border-radius:0 4px 4px 0}
+  .block{margin-top:2.4rem}
+  .block h2{font-family:"Zen Old Mincho",serif;font-size:1.15rem;margin:0;
+    display:flex;align-items:center;gap:.6rem;border-left:4px solid var(--sekishu);
+    padding-left:.6rem}
+  .block.k-boshu h2{border-color:var(--alert)}
+  .block.k-seido h2{border-color:var(--ai)}
+  .block h2 .n{font-family:"Zen Kaku Gothic New";font-size:.7rem;color:var(--soft);
+    border:1px solid var(--line);border-radius:999px;padding:.05rem .5rem}
+  .lead2{font-size:.75rem;color:var(--soft);margin:.35rem 0 .9rem;padding-left:.85rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:.85rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:4px;
+    padding:.95rem 1rem;display:flex;flex-direction:column;gap:.35rem}
+  .when{font-family:"Zen Old Mincho",serif;font-weight:700;color:var(--sekishu);
+    font-size:1.05rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  .when .wd{font-size:.7rem;color:var(--soft);margin-left:.1rem}
+  .when .alert{color:var(--alert)}
+  .when .alert b{border-bottom:2px solid var(--alert)}
+  .when .soon{color:var(--ai)}
+  .when .over{color:var(--soft);text-decoration:line-through}
+  .when .anytime{color:var(--ai);font-size:.9rem}
+  .when .tbd{color:var(--soft);font-size:.85rem;font-weight:400}
+  .card h3{margin:0;font-size:.97rem;font-weight:500;line-height:1.45}
+  .card h3 a{color:inherit;text-decoration:none}
+  .card h3 a:hover{text-decoration:underline}
+  .dl-note{font-size:.72rem;color:var(--ai);border-left:2px solid var(--ai);
+    padding-left:.45rem}
+  .dl-note.alert{color:var(--alert);border-color:var(--alert);font-weight:700}
+  .dl-note.over{color:var(--soft);border-color:var(--line)}
+  .tags{display:flex;gap:.3rem;flex-wrap:wrap}
+  .tg{font-size:.66rem;color:var(--ai);border:1px solid var(--ai);
+    border-radius:999px;padding:.02rem .45rem}
+  .foot{display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;
+    margin-top:auto;padding-top:.5rem;border-top:1px dashed var(--line);
+    font-size:.66rem;color:var(--soft)}
+  .muni{font-weight:700;color:var(--ink)}
+  .badge{font-size:.65rem;border-radius:999px;padding:.05rem .5rem;
+    background:var(--sekishu);color:var(--card)}
+  .card.cancelled,.card.ended{opacity:.62}
+  .card.cancelled .when{text-decoration:line-through}
+  .card.last{border-color:var(--sekishu);border-width:1.5px}
+  details.past{margin-top:3rem;border-top:1px solid var(--line);padding-top:1.2rem}
+  details.past summary{font-family:"Zen Old Mincho",serif;font-size:.95rem;
+    color:var(--soft);cursor:pointer;display:flex;align-items:center;gap:.6rem}
+  details.past summary .n{font-family:"Zen Kaku Gothic New";font-size:.7rem;
+    border:1px solid var(--line);border-radius:999px;padding:.05rem .5rem}
+  details.past .grid{margin-top:.9rem;opacity:.6}
+  details.past[open] summary{margin-bottom:.3rem}
+  .empty{color:var(--soft);padding:3rem 0}
+  footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
+    font-size:.7rem;color:var(--soft)}
+  a:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+</style></head>
+<body><div class="wrap">
+  <header>
+    <h1><ruby>石見<span class='r'>暦</span><rp>（</rp><rt>いわみごよみ</rt><rp>）</rp></ruby></h1>
+    <div class="lead">浜田・江津の催しと締切を、ひとつの暦に。　2026年07月28日 07:30 更新</div>
+  </header>
+  <div class="counts">
+    <span>催し 25</span><span>募集 4</span><span>制度 1</span><span>ぜんぶで 30</span>
+  </div>
+  <p class="notice">
+    自動で集めた情報です。日時・会場・締切・申込方法は、必ず各カードのリンク先（主催者の公式ページ）で
+    最終確認してください。中止や変更が反映されていない場合があります。
+  </p>
+  <section class='block k-boshu'><h2>募集・締切のあるもの<span class='n'>4</span></h2><p class='lead2'>申し込むもの。締切の近い順。</p><div class='grid'>
+    <article class="card ">
+      <div class="when" title="見出し「提出期限」"><span class='alert'>締切 8/3・<b>あと6日</b></span></div>
+      <h3><a href="https://www.city.gotsu.lg.jp/soshiki/3/40974.html" target="_blank" rel="noopener">江津市ビジネスプランコンテスト「Go-Con2026」</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">ビジネス・創業・補助金・掲載 2026/05/18</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「応募締め切り」"><span class='soon'>締切 8/14・<b>あと17日</b></span></div>
+      <h3><a href="https://www.city.gotsu.lg.jp/soshiki/2/40620.html" target="_blank" rel="noopener">地域おこし協力隊を募集します</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">移住・地域づくり・掲載 2026/06/01</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「募集期間」の終わり"><span class='soon'>締切 9/3・<b>あと37日</b></span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782199555384/index.html" target="_blank" rel="noopener">令和8年度島根県統計グラフコンクール作品募集について</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">・掲載 2026/07/09</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」"><span class='tbd'>締切は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783555518382/index.html" target="_blank" rel="noopener">石央文化ホール「2026　DANCE　CONTEST」出場者大募集！！</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/07/10</span></div>
+    </article></div></section><section class='block k-moyoshi'><h2>これからの催し<span class='n'>25</span></h2><p class='lead2'>行ってみるもの。開催日の近い順。</p><div class='grid'>
+    <article class="card ">
+      <div class="when" title="見出し「日時・場所」">8月2日<span class='wd'>日</span></div>
+      <h3><a href="https://www.city.gotsu.lg.jp/site/comunity/41637.html" target="_blank" rel="noopener">GO▶GOTSU ! フェスを開催します！</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">・掲載 2026/07/15</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">8月3日<span class='wd'>月</span></div>
+      <h3><a href="https://www.city.gotsu.lg.jp/soshiki/14/41504.html" target="_blank" rel="noopener">令和8年度　江津市人権・同和教育講演会を開催します</a></h3>
+      
+      <div class="tags"><span class='tg'>子ども向け</span></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">・掲載 2026/06/30</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">8月8日<span class='wd'>土</span></div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36559" target="_blank" rel="noopener">和紙と灯りの夕べ2026夏</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/07/21</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">8月8日<span class='wd'>土</span></div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36544" target="_blank" rel="noopener">【要申込】夏休みこども木工教室</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span><span class='tg'>子ども向け</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">子育て・教育・掲載 2026/07/21</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">8月8日<span class='wd'>土</span></div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36464" target="_blank" rel="noopener">【要申込】『金唐紙』制作体験 大人向けワークショップ</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">学び・講座・掲載 2026/07/14</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「とき」">8月16日<span class='wd'>日</span></div>
+      <h3><a href="https://gotsu-kanko.jp/52/news/3356" target="_blank" rel="noopener">2026 江の川祭 （2026.8.16開催）</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">祭り・市・マルシェ・掲載 2026/07/06</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="">8月22日<span class='wd'>土</span></div>
+      <h3><a href="https://gotsu-kanko.jp/52/news/3377" target="_blank" rel="noopener">8月22日（土）有福温泉湯の町神楽殿　石見神楽定期公演休演と夏祭り特設ステージでの神楽上演のお知らせ</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">神楽・伝統芸能・掲載 2026/07/08</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">8月23日<span class='wd'>日</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783496689810/index.html" target="_blank" rel="noopener">石央文化ホール「バックステージツアー！！～ホール舞台裏探検隊集合～」が開催されます</a></h3>
+      <div class='dl-note '>申込締切 8/19・あと22日</div>
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/07/10</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">8月29日<span class='wd'>土</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783303687543/index.html" target="_blank" rel="noopener">第57回浜田市美術展写真の部ワークショップ写真教室「プリント大伸ばし体験」参加者募集</a></h3>
+      <div class='dl-note '>申込締切 8/25・あと28日</div>
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/07/09</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">9月5日<span class='wd'>土</span></div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/22303" target="_blank" rel="noopener">ぶどうまつり</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">神楽・伝統芸能・掲載 2026/07/17</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">9月12日<span class='wd'>土</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1784159958213/index.html" target="_blank" rel="noopener">浜田市文化祭協賛行事</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">祭り・市・マルシェ・掲載 2026/07/22</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="本文「…時〜/開催」">9月27日<span class='wd'>日</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782456015383/index.html" target="_blank" rel="noopener">【世界こども美術館】企画展「さわっ手たのしむタッチミュージアムⅡ～森と海～」が開催されます</a></h3>
+      
+      <div class="tags"><span class='tg'>子ども向け</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/06/30</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「日時」">9月27日<span class='wd'>日</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782457703557/index.html" target="_blank" rel="noopener">【石央文化ホール】企画展「石央シネマ俱楽部企画上映会『国宝』が開催されます</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/06/30</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「・ステージイベント出演日時」">10月31日<span class='wd'>土</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782986394099/index.html" target="_blank" rel="noopener">第37回さざんか祭り　アトラクション参加者募集について</a></h3>
+      <div class='dl-note '>申込締切 8/28・あと31日</div>
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">祭り・市・マルシェ・掲載 2026/07/03</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="本文「…までに/必着」"><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1424847308833/index.html" target="_blank" rel="noopener">危険物取扱者保安講習を行います</a></h3>
+      <div class='dl-note '>申込締切 10/31・あと95日</div>
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">学び・講座・掲載 2026/07/16</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783386403573/index.html" target="_blank" rel="noopener">「自社PRのための効果的な情報発信について学んでみませんか？」を開催します</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">ビジネス・創業・補助金・掲載 2026/07/10</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782715766244/index.html" target="_blank" rel="noopener">しまねふるさとフェア２０２７（広島市）の参加申込の受付を開始します！</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">祭り・市・マルシェ・掲載 2026/07/03</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://www.city.gotsu.lg.jp/soshiki/28/6444.html" target="_blank" rel="noopener">令和9年度（2027年度）小学校新1年生に「就学時健康診断」を実施します</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">健康・福祉・掲載 2026/07/21</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1751507719522/index.html" target="_blank" rel="noopener">救命講習定期開催のお知らせ</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">防災・安全・掲載 2026/07/23</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1708068769697/index.html" target="_blank" rel="noopener">令和8年度山陰浜田港お魚料理教室の開催日程</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">学び・講座・掲載 2026/07/22</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1751509359840/index.html" target="_blank" rel="noopener">一斉相談会（法律相談）のお知らせ</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">相談会・掲載 2026/07/01</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title="見出し「実施・応募期間」の終わり"><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36411" target="_blank" rel="noopener">どんちっちはまだ!スタンプラリー2026</a></h3>
+      <div class='dl-note '>申込締切 12/15・あと140日</div>
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">神楽・伝統芸能・掲載 2026/07/21</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36459" target="_blank" rel="noopener">石見海浜公園 姉ヶ浜海水浴場 海開き</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">学び・講座・掲載 2026/07/14</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://gotsu-kanko.jp/52/news/3080" target="_blank" rel="noopener">江津駅前夜市場「夏祭り」（R8.7.20）</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">祭り・市・マルシェ・掲載 2026/06/12</span></div>
+    </article>
+    <article class="card ">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://gotsu-kanko.jp/52/news/2970" target="_blank" rel="noopener">令和8年度　江津市石見神楽定期公演（2026.4～2027.3）</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">神楽・伝統芸能・掲載 2026/03/21</span></div>
+    </article></div></section><section class='block k-seido'><h2>いつでも使えるもの<span class='n'>1</span></h2><p class='lead2'>頼めば使える制度。日程はありません。</p><div class='grid'>
+    <article class="card ">
+      <div class="when" title=""><span class='anytime'>随時</span></div>
+      <h3><a href="https://www.city.gotsu.lg.jp/soshiki/29/33362.html" target="_blank" rel="noopener">出前講座をご利用ください</a></h3>
+      
+      <div class="tags"><span class='tg'>随時</span></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">学び・講座・掲載 2026/07/07</span></div>
+    </article></div></section><details class='past'><summary>終わった催し・締切<span class='n'>2</span></summary><p class='lead2'>記録として残しています。</p><div class='grid'>
+    <article class="card ended">
+      <div class="when" title="見出し「日時」">7月18日<span class='wd'>土</span><span class='badge'>終了</span></div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36483" target="_blank" rel="noopener">第3回岡見花火</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">神楽・伝統芸能・掲載 2026/07/14</span></div>
+    </article>
+    <article class="card ended">
+      <div class="when" title="見出し「日時」">7月18日<span class='wd'>土</span><span class='badge'>終了</span></div>
+      <h3><a href="https://gotsu-kanko.jp/52/news/3371" target="_blank" rel="noopener">キッズフェス in GOTSU（2026.7.18開催）</a></h3>
+      
+      <div class="tags"><span class='tg'>子ども向け</span></div>
+      <div class="foot"><span class="muni">江津市</span>
+        <span class="src">祭り・市・マルシェ・掲載 2026/07/08</span></div>
+    </article></div></details>
+  <footer>
+    運営: TandN Design<br>
+    <a href="about.html">このサイトについて・掲載方針・修正/削除のご依頼</a><br>
+    各情報の権利は発信元に帰属します。掲載内容は各リンク先の公式ページでご確認ください。<br>
+    掲載の追加・修正、掲載を望まれない場合は <a href="https://forms.gle/5ayQ1xFfUFX9kva69" target="_blank" rel="noopener">お問い合わせフォーム</a> からご連絡ください。
+  </footer>
+</div></body></html>

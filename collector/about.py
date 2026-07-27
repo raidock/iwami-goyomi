@@ -1,0 +1,158 @@
+"""掲載方針ページ（about.html）。
+
+自動収集で成り立つ公開サイトには、これが要る。
+「何を載せ、何を載せないか」「間違いをどう直すか」「どうすれば消せるか」
+を先に示しておかないと、問い合わせが来たときに毎回ゼロから説明することになる。
+"""
+from __future__ import annotations
+
+import html as _html
+from datetime import datetime
+
+from . import __version__
+
+
+def render_contact(contact: str) -> str:
+    """連絡先の見せ方を、中身によって変える。
+
+    フォームのURLならボタン、メールアドレスなら mailto リンクにする。
+    「掲載をやめてほしい」という連絡は、1タップで届くべきなので。
+    """
+    c = contact.strip()
+    if c.startswith(("http://", "https://")):
+        return (f'<p><a class="btn" href="{_html.escape(c)}" '
+                f'target="_blank" rel="noopener">お問い合わせフォームを開く</a></p>')
+    if "@" in c and " " not in c:
+        return (f'<p class="big"><a href="mailto:{_html.escape(c)}">'
+                f'{_html.escape(c)}</a></p>')
+    return f'<p class="big">{_html.escape(c)}</p>'
+
+
+def to_about_page(site: dict, sources: list[dict]) -> str:
+    title = site.get("title") or "石見の催し"
+    contact = site.get("contact") or ""
+    operator = site.get("operator") or ""
+
+    src_rows = "\n".join(
+        f"<tr><td>{_html.escape(s.get('municipality',''))}</td>"
+        f"<td>{_html.escape(s.get('organizer_type','自治体'))}</td>"
+        f"<td><a href=\"{_html.escape(s.get('site',''))}\" target=\"_blank\" "
+        f"rel=\"noopener\">{_html.escape(s.get('site',''))}</a></td></tr>"
+        for s in sources)
+
+    if contact:
+        contact_block = (f"{render_contact(contact)}"
+                         "<p>できるだけ早くお返事します。"
+                         "掲載の取り下げのご希望は、理由を問わず速やかに対応します。</p>")
+    else:
+        contact_block = ("<p class='warn'>【要設定】config.yaml の site.contact に"
+                         "連絡先を入れてください。</p>")
+
+    reading = site.get("reading") or ""
+    name_html = (f"{_html.escape(title)}（{_html.escape(reading)}）"
+                 if reading else _html.escape(title))
+    return _TPL.format(
+        title=_html.escape(title),
+        name_html=name_html,
+        operator=(f"<p>運営: {_html.escape(operator)}</p>" if operator else ""),
+        contact_block=contact_block,
+        src_rows=src_rows,
+        updated=datetime.now().strftime("%Y年%m月%d日"),
+        version=__version__,
+    )
+
+
+_TPL = """<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>このサイトについて｜{title}</title>
+<meta name="description" content="{title} の掲載方針、情報源、修正・削除のご依頼について。">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{{--paper:#eae6dc;--card:#f6f3ec;--ink:#23211c;--soft:#5f5a4f;
+    --sekishu:#8a3a2b;--ai:#33595c;--line:#d2ccbd;--alert:#a8321f}}
+  *{{box-sizing:border-box}}
+  body{{margin:0;background:var(--paper);color:var(--ink);line-height:1.85;
+    font-family:"Zen Kaku Gothic New",system-ui,sans-serif}}
+  .wrap{{max-width:720px;margin:0 auto;padding:clamp(1.2rem,4vw,3rem) 1.1rem 4rem}}
+  h1{{font-family:"Zen Old Mincho",serif;font-weight:900;font-size:clamp(1.5rem,4.5vw,2.2rem);
+    border-bottom:2px solid var(--ink);padding-bottom:.6rem;margin:0 0 1.6rem}}
+  h2{{font-family:"Zen Old Mincho",serif;font-size:1.1rem;margin:2.4rem 0 .7rem;
+    border-left:4px solid var(--sekishu);padding-left:.6rem}}
+  p,li{{font-size:.92rem}}
+  .big{{font-size:1.1rem;font-weight:700;background:var(--card);
+    border:1px solid var(--line);border-radius:4px;padding:.7rem .9rem;
+    word-break:break-all}}
+  .warn{{color:var(--alert);font-weight:700}}
+  table{{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:.6rem}}
+  th,td{{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;
+    word-break:break-all}}
+  th{{background:var(--card)}}
+  a{{color:var(--ai)}}
+  .btn{{display:inline-block;background:var(--sekishu);color:var(--card);
+    text-decoration:none;font-weight:700;padding:.7rem 1.4rem;border-radius:4px;
+    font-size:.95rem}}
+  .btn:hover{{opacity:.88}}
+  .back{{display:inline-block;margin-bottom:1.4rem;font-size:.85rem}}
+  footer{{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
+    font-size:.75rem;color:var(--soft)}}
+</style></head>
+<body><div class="wrap">
+  <a class="back" href="./">← 催し一覧にもどる</a>
+  <h1>{name_html} について</h1>
+
+  <p>浜田・江津をはじめとする石見地域の催しを、市町や観光協会の公式サイトから
+  自動で集めてまとめています。市のお知らせは大半が行政内部の情報で、住民向けの
+  催しはそこに埋もれています。このサイトは、その中から催しだけを掘り出しています。</p>
+  <p>暦は、これからの予定表であると同時に、過ぎたことの記録でもあります。
+  終わった催しも消さずに残しているのは、そのためです。祭りが縮小し、統合され、
+  やがて途絶えていく過程は、どこにも記録されないまま失われていきます。</p>
+  {operator}
+
+  <h2>載せているもの</h2>
+  <ul>
+    <li><strong>催し</strong> — 祭り、講座、展示、上映会など、行ってみるもの</li>
+    <li><strong>募集・締切のあるもの</strong> — コンテスト、参加者募集など、申し込むもの</li>
+    <li><strong>いつでも使えるもの</strong> — 出前講座のように、頼めば使える制度</li>
+  </ul>
+
+  <h2>載せていないもの</h2>
+  <p>断水、通行止め、ごみ収集の変更といった暮らしのお知らせは載せていません。
+  これらは自分の市町のことだけ分かればよい情報で、市の公式サイトを見るのが
+  確実です。地域をまたいでまとめる意味があるものだけを扱っています。</p>
+  <p>入札、人事、計画案、議事録なども対象外です。</p>
+
+  <h2>情報の出どころ</h2>
+  <table>
+    <tr><th>市町</th><th>種別</th><th>サイト</th></tr>
+    {src_rows}
+  </table>
+  <p>各カードのリンクから、必ず主催者の公式ページをご確認ください。
+  日時・会場・締切・申込方法は、そちらが正となります。</p>
+
+  <h2>正確さについて</h2>
+  <p>自動で集めているため、次のことが起こりえます。</p>
+  <ul>
+    <li>中止や日程変更が反映されていない</li>
+    <li>日付の読み取りを誤っている</li>
+    <li>催しでないものが混ざっている、逆に載っていない催しがある</li>
+  </ul>
+  <p>お出かけの前に、必ずリンク先でご確認ください。
+  このサイトは「気づくための入口」であって、一次情報ではありません。</p>
+
+  <h2>修正・削除のご依頼</h2>
+  <p>次のご連絡をお待ちしています。</p>
+  <ul>
+    <li>掲載してほしい催しがある</li>
+    <li>内容が間違っている</li>
+    <li><strong>掲載をやめてほしい</strong></li>
+  </ul>
+  {contact_block}
+
+  <h2>権利について</h2>
+  <p>各情報の権利は、それぞれの発信元に帰属します。当サイトが保存しているのは
+  タイトル・日付・リンク先のみで、本文の転載は行っていません。</p>
+
+  <footer>最終更新: {updated}　/　石見暦 v{version}</footer>
+</div></body></html>"""
