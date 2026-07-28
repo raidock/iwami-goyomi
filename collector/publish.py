@@ -64,6 +64,10 @@ def _when_html(ev: Event, today: date) -> str:
         txt = f"{s.month}月{s.day}日<span class='wd'>{_WD[s.weekday()]}</span>"
         if ev.date_end and ev.date_end != s:
             txt += f"〜{ev.date_end.month}月{ev.date_end.day}日"
+        # 飛び石で複数回あるものは、次回の日付に回数を添える。
+        # 期間として「9月12日〜翌3月17日」とは書かない（6か月続くと誤解される）
+        if ev.session_count and ev.session_count > 1:
+            txt += f"<span class='sessions'>（全{ev.session_count}回）</span>"
         return txt
     return "<span class='tbd'>日程は詳細ページで</span>"
 
@@ -271,6 +275,7 @@ _TPL = """<!doctype html>
   .when .over{{color:var(--soft);text-decoration:line-through}}
   .when .anytime{{color:var(--ai);font-size:.9rem}}
   .when .tbd{{color:var(--soft);font-size:.85rem;font-weight:400}}
+  .when .sessions{{font-size:.72rem;color:var(--soft);margin-left:.2rem;font-weight:400}}
   .card h3{{margin:0;font-size:.97rem;font-weight:500;line-height:1.45}}
   .card h3 a{{color:inherit;text-decoration:none}}
   .card h3 a:hover{{text-decoration:underline}}

@@ -58,6 +58,42 @@ TABLE_STYLE = """
 # 日付が1つもないページ（拾えないことを確認する）
 NO_DATE = "<div><p>出前講座をご利用ください。ご希望の団体は担当課へご連絡ください。</p></div>"
 
+# 浜田市「救命講習定期開催のお知らせ」（2026年7月23日掲載）の表。
+# 見出しセルが th ではなく td。日付は和暦。前2回はすでに終了している。
+HAMADA_KYUMEI = """
+<div>
+  <p>登録日：2026年7月23日</p>
+  <table>
+    <tr><td>講習種別</td><td>講習日時</td><td>会場</td><td>定員</td><td>申込 状況</td><td>申込方法</td></tr>
+    <tr><td>普通救命講習Ⅰ</td><td>令和8年5月16日（土） 9：30～12：30</td><td>消防本部</td><td>24人</td><td>終了</td><td>電話またはFAX</td></tr>
+    <tr><td>普通救命講習Ⅰ</td><td>令和8年7月15日（水） 13：30～16：30</td><td>消防本部</td><td>24人</td><td>終了</td><td>電話またはFAX</td></tr>
+    <tr><td>普通救命講習Ⅰ</td><td>令和8年9月12日（土） 9：30～12：30</td><td>消防本部</td><td>24人</td><td>〇</td><td>電話またはFAX</td></tr>
+    <tr><td>普通救命講習Ⅰ</td><td>令和8年11月18日（水） 13：30～16：30</td><td>消防本部</td><td>24人</td><td>〇</td><td>電話またはFAX</td></tr>
+    <tr><td>普通救命講習Ⅰ</td><td>令和9年1月16日（土） 9：30～12：30</td><td>消防本部</td><td>24人</td><td>〇</td><td>電話またはFAX</td></tr>
+    <tr><td>普通救命講習Ⅰ</td><td>令和9年3月17日（水） 13：30～16：30</td><td>消防本部</td><td>24人</td><td>〇</td><td>電話またはFAX</td></tr>
+  </table>
+</div>
+"""
+
+# 浜田市「山陰浜田港お魚料理教室」（2026年7月22日掲載）の表。
+# 年が書かれておらず、第1回は掲載日より前に終わっている。
+HAMADA_OSAKANA = """
+<div>
+  <p>登録日：2026年7月22日</p>
+  <table>
+    <tr><td></td><td>開催日</td><td>時間</td><td>会場</td><td>申込期間</td><td>備考</td></tr>
+    <tr><td>第1回</td><td>6月20日(土)</td><td>10:00～13:00</td><td>総合福祉センター</td><td>4月22日～5月22日</td><td></td></tr>
+    <tr><td>第2回</td><td>7月18日(土)</td><td>16:00～19:00</td><td>いわみーる</td><td>5月20日～6月19日</td><td>特別講師</td></tr>
+    <tr><td>第3回</td><td>8月22日(土)</td><td>10:00～13:00</td><td>総合福祉センター</td><td>6月19日～7月24日</td><td>親子料理教室</td></tr>
+    <tr><td>第4回</td><td>9月16日(水)</td><td>10:00～13:00</td><td>総合福祉センター</td><td>7月22日～8月21日</td><td></td></tr>
+    <tr><td>第5回</td><td>11月19日(木)</td><td>10:00～13:00</td><td>総合福祉センター</td><td>9月18日～10月23日</td><td></td></tr>
+    <tr><td>第6回</td><td>12月19日(土)</td><td>9:00～13:00</td><td>総合福祉センター</td><td>10月21日～11月20日</td><td></td></tr>
+    <tr><td>第7回</td><td>1月20日(水)</td><td>10:00～13:00</td><td>総合福祉センター</td><td>11月19日～12月18日</td><td></td></tr>
+    <tr><td>第8回</td><td>2月18日(木)</td><td>10:00～13:00</td><td>総合福祉センター</td><td>12月22日～1月22日</td><td></td></tr>
+  </table>
+</div>
+"""
+
 
 def test_gotsu_picks_teishutsu_kigen_not_publication_date():
     """7個ある日付から「提出期限」の8月3日を選ぶ。掲載日5/18ではない。"""
@@ -83,6 +119,64 @@ def test_table_style():
     got = extract_dates(TABLE_STYLE, ref=date(2026, 7, 1))
     assert got.date_start == date(2026, 9, 13), got.date_start
     assert got.deadline == date(2026, 8, 29), got.deadline
+
+
+def test_table_columns_pick_next_session_not_the_first():
+    """終わった回を飛ばして次回を選ぶ。5/16・7/15は終了済み。"""
+    got = extract_dates(HAMADA_KYUMEI, ref=date(2026, 7, 23), today=date(2026, 7, 28))
+    assert got.date_start == date(2026, 9, 12), f"次回が違う: {got.date_start}"
+    assert got.session_count == 6, f"回数が違う: {got.session_count}"
+
+
+def test_table_columns_do_not_set_date_end():
+    """飛び石の6日間を「9月12日〜翌3月17日」と期間にしない（6か月続くと誤解される）。"""
+    got = extract_dates(HAMADA_KYUMEI, ref=date(2026, 7, 23), today=date(2026, 7, 28))
+    assert not hasattr(got, "date_end") or getattr(got, "date_end", None) is None
+
+
+def test_table_columns_advance_as_sessions_pass():
+    """今日が進めば次回も進む。全部過ぎたら最後の回を残す（勝手に消さない）。"""
+    kw = dict(ref=date(2026, 7, 23))
+    assert extract_dates(HAMADA_KYUMEI, today=date(2026, 9, 13), **kw).date_start \
+        == date(2026, 11, 18)
+    assert extract_dates(HAMADA_KYUMEI, today=date(2026, 9, 12), **kw).date_start \
+        == date(2026, 9, 12), "当日は「次回」に含める"
+    last = extract_dates(HAMADA_KYUMEI, today=date(2027, 6, 1), **kw)
+    assert last.date_start == date(2027, 3, 17), "全部過ぎたら最後の回"
+
+
+def test_table_without_year_reads_sessions_in_order():
+    """年が無い列は「前の行より前に戻ったら翌年」と読む。
+
+    掲載日基準の _to_date だけだと、掲載(7/22)より前に終わった第1回 6月20日を
+    2027年と誤読し、回数も次回もずれる。
+    """
+    got = extract_dates(HAMADA_OSAKANA, ref=date(2026, 7, 22), today=date(2026, 7, 28))
+    assert got.date_start == date(2026, 8, 22), f"次回が違う: {got.date_start}"
+    assert got.session_count == 8, f"回数が違う: {got.session_count}"
+
+
+def test_table_column_source_is_recorded():
+    got = extract_dates(HAMADA_OSAKANA, ref=date(2026, 7, 22), today=date(2026, 7, 28))
+    assert "開催日" in got.date_source and "全8回" in got.date_source, got.date_source
+
+
+def test_vertical_table_still_uses_the_heading_path():
+    """縦組みの表（th|td の2列）は従来どおり。回数は付けない。"""
+    got = extract_dates(TABLE_STYLE, ref=date(2026, 7, 1), today=date(2026, 7, 1))
+    assert got.date_start == date(2026, 9, 13)
+    assert got.deadline == date(2026, 8, 29)
+    assert got.session_count is None, "単発の催しに回数が付いた"
+
+
+def test_multi_session_table_does_not_invent_a_deadline():
+    """行ごとに違う「申込期間」を、催し全体の締切として取らない。
+
+    お魚料理教室は回ごとに申込期間が別。列の最後（1月22日）を締切にすると、
+    次回(8/22)の申込とは無関係の日付が出る。
+    """
+    got = extract_dates(HAMADA_OSAKANA, ref=date(2026, 7, 22), today=date(2026, 7, 28))
+    assert got.deadline is None, f"無関係の締切を拾った: {got.deadline}（{got.deadline_source}）"
 
 
 def test_no_date_returns_nothing():

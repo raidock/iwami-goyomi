@@ -84,6 +84,9 @@ class Event:
     source_trust: str = "normal" # normal / high（観光協会など事前に選別済み）
     date_source: str = ""        # 開催日をどこから取ったか
     deadline_source: str = ""    # 締切をどこから取ったか
+    # 飛び石で複数回ある催しの回数。date_start は「次回」を指す。
+    # 期間ではないので date_end には触れない（「9月12日〜翌3月17日」は嘘になる）
+    session_count: Optional[int] = None
 
     @classmethod
     def from_listing(cls, raw_title: str, raw_date_text: str, url: str, source: str) -> "Event":

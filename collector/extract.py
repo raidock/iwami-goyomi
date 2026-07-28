@@ -25,7 +25,7 @@ from typing import Optional
 
 from bs4 import BeautifulSoup
 
-from .models import _to_date, wareki_to_seireki
+from .models import _to_date, today_jst, wareki_to_seireki
 
 # ---------------------------------------------------------------- 見出しの語
 DEADLINE_HEADS = [
@@ -63,6 +63,7 @@ class Extracted:
     deadline: Optional[date] = None
     date_source: str = ""        # どこから取ったか（承認画面に出す）
     deadline_source: str = ""
+    session_count: Optional[int] = None   # 飛び石で複数回ある催しの回数
 
 
 def _find_dates(text: str, ref: Optional[date]) -> list[tuple[date, int]]:
@@ -81,6 +82,73 @@ def _find_dates(text: str, ref: Optional[date]) -> list[tuple[date, int]]:
             dt = date(int(y), mo, d) if y else _to_date(mo, d, ref)
             if dt:
                 out.append((dt, m.end()))
+    return out
+
+
+def _column_dates(cells: list[str], ref: Optional[date]) -> list[date]:
+    """表の1列を上から順に読み、各行の日付を返す。
+
+    「第1回…第8回」のように行が時間順に並ぶので、年が書かれていない場合は
+    **前の行より前に戻ったら翌年** と読む。掲載日を基準にする _to_date だけだと、
+    掲載より前に終わった第1回（6月20日）を翌年と誤読する。
+    年が明記されている行（和暦変換後の「2026年5月16日」など）はそれに従う。
+    """
+    base = ref.year if ref else today_jst().year
+    out: list[date] = []
+    prev: Optional[date] = None
+    for cell in cells:
+        m = _DATE.search(cell)
+        if not m:
+            continue
+        y, mo, d = m.group(1), int(m.group(2)), int(m.group(3))
+        if y:
+            year = int(y)
+        elif prev is None:
+            year = base
+        else:
+            year = prev.year + 1 if (mo, d) < (prev.month, prev.day) else prev.year
+        try:
+            dt = date(year, mo, d)
+        except ValueError:
+            continue
+        # 先頭が掲載日より半年以上前になるのは、年の当てが外れている
+        if prev is None and not y and ref and (ref - dt).days > 180:
+            dt = date(year + 1, mo, d)
+        out.append(dt)
+        prev = dt
+    return out
+
+
+def _table_columns(soup: BeautifulSoup) -> list[tuple[str, list[str]]]:
+    """見出しが横一列に並ぶ表を、(列見出し, その列の全セル) に分解する。
+
+    _sections() は見出しの next_siblings を見るため、横組みの表では
+    「講習日時」の隣にある同じ見出し行のセル（会場・定員…）しか拾えず、
+    データ行に一度も届かない。浜田市は見出しセルが th ですらなく td のことも
+    あるので、表そのものを列で読み直す。
+
+    縦組み（<tr><th>日時</th><td>…</td></tr>）は既存の見出し経路が正しく扱うので、
+    列が3つ以上あり、かつ見出し行に日付が無い表だけを対象にする。
+    """
+    out = []
+    for table in soup.find_all("table"):
+        rows = table.find_all("tr")
+        if len(rows) < 2:
+            continue
+        head = rows[0].find_all(["th", "td"])
+        if len(head) < 3:
+            continue
+        labels = [wareki_to_seireki(c.get_text(" ", strip=True)) for c in head]
+        if any(_DATE.search(l) for l in labels):
+            continue                      # 見出し行に日付がある＝縦組み
+        body = [r.find_all(["th", "td"]) for r in rows[1:]]
+        for j, label in enumerate(labels):
+            if not label or len(label) > 24:
+                continue
+            col = [wareki_to_seireki(cells[j].get_text(" ", strip=True))
+                   for cells in body if j < len(cells)]
+            if col:
+                out.append((label, col))
     return out
 
 
@@ -122,15 +190,36 @@ def _sections(soup: BeautifulSoup) -> list[tuple[str, str]]:
     return out
 
 
-def extract_dates(html: str, ref: Optional[date] = None) -> Extracted:
+def extract_dates(html: str, ref: Optional[date] = None,
+                  today: Optional[date] = None) -> Extracted:
     """詳細ページのHTMLから開催日と締切を取り出す。
 
     ref には記事の掲載日を渡す（年の推定に使う）。
+    today は「次回」の判定に使う。省略時は日本時間の今日（テストからは固定値を渡す）。
     """
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup(["script", "style", "nav", "header", "footer"]):
         tag.decompose()
     got = Extracted()
+    today = today or today_jst()
+
+    # ---- 層0: 複数回が横組みの表で並ぶもの ------------------------------
+    # 救命講習（年6回）やお魚料理教室（全8回）のように、飛び石の日程が
+    # 表で並ぶ。期間ではないので date_end は使わず、次回と回数だけを持つ。
+    for label, col in _table_columns(soup):
+        if not any(k in label for k in HELD_HEADS):
+            continue
+        dates = sorted(set(_column_dates(col, ref)))
+        if not dates:
+            continue
+        future = [d for d in dates if d >= today]
+        got.date_start = future[0] if future else dates[-1]
+        if len(dates) > 1:
+            got.session_count = len(dates)
+            got.date_source = f"表「{label}」の列（全{len(dates)}回・次回）"
+        else:
+            got.date_source = f"表「{label}」の列"
+        break
 
     # ---- 層1: 見出しベース（【日時】形式も同じ扱い）---------------------
     plain = wareki_to_seireki(soup.get_text(" ", strip=True))
