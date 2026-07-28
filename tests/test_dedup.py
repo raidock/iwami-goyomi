@@ -91,6 +91,97 @@ def test_human_decision_is_never_overwritten():
         shutil.rmtree(d)
 
 
+# --- 日付の更新（2026-07 追加）----------------------------------------------
+# 埋めるだけにしていたため、複数回ある催し（救命講習は年6回）で次回が過ぎた
+# 瞬間に古い日付が残り、残りの回があるのに is_past() で永久に畳まれていた。
+# 抽出由来の値は毎回の抽出結果で上書きする。
+
+def test_known_item_date_is_refreshed_not_frozen():
+    """次回が過ぎたら、次の回に進む。古い日付が凍りつかない。"""
+    q, d = _queue()
+    try:
+        first = _ev(date_start=date(2026, 9, 12)); first.review_state = "auto"
+        first.date_source = "表「講習日時」の列（全6回・次回）"
+        first.session_count = 6
+        q.ingest([first])
+        later = _ev(date_start=date(2026, 11, 18)); later.review_state = "auto"
+        later.date_source = "表「講習日時」の列（全6回・次回）"
+        later.session_count = 6
+        stats = q.ingest([later])
+        assert q.approved[0].date_start == date(2026, 11, 18), \
+            f"古い日付が残っている: {q.approved[0].date_start}"
+        assert stats["updated"] == 1
+    finally:
+        shutil.rmtree(d)
+
+
+def test_missing_new_date_does_not_erase_the_old_one():
+    """抽出器が None を返した回で、既存の日付を消さない。"""
+    q, d = _queue()
+    try:
+        first = _ev(date_start=date(2026, 9, 12)); first.review_state = "auto"
+        q.ingest([first])
+        blank = _ev(); blank.review_state = "auto"      # 今回は取れなかった
+        q.ingest([blank])
+        assert q.approved[0].date_start == date(2026, 9, 12), "既存の日付が消えた"
+    finally:
+        shutil.rmtree(d)
+
+
+def test_title_derived_date_is_also_refreshable():
+    """date_source が空（タイトル由来）でも凍結しない。
+
+    main.py の extract_held_date はタイトルから日付を取るとき date_source を
+    設定しない。更新条件に date_source を使うと、この経路が永久に凍る。
+    """
+    q, d = _queue()
+    try:
+        first = _ev(date_start=date(2026, 8, 22)); first.review_state = "auto"
+        assert first.date_source == "", "前提が変わっている"
+        q.ingest([first])
+        later = _ev(date_start=date(2026, 8, 23)); later.review_state = "auto"
+        q.ingest([later])
+        assert q.approved[0].date_start == date(2026, 8, 23)
+    finally:
+        shutil.rmtree(d)
+
+
+def test_human_judgement_is_not_in_the_refresh_lists():
+    """review_state と status は上書き対象に入れない（人の判断だから）。"""
+    fields = set(ReviewQueue.ENRICHABLE) | set(ReviewQueue.REFRESHABLE)
+    assert "review_state" not in fields
+    assert "status" not in fields
+
+
+def test_venue_is_filled_but_not_overwritten():
+    """会場は空欄のときだけ埋める。日付と違って抽出のたびに変わる値ではない。"""
+    q, d = _queue()
+    try:
+        first = _ev(); first.review_state = "auto"; first.venue = "石央文化ホール"
+        q.ingest([first])
+        other = _ev(); other.review_state = "auto"; other.venue = "浜田市消防本部"
+        q.ingest([other])
+        assert q.approved[0].venue == "石央文化ホール", "会場が上書きされた"
+    finally:
+        shutil.rmtree(d)
+
+
+def test_rejected_item_dates_refresh_without_resurrecting():
+    """却下済みでも日付は追記・更新されるが、判断は却下のまま。"""
+    q, d = _queue()
+    try:
+        e = _ev(); e.review_state = "review"
+        q.ingest([e])
+        q.decide(q.pending[0].uid, approve=False)
+        again = _ev(date_start=date(2026, 9, 12)); again.review_state = "auto"
+        q.ingest([again])
+        assert len(q.approved) == 0 and len(q.rejected) == 1
+        assert q.rejected[0].review_state == "rejected", "人の判断が変わった"
+        assert q.rejected[0].date_start == date(2026, 9, 12)
+    finally:
+        shutil.rmtree(d)
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

@@ -73,9 +73,12 @@ def enrich_with_detail_pages(events: list, cfg: dict) -> None:
         except Exception as e:
             print(f"  [warn] 詳細取得に失敗: {ev.title[:24]} … {e}")
             continue
-        if got.date_start and not ev.date_start:
+        # 取れたときは入れる。既存を残す判断は ReviewQueue.ingest 側で行う
+        # （こちらで握りつぶすと、繰り返しの催しの次回が更新されない）
+        if got.date_start:
             ev.date_start, ev.date_source = got.date_start, got.date_source
-        if got.deadline and not ev.deadline:
+            ev.session_count = got.session_count
+        if got.deadline:
             ev.deadline, ev.deadline_source = got.deadline, got.deadline_source
         if got.date_start or got.deadline:
             hit += 1

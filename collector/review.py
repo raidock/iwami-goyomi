@@ -52,8 +52,26 @@ class ReviewQueue:
         return {e.uid for e in self.pending + self.approved + self.rejected}
 
     # ---- 取り込み ------------------------------------------------------
+    # 空欄なら埋めるもの
     ENRICHABLE = ("date_start", "date_end", "deadline",
-                  "date_source", "deadline_source", "venue")
+                  "date_source", "deadline_source", "venue", "session_count")
+    # 値が入っていても、毎回の抽出結果で上書きしてよいもの。
+    #
+    # 日付は機械が抽出した値なので、最新の抽出結果を正とする。埋めるだけにすると、
+    # 複数回ある催し（救命講習は年6回）で次回が過ぎた瞬間に古い日付が残り、
+    # is_past() が真になって、残りの回があるのに永久に畳まれる。
+    # 繰り返しの催しでは毎回・確実に起きるぶん、古い日付が残るほうが有害。
+    #
+    # 「取れなかったら消さない」は下のループで守っているので、抽出器が条件に
+    # 合わずに None を返した場合は既存の値がそのまま残る。
+    #
+    # venue は入れない（空欄のときだけ埋める）。
+    # review_state と status は絶対に入れないこと。日付は機械の抽出値、
+    # 承認は人が下した判断で、性質が違う。
+    REFRESHABLE = ("date_start", "date_end", "deadline",
+                   "date_source", "deadline_source", "session_count")
+    # 人の判断。どちらのリストにも入っていないことを起動時に確かめる
+    assert not ({"review_state", "status"} & set(ENRICHABLE + REFRESHABLE))
 
     def ingest(self, events: list[Event], auto_approve: bool = True) -> dict:
         """新規は取り込み、既知のものは新しく分かった情報で更新する。
@@ -74,7 +92,18 @@ class ReviewQueue:
                 changed = False
                 for f in self.ENRICHABLE:
                     new_v = getattr(ev, f, None)
-                    if new_v and not getattr(old, f, None):
+                    if not new_v:
+                        continue                    # 取れなかったら既存を消さない
+                    old_v = getattr(old, f, None)
+                    if not old_v:
+                        setattr(old, f, new_v)      # 空欄を埋める
+                        changed = True
+                    elif f in self.REFRESHABLE and new_v != old_v:
+                        # 変わったことが分かる必要がある。collect のログに出れば
+                        # GitHub Actions の実行ログにも残る
+                        if f in ("date_start", "date_end", "deadline"):
+                            print(f"[info] 日付を更新: {old.title[:34]} "
+                                  f"{old_v} → {new_v}")
                         setattr(old, f, new_v)
                         changed = True
                 if changed:
