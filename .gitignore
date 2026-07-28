@@ -4,3 +4,7 @@ __pycache__/
 data_demo/
 *.backup.json
 *.before-dedupe.json
+
+# macOS が自動生成する。コードとは無関係
+.DS_Store
+**/.DS_Store
