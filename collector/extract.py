@@ -162,6 +162,41 @@ def _table_columns(soup: BeautifulSoup) -> list[tuple[str, list[str]]]:
     return out
 
 
+# class/id がこれらで始まる語を含む要素は、記事本文ではなくページの枠。
+#
+# 浜田市はフッターに「開庁時間 …12月29日～1月3日は閉庁」があり、32ページ中
+# 14ページで「日付を含む見出し節」として拾われていた。いまは見出し語に当たらない
+# ので無害だが、HELD_HEADS に「期間」のような短い語を足した瞬間に誤爆する。
+#
+# **header は入れない。** 江津市の main_header には記事タイトルそのものが入る。
+# タイトルに開催日を書く情報源があり（はまナビ「8月22日（土）有福温泉…」）、
+# 節の見出しを指す名前（main-header / section-header）も一般的。
+# 実測でも header を除いて取れる日付は増えなかったので、危険なだけで益がない。
+_NOISE_PARTS = ("footer", "copyright", "nav", "gnav")
+_NOISE_SPLIT = re.compile(r"[-_\s]+")
+
+
+def _strip_chrome(soup: BeautifulSoup) -> None:
+    """記事本文ではない枠（フッター・ナビ・著作権表示）を落とす。
+
+    区切りで分けた語の**先頭一致**で見る。単純な部分一致だと「innovation」が
+    nav に当たってしまい、逆に完全一致だと「navi」「navbar」「gnav」が漏れる。
+    """
+    for el in soup.find_all(True):
+        if el.decomposed or el.attrs is None:
+            continue                       # 親ごと消えた要素は飛ばす
+        vals = []
+        cls = el.get("class")
+        vals += cls if isinstance(cls, list) else ([cls] if cls else [])
+        if el.get("id"):
+            vals.append(el.get("id"))
+        for v in vals:
+            parts = _NOISE_SPLIT.split(str(v).lower())
+            if any(p.startswith(w) for p in parts for w in _NOISE_PARTS):
+                el.decompose()
+                break
+
+
 def _is_event_period(label: str) -> bool:
     """催しがその期間ずっと続くことを示す見出しか。
 
@@ -220,6 +255,7 @@ def extract_dates(html: str, ref: Optional[date] = None,
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup(["script", "style", "nav", "header", "footer"]):
         tag.decompose()
+    _strip_chrome(soup)
     got = Extracted()
     today = today or today_jst()
 

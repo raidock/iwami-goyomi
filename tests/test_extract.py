@@ -192,6 +192,49 @@ HAMANAVI_STAMP = """
 """
 
 
+# 浜田市の全ページ共通のフッター。32ページ中14ページで
+# 「開庁時間」が日付を含む見出し節として拾われていた。
+HAMADA_FOOTER = """
+<div>
+  <h3>開催日時</h3><p>2026年9月13日（日曜日）午前10時から</p>
+  <div class="footer-content">
+    <dl><dt>開庁時間</dt>
+        <dd>月曜日～金曜日 （土曜日・日曜日・祝日及び12月29日～1月3日は閉庁）</dd></dl>
+  </div>
+  <div id="gnav"><a>12月1日 イベント一覧</a></div>
+  <p class="footer-copyright">Copyright © Hamada City</p>
+</div>
+"""
+
+
+def test_footer_and_nav_are_stripped_by_class():
+    """枠の日付を拾わない。本文の日付は残る。"""
+    got = extract_dates(HAMADA_FOOTER, ref=date(2026, 8, 1), today=date(2026, 8, 1))
+    assert got.date_start == date(2026, 9, 13), f"本文の日付が消えた: {got.date_start}"
+    assert got.deadline is None, f"枠から締切を拾った: {got.deadline}"
+
+
+def test_stripping_matches_word_starts_not_substrings():
+    """「innovation」を nav と読んで消さない（部分一致にしない）。"""
+    html = ("<div class='innovation-section'>"
+            "<h3>日時</h3><p>2026年9月13日（日曜日）</p></div>")
+    got = extract_dates(html, ref=date(2026, 8, 1), today=date(2026, 8, 1))
+    assert got.date_start == date(2026, 9, 13), "innovation を消してしまった"
+
+
+def test_header_named_elements_are_kept():
+    """header は除去しない。
+
+    江津市の main_header には記事タイトルそのものが入る。タイトルに開催日を
+    書く情報源があり（はまナビ「8月22日（土）有福温泉…」）、
+    節の見出しを指す名前（section-header）も一般的。実測でも益がなかった。
+    """
+    html = ("<div class='main_header'><h1>夏祭りを開催します</h1></div>"
+            "<div class='content_header'><h3>日時</h3><p>2026年9月13日</p></div>")
+    got = extract_dates(html, ref=date(2026, 8, 1), today=date(2026, 8, 1))
+    assert got.date_start == date(2026, 9, 13), "header を消して日付が取れなくなった"
+
+
 def test_period_heading_gives_both_the_start_and_the_deadline():
     """「実施・応募期間」から開始日と締切の両方を取る。
 
