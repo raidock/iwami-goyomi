@@ -142,7 +142,7 @@ GitHub Actions のサーバーは UTC です。`date.today()` をそのまま使
 
 ## これまでに起きた事故（すべて実際に発生）
 
-**10件すべて、テストは緑でした。** 実データか公開画面を見て初めて分かったものばかりです。
+**11件すべて、テストは緑でした。** 実データか公開画面を見て初めて分かったものばかりです。
 これがこのプロジェクトで最も重要な教訓です。
 
 | 事故 | 原因 | 対策 |
@@ -157,6 +157,7 @@ GitHub Actions のサーバーは UTC です。`date.today()` をそのまま使
 | 「出場者**大**募集」を取りこぼした | 同上 | 同上 |
 | 江津の RSS が見つからなかった | `<head>` ではなく本文の `<a>` にあった | 本文も走査し「新着」を優先 |
 | 観光協会の日付が全く取れなかった | 和暦（令和7年）・略記（R8.7.20） | `wareki_to_seireki()` で吸収 |
+| ワークフローが3行欠落して2日間動かなかった | 複数行の貼り付けで行が落ちた | ワークフローのYAMLをテストで検証する |
 
 ### 日付表記は7通りある
 
@@ -193,7 +194,7 @@ collector/
     base.py                アダプター共通
     municipal_rss.py       自治体・観光協会の汎用RSSアダプター（フィード自動発見）
     good_antiques.py       蚤の市アダプター（旧版から継続）
-tests/                     8スイート。すべて実データ由来
+tests/                     9スイート。すべて実データ由来
 config.yaml                情報源・サイト設定
 .github/workflows/         毎朝6時 + push で動く
 ```
@@ -216,6 +217,7 @@ python tests/test_wareki.py         # 和暦・略記・タイトル冒頭
 python tests/test_dedup.py          # uid 安定性（重複事故の回帰）
 python tests/test_feed_discovery.py # RSS自動発見
 python tests/test_good_antiques.py  # 蚤の市パーサ
+python tests/test_workflow.py       # ワークフローのYAML（CIは手元で動かないので形を守る）
 ```
 
 ### 分類器を変えたら必ず測り直す
