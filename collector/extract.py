@@ -57,6 +57,11 @@ _HELD_TAIL = re.compile(
     r"(?:（[^）]{0,6}）|\([^)]{0,6}\)|\s)*(?:午前|午後)\s*\d{1,2}\s*時|開演|開場|開催")
 
 
+# タイトル（＋概要）から取った日付につける印。main.py の仕分けで立てる。
+# これが立っているものは、詳細ページの本文抽出で上書きしない。
+TITLE_SOURCE = "タイトル冒頭"
+
+
 @dataclass
 class Extracted:
     date_start: Optional[date] = None
@@ -255,3 +260,22 @@ def extract_dates(html: str, ref: Optional[date] = None,
         if got.date_start and got.deadline:
             break
     return got
+
+
+def apply_extracted(ev, got: Extracted) -> None:
+    """詳細ページの抽出結果をイベントに反映する。
+
+    **タイトル由来の開催日は本文抽出で上書きしない。**
+    タイトルの日付は、書いた人がその記事の主題として選んだもの。対して本文には
+    関連する日付が何個も混ざる（江津 Go-Con は1ページに7個）。
+    カテゴリをタイトル優先で決めているのと同じ理屈（設計判断10）。
+
+    取れなかったときに既存を消さないのは呼び出し側と同じ約束。
+    """
+    if got.date_start and ev.date_source != TITLE_SOURCE:
+        ev.date_start = got.date_start
+        ev.date_source = got.date_source
+        ev.session_count = got.session_count
+    if got.deadline:
+        ev.deadline = got.deadline
+        ev.deadline_source = got.deadline_source

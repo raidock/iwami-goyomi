@@ -22,7 +22,7 @@ import yaml
 
 from collector import __version__
 from collector.classify import classify
-from collector.extract import extract_dates
+from collector.extract import TITLE_SOURCE, apply_extracted, extract_dates
 from collector.models import extract_deadline, extract_held_date
 from collector.about import to_about_page
 from collector.publish import to_public_site
@@ -74,12 +74,9 @@ def enrich_with_detail_pages(events: list, cfg: dict) -> None:
             print(f"  [warn] 詳細取得に失敗: {ev.title[:24]} … {e}")
             continue
         # 取れたときは入れる。既存を残す判断は ReviewQueue.ingest 側で行う
-        # （こちらで握りつぶすと、繰り返しの催しの次回が更新されない）
-        if got.date_start:
-            ev.date_start, ev.date_source = got.date_start, got.date_source
-            ev.session_count = got.session_count
-        if got.deadline:
-            ev.deadline, ev.deadline_source = got.deadline, got.deadline_source
+        # （こちらで握りつぶすと、繰り返しの催しの次回が更新されない）。
+        # ただしタイトル由来の開催日だけは本文抽出に譲らない
+        apply_extracted(ev, got)
         if got.date_start or got.deadline:
             hit += 1
         if i < len(events) - 1:
@@ -130,7 +127,10 @@ def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True) -> Non
         # 年の推定は「今日」ではなく記事の掲載日を基準にする
         ref = ev.published_at
         text = f"{ev.title} {ev.description}"
-        ev.date_start = ev.date_start or extract_held_date(text, ref)
+        if not ev.date_start:
+            # 由来を残す。これが立っていると詳細ページの本文抽出に負けない
+            if held := extract_held_date(text, ref):
+                ev.date_start, ev.date_source = held, TITLE_SOURCE
         ev.deadline = extract_deadline(text, ref)
         ev.review_state = bucket            # auto / review
         kinds[ev.kind] = kinds.get(ev.kind, 0) + 1

@@ -9,7 +9,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from datetime import date
 
-from collector.extract import extract_dates
+from collector.extract import TITLE_SOURCE, apply_extracted, extract_dates
+from collector.models import Event
 
 # 江津市 Go-Con2026（2026年5月18日掲載）の構造。日付が7個ある。
 GOTSU_GOCON = """
@@ -177,6 +178,37 @@ def test_multi_session_table_does_not_invent_a_deadline():
     """
     got = extract_dates(HAMADA_OSAKANA, ref=date(2026, 7, 22), today=date(2026, 7, 28))
     assert got.deadline is None, f"無関係の締切を拾った: {got.deadline}（{got.deadline_source}）"
+
+
+def _ev(**kw):
+    base = dict(title="t", prefecture="島根県", date_start=None, date_end=None,
+                url="https://example.invalid/x", source="hamanavi")
+    base.update(kw)
+    return Event(**base)
+
+
+def test_title_date_is_not_overwritten_by_the_body():
+    """タイトル由来の開催日は本文抽出に譲らない。
+
+    タイトルの日付は書いた人が記事の主題として選んだもの。本文には関連する
+    日付が何個も混ざる（Go-Conは1ページに7個）。設計判断10と同じ理屈。
+    """
+    ev = _ev(date_start=date(2026, 8, 22))
+    ev.date_source = TITLE_SOURCE
+    body = extract_dates(HAMADA_YOGEI, ref=date(2026, 6, 19))
+    assert body.date_start == date(2026, 12, 13), "前提が変わっている"
+    apply_extracted(ev, body)
+    assert ev.date_start == date(2026, 8, 22), f"タイトルの日付が消えた: {ev.date_start}"
+    assert ev.date_source == TITLE_SOURCE
+    assert ev.deadline == date(2026, 7, 31), "締切は本文から取ってよい"
+
+
+def test_body_date_is_used_when_the_title_had_none():
+    """タイトルに日付が無ければ、従来どおり本文から取る。"""
+    ev = _ev()
+    apply_extracted(ev, extract_dates(HAMADA_YOGEI, ref=date(2026, 6, 19)))
+    assert ev.date_start == date(2026, 12, 13)
+    assert ev.date_source == "本文「…時〜/開催」"
 
 
 def test_no_date_returns_nothing():
