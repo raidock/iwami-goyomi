@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import re
 from datetime import date, datetime, timedelta
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
@@ -43,7 +44,14 @@ class MunicipalRSS(Source):
 
     # ---- フィードの発見 ------------------------------------------------
     def _abs(self, href: str) -> str:
-        return href if href.startswith("http") else self.site + href
+        """サイト基準の絶対URLにする。
+
+        `//cdn.example.jp/rss.xml` というプロトコル相対URLは標準的な書き方だが、
+        `http` で始まらないので `self.site + href` に落ちて壊れていた。
+        `rss/news.rdf` のような先頭スラッシュ無しも同様に繋がらない。
+        3種類とも urljoin が正しく解く。
+        """
+        return urljoin(self.site + "/", href.strip())
 
     def discover_feed(self) -> str | None:
         """3段階で探す。江津市は<head>ではなく本文の<a>にRSSを置いていた。"""

@@ -34,6 +34,15 @@ HAMADA_HTML = """
 # RSSリンクがまったく無いサイト
 NO_FEED_HTML = "<html><head></head><body><a href='/about'>市について</a></body></html>"
 
+# プロトコル相対URL（`//host/path`）。CMSがCDNを挟むと出てくる標準的な書き方で、
+# http で始まらないため site と直結され壊れていた。
+PROTO_RELATIVE_HTML = """
+<html><head>
+  <link rel="alternate" type="application/rss+xml" title="新着情報"
+        href="//cdn.example.jp/rss/news.rdf">
+</head><body></body></html>
+"""
+
 
 def _src(html, site="https://www.city.gotsu.lg.jp"):
     s = MunicipalRSS(key="t", site=site, municipality="テスト市")
@@ -65,6 +74,32 @@ def test_explicit_feed_url_wins():
     s = MunicipalRSS(key="t", site="https://x.jp", municipality="市",
                      feed_url="https://x.jp/my.xml")
     assert s.discover_feed() == "https://x.jp/my.xml"
+
+
+def test_abs_protocol_relative():
+    """`//host/path` はサイトのスキームを引き継ぐ（site と直結してはいけない）"""
+    s = _src("", "https://www.city.hamada.shimane.jp")
+    assert s._abs("//cdn.example.jp/rss.xml") == "https://cdn.example.jp/rss.xml"
+
+
+def test_abs_absolute_url_untouched():
+    """絶対URLはそのまま"""
+    s = _src("", "https://www.city.hamada.shimane.jp")
+    assert s._abs("https://other.example.jp/a.rdf") == "https://other.example.jp/a.rdf"
+    assert s._abs("http://other.example.jp/a.rdf") == "http://other.example.jp/a.rdf"
+
+
+def test_abs_relative_paths():
+    """ルート相対も、先頭スラッシュ無しの相対パスも繋がる"""
+    s = _src("", "https://www.city.hamada.shimane.jp")
+    assert s._abs("/www/rss/news.rdf") == "https://www.city.hamada.shimane.jp/www/rss/news.rdf"
+    assert s._abs("rss/news.rdf") == "https://www.city.hamada.shimane.jp/rss/news.rdf"
+
+
+def test_discover_feed_with_protocol_relative_href():
+    """自動発見の経路でもプロトコル相対URLが正しく解ける"""
+    url = _src(PROTO_RELATIVE_HTML, "https://www.city.hamada.shimane.jp").discover_feed()
+    assert url == "https://cdn.example.jp/rss/news.rdf", url
 
 
 def test_no_feed_returns_none_gracefully():
