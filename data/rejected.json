@@ -25,6 +25,7 @@
     "source_trust": "normal",
     "date_source": "",
     "deadline_source": "",
+    "session_count": null,
     "uid": "d758907c07056388f86b8f36e4b80522"
   },
   {
@@ -53,6 +54,7 @@
     "source_trust": "high",
     "date_source": "",
     "deadline_source": "",
+    "session_count": null,
     "uid": "9527a640f3a175d31d91b37d90147be0"
   },
   {
@@ -81,6 +83,7 @@
     "source_trust": "high",
     "date_source": "",
     "deadline_source": "",
+    "session_count": null,
     "uid": "4559a2bac0b27571be184c768f27504a"
   },
   {
@@ -109,6 +112,7 @@
     "source_trust": "high",
     "date_source": "",
     "deadline_source": "",
+    "session_count": null,
     "uid": "5fb2bf4dae6379e20e1b99829aeeaead"
   }
 ]
