@@ -176,6 +176,7 @@ def cmd_pending(queue: ReviewQueue) -> None:
     if not items:
         print("承認待ちはありません。")
         return
+    warnings = queue.similarity_warnings(items)
     print(f"承認待ち {len(items)}件\n")
     for i, e in enumerate(items, 1):
         print(f"{i}. [{e.city}] {e.title}")
@@ -185,6 +186,12 @@ def cmd_pending(queue: ReviewQueue) -> None:
         if e.deadline:
             print(f"   締切 {e.deadline}  ({e.deadline_source or '—'})")
         print(f"   {e.url}")
+        # 市またぎの重複は自動で寄せない（対象読者も種別も違うことがある）。
+        # 気づけるように出すだけ。
+        for _, label, other in warnings.get(e.uid, []):
+            print(f"   ⚠ 似た催しが{label}: [{other.city}] {other.title[:34]}")
+    if warnings:
+        print(f"\n⚠ の {len(warnings)}件は似たものがあります（別の催しのこともあります）")
     print(f"\n承認するには: python main.py review")
 
 

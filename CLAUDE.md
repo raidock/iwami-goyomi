@@ -194,7 +194,7 @@ collector/
     base.py                アダプター共通
     municipal_rss.py       自治体・観光協会の汎用RSSアダプター（フィード自動発見）
     good_antiques.py       蚤の市アダプター（旧版から継続）
-tests/                     9スイート。すべて実データ由来
+tests/                     10スイート。すべて実データ由来
 config.yaml                情報源・サイト設定
 .github/workflows/         毎朝6時 + push で動く
 ```
@@ -215,6 +215,7 @@ python tests/test_kinds.py          # 種別・並び順・過去判定・時差
 python tests/test_extract.py        # 詳細ページからの日付抽出
 python tests/test_wareki.py         # 和暦・略記・タイトル冒頭
 python tests/test_dedup.py          # uid 安定性（重複事故の回帰）
+python tests/test_similar_titles.py # 市またぎ重複の警告（表示専用）
 python tests/test_feed_discovery.py # RSS自動発見
 python tests/test_good_antiques.py  # 蚤の市パーサ
 python tests/test_workflow.py       # ワークフローのYAML（CIは手元で動かないので形を守る）

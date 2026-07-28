@@ -12,8 +12,57 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
+import unicodedata
 
-from .models import Event
+from .models import ERA_BASE, Event
+
+# ---- 市またぎ重複の気づき（表示専用） ----------------------------------
+#
+# 県全体の催しは、市町ごとに違う切り口で流れてくる。
+# 「しまねふるさとフェア２０２７（広島市）」（浜田市／参加申込）と
+# 「しまねふるさとフェア出展者募集」（益田市／募集）は、対象読者も種別も
+# 違うので、機械的に片方へ寄せると情報が失われる。
+# かわりに承認画面で人に知らせる。データは変更しない。
+#
+# しきい値は緩めに倒している。気づけないほうが、似ていないものに警告が
+# 出るより痛い（誤検知は人が読み飛ばすだけ）。
+SIMILAR_THRESHOLD = 0.5
+# 比較の邪魔になる記号・空白。全角半角はNFKCで寄せてから落とす
+_DROP_CHARS = re.compile(
+    r"[\s\-–—ー~〜・,.、。!?\"'「」『』【】〔〕()\[\]{}/|:;#*+=_@&%]")
+# 「令和8年度」「第3回」のような頭の定型句。ここが揃っただけで似ていると
+# 言われると、無関係な市の告知まで並んでしまう
+_LEAD_BOILER = re.compile(
+    r"^(?:(?:%s)\d+年度?|第\d+回|\d+年度?)+" % "|".join(ERA_BASE))
+
+
+def normalize_title(title: str) -> str:
+    """全角半角・空白・記号を寄せて比較しやすくする。"""
+    s = unicodedata.normalize("NFKC", title or "").lower()
+    return _DROP_CHARS.sub("", s)
+
+
+def title_similarity(a: str, b: str) -> float:
+    """0.0〜1.0。簡易判定でよい（人が見るだけなので）。"""
+    na, nb = normalize_title(a), normalize_title(b)
+    if not na or not nb:
+        return 0.0
+    if na == nb or na in nb or nb in na:
+        return 1.0
+    ga = {na[i:i + 2] for i in range(len(na) - 1)}
+    gb = {nb[i:i + 2] for i in range(len(nb) - 1)}
+    if not ga or not gb:
+        return 0.0
+    dice = 2 * len(ga & gb) / (len(ga) + len(gb))
+    # 催しの名前は頭に来る。定型句を外した先頭が6文字そろえば拾う
+    core_a, core_b = _LEAD_BOILER.sub("", na), _LEAD_BOILER.sub("", nb)
+    shared = 0
+    for x, y in zip(core_a, core_b):
+        if x != y:
+            break
+        shared += 1
+    return max(dice, 0.6 if shared >= 6 else 0.0)
 
 
 class ReviewQueue:
@@ -50,6 +99,35 @@ class ReviewQueue:
     def known_uids(self) -> set[str]:
         """一度でも判断したものは二度と聞かない。"""
         return {e.uid for e in self.pending + self.approved + self.rejected}
+
+    # ---- 市またぎ重複の気づき ------------------------------------------
+    def similarity_warnings(
+        self, items: list[Event] | None = None,
+        threshold: float = SIMILAR_THRESHOLD,
+    ) -> dict[str, list[tuple[float, str, Event]]]:
+        """uid → 似ているもの（似ている度・どこにあるか・そのもの）。
+
+        比較先は公開中と承認待ちの両方。同じ日の収集で両市から同時に入ると
+        どちらも未承認のまま並ぶので、pending 同士も見る必要がある。
+
+        **表示専用。データは一切変更しない。**
+        """
+        items = self.pending if items is None else items
+        pools = [("公開中", self.approved), ("承認待ち", self.pending)]
+        out: dict[str, list[tuple[float, str, Event]]] = {}
+        for ev in items:
+            hits: list[tuple[float, str, Event]] = []
+            for label, pool in pools:
+                for other in pool:
+                    if other.uid == ev.uid:
+                        continue
+                    score = title_similarity(ev.title, other.title)
+                    if score >= threshold:
+                        hits.append((score, label, other))
+            if hits:
+                hits.sort(key=lambda h: -h[0])
+                out[ev.uid] = hits[:3]      # 多すぎると読まれない
+        return out
 
     # ---- 取り込み ------------------------------------------------------
     # 空欄なら埋めるもの
@@ -149,6 +227,7 @@ class ReviewQueue:
         if not queue:
             print("承認待ちはありません。")
             return
+        warnings = self.similarity_warnings(queue)
         print(f"承認待ち {len(queue)}件  [y]公開 [n]捨てる [s]あとで [q]終了\n")
         for i, ev in enumerate(queue, 1):
             print(f"--- {i}/{len(queue)} ---")
@@ -156,6 +235,9 @@ class ReviewQueue:
             print(f"  {ev.city} / {ev.category or 'カテゴリ未判定'} / score={ev.score}")
             print(f"  判定理由: {ev.reason}")
             print(f"  {ev.url}")
+            for _, label, other in warnings.get(ev.uid, []):
+                print(f"  ⚠ 似た催しが{label}: [{other.city}] {other.title[:34]}")
+                print(f"    {other.url}")
             ans = input("  > ").strip().lower()
             if ans == "q":
                 break
