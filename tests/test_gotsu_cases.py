@@ -55,18 +55,20 @@ def _run_extra():
     return ok == 2
 
 
-if __name__ == "__main__":
-    rc = main()
-    print()
-    ok = _run_extra()
-    sys.exit(0 if rc == 0 and ok else 1)
-
 # --- 追加ケース（2026-07 実サイトで発見）------------------------------------
 # 「行います」は自治体があらゆる作業に使う汎用動詞。単独で強い根拠にすると
 # 工事のお知らせが自動公開されてしまう。
+#
+# 「道路清掃を実施します」を drop と書いていたのは、このテストの誤りだった
+# （2026-07 修正）。正しくは review、つまり承認キューに出して人が n を押す。
+#
+# 落としたくなるが、**「清掃」を除外語に足してはいけない。**
+# 海岸清掃ボランティア募集、地域一斉清掃は本物の地域イベントで、
+# 除外語にすると全部落ちる。取りこぼしゼロが最優先（載っていないほうが痛い）。
+# 判別できない語で機械的に捨てず、人に見せる。これが承認キューの役割そのもの。
 EXTRA = [
     ("水道メーターの取り替えを行います", "drop", "生活インフラ工事。催しではない"),
-    ("道路清掃を実施します", "drop", "汎用動詞のみ。催しの語がない"),
+    ("道路清掃を実施します", "review", "催しの語がない。捨てずに人へ回す（清掃は除外語にしない）"),
     ("危険物取扱者保安講習を行います", "keep", "催しの語（講習）を伴うので催し"),
     ("石見神楽公演を行います", "keep", "催しの語（神楽公演）を伴う"),
 ]
@@ -76,7 +78,8 @@ def test_generic_verbs_need_event_noun():
     for title, expect, note in EXTRA:
         from collector.classify import classify
         v = classify(title)
-        got = "drop" if v.bucket == "drop" else "keep"
+        # drop と review は結果が違う（捨てるか、人に見せるか）ので区別する
+        got = v.bucket if v.bucket in ("drop", "review") else "keep"
         assert got == expect, f"{title} → {got}（期待 {expect}）: {note}"
 
 
@@ -86,3 +89,12 @@ def test_no_infra_notice_reaches_auto_publish():
     for title in ["水道メーターの取り替えを行います", "道路清掃を実施します",
                   "全面通行止めのお知らせ：市道新江川橋線", "計画停電を実施します"]:
         assert classify(title).bucket != "auto", f"自動公開に混入: {title}"
+
+
+# 実行ブロックはファイル末尾に置くこと。上に置くと、ここから下で定義される
+# テスト関数がまだ存在せず _run_extra() が NameError で落ちる。
+if __name__ == "__main__":
+    rc = main()
+    print()
+    ok = _run_extra()
+    sys.exit(0 if rc == 0 and ok else 1)
