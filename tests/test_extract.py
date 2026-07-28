@@ -235,6 +235,69 @@ def test_header_named_elements_are_kept():
     assert got.date_start == date(2026, 9, 13), "header を消して日付が取れなくなった"
 
 
+def test_fullwidth_space_in_the_label():
+    """江津市観光協会は【日　時】と全角空白で字間を空ける。
+
+    そのままだと「日時」に一致せず、開催日を1件も取れなかった。
+    （江津駅前夜市場「夏祭り」。ページは（日）と書いているが2026-07-20は
+    月曜＝海の日で、ページ側の曜日表記の誤り。日付はタイトルのR8.7.20と一致）
+    """
+    html = "<div><p>【日　時】2026年7月20日（日）17:00～21:00</p></div>"
+    got = extract_dates(html, ref=date(2026, 6, 12), today=date(2026, 6, 12))
+    assert got.date_start == date(2026, 7, 20), f"取れていない: {got.date_start}"
+
+
+def test_kaisai_gappi_heading():
+    """浜田市 一斉相談会の【開催月日】。「開催日」には部分一致しない。"""
+    html = "<div><p>【開催月日】 2026年9月11日（金）</p><p>【場所と時間】浜田会場</p></div>"
+    got = extract_dates(html, ref=date(2026, 7, 1), today=date(2026, 7, 1))
+    assert got.date_start == date(2026, 9, 11), f"取れていない: {got.date_start}"
+
+
+def test_jisshibi_heading():
+    """浜田市 危険物取扱者保安講習の「対面講習の実施日・会場」。"""
+    html = ("<div><h3>対面講習の実施日・会場</h3>"
+            "<p>9月10日 (木)　浜田市下府町327番地114 島根県トラック協会</p></div>")
+    got = extract_dates(html, ref=date(2026, 7, 16), today=date(2026, 7, 16))
+    assert got.date_start == date(2026, 9, 10), f"取れていない: {got.date_start}"
+
+
+def test_bare_kikan_is_an_event_period():
+    """修飾語のない【期間】は開催期間（はまナビ 海開き）。"""
+    html = ("<div><p>【期間】 2026年7月18日（土）～8月23日（日）</p>"
+            "<p>【場所】 石見海浜公園 姉ヶ浜海水浴場</p></div>")
+    got = extract_dates(html, ref=date(2026, 7, 14), today=date(2026, 7, 14))
+    assert got.date_start == date(2026, 7, 18), f"開始が違う: {got.date_start}"
+    assert got.date_end == date(2026, 8, 23), f"終わりが違う: {got.date_end}"
+
+
+def test_qualified_kikan_is_still_not_an_event_period():
+    """修飾語が付く「期間」は開催期間にしない。
+
+    裸の「期間」だけを開催期間として扱う根拠は、実ページ32件で数えた結果
+    応募の窓・雇用期間がすべて修飾語付きだったこと。ここが崩れると
+    段階2で作った PERIOD_HEADS との区別も壊れる。
+    """
+    for label in ("募集期間", "公募期間", "申込期間", "雇用形態・期間"):
+        html = f"<div><p>【{label}】 2026年7月1日～8月28日</p></div>"
+        got = extract_dates(html, ref=date(2026, 6, 20), today=date(2026, 6, 20))
+        assert got.date_start is None, f"「{label}」を開催日にした: {got.date_start}"
+
+
+def test_kikan_is_not_added_to_held_heads():
+    """「期間」を HELD_HEADS に入れると「募集期間」にも部分一致してしまう。"""
+    from collector.extract import HELD_HEADS
+    assert "期間" not in HELD_HEADS
+
+
+def test_per_school_schedule_is_left_alone():
+    """学校別の一覧は1つの日付に潰さない（段階1の複数日と同じ問題）。"""
+    html = ("<div><h3>各小学校の健康診断日程</h3>"
+            "<p>郷田小学校 10月22日(木曜日) 高角小学校 10月23日(金曜日)</p></div>")
+    got = extract_dates(html, ref=date(2026, 7, 21), today=date(2026, 7, 21))
+    assert got.date_start is None, f"学校別の日程を開催日にした: {got.date_start}"
+
+
 def test_period_heading_gives_both_the_start_and_the_deadline():
     """「実施・応募期間」から開始日と締切の両方を取る。
 

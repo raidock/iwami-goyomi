@@ -38,6 +38,11 @@ PERIOD_HEADS = [                      # 期間の見出しは「終わり」が�
 ]
 HELD_HEADS = [
     "日時", "開催日", "開催日時", "開催期間", "とき", "期日", "開催場所と日時",
+    # 実サイトで見つけた言い回し（2026-07）
+    "開催月日",      # 浜田市 一斉相談会【開催月日】。「開催日」には部分一致しない
+    "開催月日時",
+    "実施日",        # 浜田市 危険物取扱者保安講習「対面講習の実施日・会場」
+    "実施日時",
 ]
 # 「◯◯期間」のうち、催しがその期間ずっと続くことを示す語。
 # 「公募期間」「募集期間」は応募の受付窓であって開催期間ではない
@@ -197,13 +202,35 @@ def _strip_chrome(soup: BeautifulSoup) -> None:
                 break
 
 
+_LABEL_WS = re.compile(r"[\s　]+")
+
+
+def _norm_label(label: str) -> str:
+    """見出しの中の空白を取り除いて比べる。
+
+    江津市観光協会は【日　時】のように全角空白で字間を空ける。
+    そのままでは「日時」に一致せず、開催日を1件も取れなかった。
+    比較にはこれを使い、date_source に出す文字は元のまま残す。
+    """
+    return _LABEL_WS.sub("", label)
+
+
 def _is_event_period(label: str) -> bool:
     """催しがその期間ずっと続くことを示す見出しか。
 
     「実施・応募期間」は実施＝催しが8/1から12/15まで続くという意味なので、
     始まりが開催日、終わりが date_end。
     「公募期間」「募集期間」「申込期間」は応募の受付窓であって開催期間ではない。
+
+    修飾語のない裸の「期間」も開催期間として扱う。実ページ32件で「期間」を
+    含む見出しを数えたところ、応募の窓・雇用期間はすべて修飾語付き
+    （公募期間／募集期間／実施・応募期間／雇用形態・期間）で、裸の「期間」は
+    催しの開催期間だけだった（はまナビ 海開き 7/18〜8/23）。
+    「期間」を HELD_HEADS に入れると「募集期間」にも部分一致してしまうため、
+    ここで語全体が「期間」のときだけを見る。
     """
+    if label == "期間":
+        return True
     return "期間" in label and any(w in label for w in PERIOD_EVENT_WORDS)
 
 
@@ -263,7 +290,7 @@ def extract_dates(html: str, ref: Optional[date] = None,
     # 救命講習（年6回）やお魚料理教室（全8回）のように、飛び石の日程が
     # 表で並ぶ。期間ではないので date_end は使わず、次回と回数だけを持つ。
     for label, col in _table_columns(soup):
-        if not any(k in label for k in HELD_HEADS):
+        if not any(k in _norm_label(label) for k in HELD_HEADS):
             continue
         dates = sorted(set(_column_dates(col, ref)))
         if not dates:
@@ -285,22 +312,23 @@ def extract_dates(html: str, ref: Optional[date] = None,
         dates = _find_dates(body, ref)
         if not dates:
             continue
-        if not got.deadline and any(k in label for k in DEADLINE_HEADS):
+        name = _norm_label(label)            # 【日　時】を「日時」として比べる
+        if not got.deadline and any(k in name for k in DEADLINE_HEADS):
             got.deadline = dates[0][0]
             got.deadline_source = f"見出し「{label}」"
-        elif not got.deadline and any(k in label for k in PERIOD_HEADS):
+        elif not got.deadline and any(k in name for k in PERIOD_HEADS):
             got.deadline = dates[-1][0]          # 期間は終わりが締切
             got.deadline_source = f"見出し「{label}」の終わり"
 
         # 締切を取ったかどうかとは独立に開催日を見る。ここを elif にしていたため、
         # 「実施・応募期間 8月1日〜12月15日」が締切に消費され、
         # スタンプラリーの開始日8/1が捨てられていた
-        if not got.date_start and any(k in label for k in HELD_HEADS):
+        if not got.date_start and any(k in name for k in HELD_HEADS):
             got.date_start = dates[0][0]
             got.date_source = f"見出し「{label}」"
-            if _is_event_period(label) and len(dates) > 1:
+            if _is_event_period(name) and len(dates) > 1:
                 got.date_end = dates[-1][0]
-        elif not got.date_start and _is_event_period(label):
+        elif not got.date_start and _is_event_period(name):
             got.date_start = dates[0][0]
             got.date_source = f"見出し「{label}」の始まり"
             if len(dates) > 1:
