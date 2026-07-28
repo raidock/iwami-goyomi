@@ -982,5 +982,36 @@
     "deadline_source": "本文「…までに/必着」",
     "session_count": null,
     "uid": "0ad3823b35115f32668e6fbc4828e059"
+  },
+  {
+    "title": "【要申込】inclusive × 海 講演会",
+    "prefecture": "島根県",
+    "date_start": "2026-09-05",
+    "date_end": null,
+    "url": "https://kankou-hamada.or.jp/archives/36672",
+    "source": "hamanavi",
+    "raw_date_text": "",
+    "city": "浜田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "プロボディーボーダー 堀 由美恵氏の講演会です。演題「聞こえないことは宝物」手話通訳・要約筆記ありぜひお気軽にご聴講ください。 【日時】 2026年9月5日（土）13：00～　※開場 12：30　 【場所】 国府まちづく... <a class=\"view-article\" href=\"https://kankou-hamada.or.jp/archives/36672\">View Article</a>",
+    "published_at": "2026-07-28",
+    "deadline": null,
+    "category": "学び・講座",
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "観光協会",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "approved",
+    "score": 2,
+    "reason": "イベント語: 講演会",
+    "source_trust": "high",
+    "date_source": "見出し「日時」",
+    "deadline_source": "",
+    "session_count": null,
+    "uid": "e633090ec9df9205c3b5f9b69e2d97c8"
   }
 ]
