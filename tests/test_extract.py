@@ -298,6 +298,66 @@ def test_per_school_schedule_is_left_alone():
     assert got.date_start is None, f"学校別の日程を開催日にした: {got.date_start}"
 
 
+# 浜田市「山陰浜田港お魚料理教室の開催について（受講者募集）」（2026年7月22日掲載）。
+# 全角と半角が混ざり、締切の時刻に「分」まで書かれている。
+# 締切として拾えず、開催日として自動公開されていた（2026-07 の実物で発見）。
+HAMADA_OSAKANA_BOSHU = """
+<div>
+  <p>登録日：2026年7月22日</p>
+  <p>◆日にち：令和８ 年９月１６日（水）</p>
+  <p>◆時間：１０：００～１３：００</p>
+  <p>◆申込締切：８ 月２1 日（金） 午後５時１５分まで</p>
+</div>
+"""
+
+# 浜田市 世界こども美術館の企画展。「会期」は見出し要素として置かれている。
+HAMADA_KAIKI = """
+<div>
+  <p>登録日：2026年6月30日</p>
+  <strong>会期</strong>
+  <p>7月4日（土）～９月27日（日）午前９時30分～午後5時
+     休館日：毎週月曜日（但し7/20、8/10、9/21は開館）、7/21（火）、9/24（木）</p>
+</div>
+"""
+
+
+def test_deadline_with_minutes_is_a_deadline_not_an_event_date():
+    """「午後５時１５分まで」を締切として読む。
+
+    分を許していなかったため締切に一致せず、代わりに _HELD_TAIL の
+    「午後◯時」に当たって開催日として自動公開されていた。
+    """
+    got = extract_dates(HAMADA_OSAKANA_BOSHU, ref=date(2026, 7, 22),
+                        today=date(2026, 7, 28))
+    assert got.deadline == date(2026, 8, 21), f"締切が取れていない: {got.deadline}"
+    assert got.date_start != date(2026, 8, 21), "締切を開催日にしている"
+
+
+def test_kaiki_heading_is_an_event_period():
+    """「会期」は催しが続く期間。始まりが開催日、終わりが date_end。"""
+    got = extract_dates(HAMADA_KAIKI, ref=date(2026, 6, 30), today=date(2026, 7, 28))
+    assert got.date_start == date(2026, 7, 4), f"会期の始まりが違う: {got.date_start}"
+    assert got.date_end == date(2026, 9, 27), f"会期の終わりが違う: {got.date_end}"
+
+
+def test_kaiki_survives_until_the_end_of_the_period():
+    """会期の途中なら「これから」に残る（期間ものは終わりの日で見る）。"""
+    from collector.models import Event
+    from collector.publish import is_past
+    got = extract_dates(HAMADA_KAIKI, ref=date(2026, 6, 30), today=date(2026, 7, 28))
+    ev = _ev(date_start=got.date_start, date_end=got.date_end)
+    ev.kind = "催し"
+    assert not is_past(ev, date(2026, 7, 28)), "開催中なのに終了扱いになった"
+    assert is_past(ev, date(2026, 9, 28)), "会期を過ぎても終了にならない"
+
+
+def test_kaiki_is_not_left_in_period_event_words():
+    """会期は PERIOD_EVENT_WORDS では一度も一致しない（死にコードだった）。"""
+    from collector.extract import PERIOD_EVENT_WORDS, _is_event_period
+    assert "会期" not in PERIOD_EVENT_WORDS
+    assert _is_event_period("会期"), "会期が期間として扱われていない"
+
+
 def test_period_heading_gives_both_the_start_and_the_deadline():
     """「実施・応募期間」から開始日と締切の両方を取る。
 
