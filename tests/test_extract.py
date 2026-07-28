@@ -180,6 +180,63 @@ def test_multi_session_table_does_not_invent_a_deadline():
     assert got.deadline is None, f"無関係の締切を拾った: {got.deadline}（{got.deadline_source}）"
 
 
+# はまナビ「どんちっちはまだ!スタンプラリー2026」（2026年7月21日掲載）。
+# 【実施・応募期間】は、催しが8/1から12/15まで続き、応募もその日までという意味。
+HAMANAVI_STAMP = """
+<div>
+  <p>スタンプ数に応じて抽選で総勢30名様に素敵な賞品が当たります！</p>
+  <p>【実施・応募期間】 2026年8月1日（土）～12月15日（火）17：45まで</p>
+  <p>【参加費】 無料</p>
+  <p>【スタンプ設置施設】 全12ヶ所</p>
+</div>
+"""
+
+
+def test_period_heading_gives_both_the_start_and_the_deadline():
+    """「実施・応募期間」から開始日と締切の両方を取る。
+
+    if/elif で排他にしていたため、締切に消費されて開始日8/1が捨てられていた。
+    """
+    got = extract_dates(HAMANAVI_STAMP, ref=date(2026, 7, 21), today=date(2026, 7, 28))
+    assert got.date_start == date(2026, 8, 1), f"開始日が取れていない: {got.date_start}"
+    assert got.date_end == date(2026, 12, 15), f"終わりが違う: {got.date_end}"
+    assert got.deadline == date(2026, 12, 15), f"締切が違う: {got.deadline}"
+
+
+def test_koubo_kikan_is_not_an_event_period():
+    """「公募期間」は応募の受付窓であって開催期間ではない。
+
+    Go-Con の公募期間 5/18〜8/3 を開催日にすると、催しが5月に始まったことになる。
+    """
+    got = extract_dates(GOTSU_GOCON, ref=date(2026, 5, 18))
+    assert got.date_start != date(2026, 5, 18), "公募期間の始まりを開催日にした"
+    assert got.date_end is None, f"公募期間を開催期間にした: {got.date_end}"
+    assert got.deadline == date(2026, 8, 3), "締切は従来どおり取れること"
+
+
+def test_boshu_kikan_on_an_event_is_not_the_event_date():
+    """種別が「催し」でも、募集期間の始まりは開催日ではない。
+
+    さざんか祭り（開催10/31）に【募集期間】7/1〜8/28 があっても、
+    date_start=7/1 にしてはいけない。日付の意味は見出しが決める。
+    """
+    html = ("<div><p>さざんか祭りを開催します</p>"
+            "<p>【募集期間】 2026年7月1日～8月28日</p></div>")
+    got = extract_dates(html, ref=date(2026, 6, 20), today=date(2026, 7, 28))
+    assert got.date_start is None, f"募集期間を開催日にした: {got.date_start}"
+    assert got.deadline == date(2026, 8, 28)
+
+
+def test_deadline_note_is_hidden_when_it_equals_the_period_end():
+    """期間の終わりと締切が同じ日なら、締切の注記を二重に出さない。"""
+    from collector.publish import _deadline_note
+    ev = _ev(date_start=date(2026, 8, 1), date_end=date(2026, 12, 15))
+    ev.kind, ev.deadline = "催し", date(2026, 12, 15)
+    assert _deadline_note(ev, date(2026, 7, 28)) == "", "締切が二重に出ている"
+    ev.deadline = date(2026, 8, 20)          # 別の日なら出す
+    assert "8/20" in _deadline_note(ev, date(2026, 7, 28))
+
+
 def _ev(**kw):
     base = dict(title="t", prefecture="島根県", date_start=None, date_end=None,
                 url="https://example.invalid/x", source="hamanavi")

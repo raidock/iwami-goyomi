@@ -39,6 +39,10 @@ PERIOD_HEADS = [                      # 期間の見出しは「終わり」が�
 HELD_HEADS = [
     "日時", "開催日", "開催日時", "開催期間", "とき", "期日", "開催場所と日時",
 ]
+# 「◯◯期間」のうち、催しがその期間ずっと続くことを示す語。
+# 「公募期間」「募集期間」は応募の受付窓であって開催期間ではない
+# （江津 Go-Con の公募期間 5/18〜8/3 を開催日にしてはいけない）
+PERIOD_EVENT_WORDS = ["実施", "開催", "会期"]
 
 # ---------------------------------------------------------------- 日付の形
 # 「8月3日（月曜日）」「12月13日（日）」「2026年8月3日」いずれも拾う
@@ -65,6 +69,7 @@ TITLE_SOURCE = "タイトル冒頭"
 @dataclass
 class Extracted:
     date_start: Optional[date] = None
+    date_end: Optional[date] = None       # 切れ目なく続く期間の終わり
     deadline: Optional[date] = None
     date_source: str = ""        # どこから取ったか（承認画面に出す）
     deadline_source: str = ""
@@ -157,6 +162,16 @@ def _table_columns(soup: BeautifulSoup) -> list[tuple[str, list[str]]]:
     return out
 
 
+def _is_event_period(label: str) -> bool:
+    """催しがその期間ずっと続くことを示す見出しか。
+
+    「実施・応募期間」は実施＝催しが8/1から12/15まで続くという意味なので、
+    始まりが開催日、終わりが date_end。
+    「公募期間」「募集期間」「申込期間」は応募の受付窓であって開催期間ではない。
+    """
+    return "期間" in label and any(w in label for w in PERIOD_EVENT_WORDS)
+
+
 def _bracket_sections(text: str) -> list[tuple[str, str]]:
     """【日時】…【場所】… の形から (ラベル, 中身) を取り出す。"""
     out, marks = [], list(_BRACKET_LABEL.finditer(text))
@@ -240,9 +255,20 @@ def extract_dates(html: str, ref: Optional[date] = None,
         elif not got.deadline and any(k in label for k in PERIOD_HEADS):
             got.deadline = dates[-1][0]          # 期間は終わりが締切
             got.deadline_source = f"見出し「{label}」の終わり"
-        elif not got.date_start and any(k in label for k in HELD_HEADS):
+
+        # 締切を取ったかどうかとは独立に開催日を見る。ここを elif にしていたため、
+        # 「実施・応募期間 8月1日〜12月15日」が締切に消費され、
+        # スタンプラリーの開始日8/1が捨てられていた
+        if not got.date_start and any(k in label for k in HELD_HEADS):
             got.date_start = dates[0][0]
             got.date_source = f"見出し「{label}」"
+            if _is_event_period(label) and len(dates) > 1:
+                got.date_end = dates[-1][0]
+        elif not got.date_start and _is_event_period(label):
+            got.date_start = dates[0][0]
+            got.date_source = f"見出し「{label}」の始まり"
+            if len(dates) > 1:
+                got.date_end = dates[-1][0]
 
     if got.date_start and got.deadline:
         return got
@@ -276,6 +302,8 @@ def apply_extracted(ev, got: Extracted) -> None:
         ev.date_start = got.date_start
         ev.date_source = got.date_source
         ev.session_count = got.session_count
+        if got.date_end:
+            ev.date_end = got.date_end
     if got.deadline:
         ev.deadline = got.deadline
         ev.deadline_source = got.deadline_source

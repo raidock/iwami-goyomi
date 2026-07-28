@@ -87,6 +87,10 @@ def _deadline_note(ev: Event, today: date) -> str:
     """
     if ev.kind != "催し" or not ev.deadline:
         return ""
+    # 期間の終わりと締切が同じ日なら、開催日の行にすでに「〜12月15日」と
+    # 出ている。二重に見せない（スタンプラリーは実施期間の終わり＝応募締切）
+    if ev.date_end and ev.deadline == ev.date_end:
+        return ""
     n = _days_left(ev.deadline, today)
     if n < 0:
         return "<div class='dl-note over'>申込は終了しています</div>"
