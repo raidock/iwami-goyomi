@@ -8,7 +8,7 @@ site:
   title: 石見暦
   reading: いわみごよみ # 見出しにふりがなを振る（空にすると出ません）
   title_accent: 暦 # この文字だけ石州瓦の色で強調します
-  tagline: 浜田・江津の催しと締切を、ひとつの暦に。
+  tagline: 石見の催しと締切を、ひとつの暦に。
   # 例: https://<ユーザー名>.github.io/<リポジトリ名>/   OGP画像や共有に使います
   url: 'https://raidock.github.io/iwami-goyomi/'
   # 例: メールアドレス、問い合わせフォームのURL、SNSアカウント
