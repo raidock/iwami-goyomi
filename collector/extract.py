@@ -187,6 +187,17 @@ def _table_columns(soup: BeautifulSoup) -> list[tuple[str, list[str]]]:
 # タイトルに開催日を書く情報源があり（はまナビ「8月22日（土）有福温泉…」）、
 # 節の見出しを指す名前（main-header / section-header）も一般的。
 # 実測でも header を除いて取れる日付は増えなかったので、危険なだけで益がない。
+#
+# **`sidebar` は入れてはいけない。** 実データ49ページで測ったとき、これだけが
+# 公開中5件の開催日を消した（キッズフェス in GOTSU / 2026 江の川祭 ほか）。
+# 江津市観光協会は記事本文を包む div に状態クラス `-sidebar-on` を付けている。
+# 枠の名前と、枠の有無を示す名前は違う。`tests/test_extract.py` で固定している。
+# 同じ理由で widget / recommend / breadcrumb / pickup も入れていない
+# （損失は0だったが、直す実害も無かった。消せる範囲を広げるだけ損）。
+#
+# **`related` は未検証。** 実データ49ページで一度も踏まれていない（0件）。
+# 関連記事一覧の名前として最も一般的なので入れているが、安全性は測れていない。
+# 「測って安全と確認済み」ではないので、疑わしくなったら外してよい。
 _NOISE_PARTS = ("footer", "copyright", "nav", "gnav", "related")
 # 区切りをまたぐ名前は、区切りを取り払った全体の先頭で見る。
 #
@@ -198,6 +209,10 @@ _NOISE_PARTS = ("footer", "copyright", "nav", "gnav", "related")
 # 語に割ると sub / events / area で、どれも本文側にある普通の語だから
 # 単語では拾えない（「events」を除去語にしたら催しの本文が消える）。
 # かといって sub_events_area と名指しすると、このサイトのこのIDにしか効かない。
+#
+# subevents は実データで踏んで直った（偽締切3件が消え、本物の締切は残った）。
+# **otherevents は未検証。** 49ページで一度も踏まれていない（0件）。
+# 関連記事一覧の名前として一般的なので入れているが、安全性は測れていない。
 _NOISE_JOINED = ("subevents", "otherevents")
 _NOISE_SPLIT = re.compile(r"[-_\s]+")
 
