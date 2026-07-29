@@ -28,7 +28,7 @@ max_age_days: 400
 # （全体を上げると関係のない情報源まで遅くなり、収集が終わらなくなる）。
 fetch_delay_sec: 1.0
 
-# Phase 0 は浜田市・江津市の2自治体から。
+# 石見9市町のうち4市（浜田・江津・益田・大田）。残りは邑南・川本・美郷・津和野・吉賀。
 # feed_url を省略するとトップページから自動発見する。
 municipalities:
   - key: hamada_city
@@ -43,6 +43,20 @@ municipalities:
     municipality: 益田市
     site: https://www.city.masuda.lg.jp
     feed_url: https://www.city.masuda.lg.jp/cgi-bin/feed.php?siteNew=1 # クエリ形式のためFEED_HREF_REに掛からず明示（リンク自体は //host 形式）
+  # ドメインは oda。ohda ではない（www.city.ohda.lg.jp は名前解決できない）
+  - key: oda_city
+    municipality: 大田市
+    site: https://www.city.oda.lg.jp
+    # /feed/ は新着フィードではなく**サイト全体の目次**。907件のうち大半が
+    # 組織案内などの固定ページで、<pubDate> を1件も持たない。
+    # そのため専用アダプター OdaCityRSS が新着一覧HTMLから掲載日を補う
+    # （差し替えは main.py の ADAPTERS。詳細は collector/sources/oda_city.py）
+    feed_url: https://www.city.oda.lg.jp/feed/
+    # 記事だけに絞る。末尾の [^/?#] が索引ページ /update_info/ そのものと
+    # ページ送り（?page=2）を外す。記事URLは連番だけでなく /update_info/guidebook
+    # のような名前つきもあるので、数字に限定してはいけない（4件取りこぼした）
+    url_include: '/update_info/[^/?#]'
+    fetch_delay_sec: 5 # robots.txt の Crawl-delay: 5（石見で宣言しているのはここだけ）
 
 # 観光協会。イベント専用のRSSなのでノイズが少なく、trust: high で扱う。
 # （自治体と同じ厳しさで仕分けると、語彙にない催しを取りこぼすため）
@@ -61,5 +75,17 @@ tourism:
     # サイト全体のRSSしかないため、お知らせ記事だけに絞る
     # （/kankou/see/ などの観光スポット紹介ページを除外）
     url_include: '/news/'
+  - key: oda_kanko
+    municipality: 大田市
+    site: https://www.ginzan-wm.jp
+    # ?post_type=events_post は効く（10件すべて /events_post/ になる）。
+    # ただし**無効な post_type を渡しても200で通常フィードが返る**ので、
+    # 状態コードでは効いているか分からない。url_include が保険
+    feed_url: https://www.ginzan-wm.jp/feed/?post_type=events_post
+    organizer_type: 観光協会
+    trust: high
+    url_include: '/events_post/'
+    # robots.txt に Crawl-delay の宣言なし（宣言しているのは市公式のほう）。
+    # 既定の1秒で足りるので fetch_delay_sec は書かない
 
-# 今後の追加候補: 益田市 / 大田市 / 邑南町 / 川本町 / 美郷町 / 津和野町 / 吉賀町
+# 今後の追加候補: 邑南町 / 川本町 / 美郷町 / 津和野町 / 吉賀町
