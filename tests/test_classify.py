@@ -160,6 +160,42 @@ def check_participation_reports() -> int:
     return bad
 
 
+# 「第N回」の床。**床であって加点ではない。**
+# (タイトル, 期待する bucket, 何を守っているか)
+SERIAL_CASES = [
+    # 拾えるようになるもの（RSSに説明文がなく、催しの語彙も無い実データ）
+    ("第４４回「天領さん」　（２０２６）", "review", "大田市最大の夏祭り。全角数字"),
+    ("第57回浜田市美術展", "review", "会期10/3〜10/12の実在の催し"),
+    # 除外語に当たるものは救わない（床の処理を入れる位置を間違えると上がる）
+    ("令和8年度　第2回浜田市職員採用試験について", "drop", "職員採用は行政内部"),
+    ("20260728令和8年度第6回浜田市情報公開・個人情報保護審査会", "drop", "審査会"),
+    ("令和8年第2回6月定例会", "drop", "議会"),
+    ("令和8年度　明るい選挙啓発ポスターコンクール（第78回）　作品募集", "drop", "選挙"),
+    # すでに score 1 以上のものは動かさない（review → auto を起こさない）
+    ("大盛況でした！　『夜の図書館で生演奏！　第７回かぶりもんズライブ』のご報告",
+     "review", "過去の報告。加点にすると自動公開される"),
+    ("第37回さざんか祭り　アトラクション参加者募集について", "auto", "元から auto"),
+]
+
+
+def check_serial_floor() -> int:
+    """「第N回」の床が、救うものと救わないものを分けられているか。"""
+    bad = 0
+    for title, expect, why in SERIAL_CASES:
+        v = classify(title)
+        if v.bucket != expect:
+            print(f"  [NG] {title[:40]} → {v.bucket}（期待 {expect}／{why}）")
+            print(f"       score={v.score} {v.reason}")
+            bad += 1
+    # 床は1で止まること（+2 になっていないこと）を直接見る
+    v = classify("第４４回「天領さん」　（２０２６）")
+    if v.score != 1:
+        print(f"  [NG] 床が1で止まっていない: score={v.score}")
+        bad += 1
+    print(f"  第N回の床: {len(SERIAL_CASES) + 1 - bad}/{len(SERIAL_CASES) + 1} 件")
+    return bad
+
+
 def main():
     tp = fp = tn = fn = 0
     review = []
@@ -211,6 +247,9 @@ def main():
 
     print("\n--- 参加報告の巻き込み点検 ---")
     bad = check_participation_reports()
+
+    print("\n--- 「第N回」の床の点検 ---")
+    bad += check_serial_floor()
 
     # 見逃しゼロを最重要視する（公開物として取りこぼしが一番痛い）
     return 0 if fn == 0 and bad == 0 else 1
