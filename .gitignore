@@ -8,3 +8,6 @@ data_demo/
 # macOS が自動生成する。コードとは無関係
 .DS_Store
 **/.DS_Store
+
+# 作業指示。その時々の依頼であってプロジェクトの記録ではない
+NEXT.md
