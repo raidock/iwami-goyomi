@@ -36,6 +36,10 @@ municipalities:
     municipality: 江津市
     site: https://www.city.gotsu.lg.jp
     feed_url: https://www.city.gotsu.lg.jp/rss/10/list1.xml # 新着情報（本文の<a>にあり自動発見が届かなかったため明示）
+  - key: masuda_city
+    municipality: 益田市
+    site: https://www.city.masuda.lg.jp
+    feed_url: https://www.city.masuda.lg.jp/cgi-bin/feed.php?siteNew=1 # クエリ形式のためFEED_HREF_REに掛からず明示（リンク自体は //host 形式）
 
 # 観光協会。イベント専用のRSSなのでノイズが少なく、trust: high で扱う。
 # （自治体と同じ厳しさで仕分けると、語彙にない催しを取りこぼすため）
