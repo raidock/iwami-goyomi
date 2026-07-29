@@ -110,6 +110,37 @@ def test_no_feed_returns_none_gracefully():
     assert s.discover_feed() is None
 
 
+def test_user_agent_names_this_project():
+    """名乗る名前が実体と合っていること（設計判断12）。
+
+    かつて base.py は蚤の市時代の sanin-nomi-collector、main.py は
+    iwami-events-collector/1.5 を名乗っていた。相手のサーバの管理者が
+    見て誰が来ているか辿れないなら、名乗った意味がない。
+    """
+    from collector import USER_AGENT, __version__
+    from collector.sources.base import USER_AGENT as UA_SOURCES
+    assert USER_AGENT.startswith(f"iwami-goyomi/{__version__}"), USER_AGENT
+    assert "https://" in USER_AGENT, USER_AGENT   # 連絡先が辿れること
+    assert UA_SOURCES is USER_AGENT               # 定義は1か所だけ
+
+
+def test_user_agent_is_not_hardcoded_anywhere():
+    """UAの文字列を直書きした箇所が増えていないこと。
+
+    2か所に別々の名前が書かれて両方古びたのが元の事故なので、
+    「1か所にまとまっている」ことをテストで押さえる。
+    """
+    root = pathlib.Path(__file__).resolve().parents[1]
+    hits = []
+    for path in list(root.glob("*.py")) + list(root.glob("collector/**/*.py")):
+        if path.name == "__init__.py" and path.parent.name == "collector":
+            continue                              # ここが唯一の定義
+        for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if "User-Agent" in line and ("collector/" in line or "goyomi/" in line):
+                hits.append(f"{path.relative_to(root)}:{i} {line.strip()}")
+    assert not hits, "UAの直書き: " + " / ".join(hits)
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

@@ -20,7 +20,7 @@ import time
 
 import yaml
 
-from collector import __version__
+from collector import USER_AGENT, __version__
 from collector.classify import classify
 from collector.extract import TITLE_SOURCE, apply_extracted, extract_dates
 from collector.models import extract_deadline, extract_held_date
@@ -60,7 +60,7 @@ def enrich_with_detail_pages(events: list, cfg: dict) -> None:
     import requests
     delay = cfg.get("fetch_delay_sec", 1.0)
     sess = requests.Session()
-    sess.headers.update({"User-Agent": "iwami-events-collector/1.5 (+local tool)"})
+    sess.headers.update({"User-Agent": USER_AGENT})
     hit = 0
     for i, ev in enumerate(events):
         if not ev.url:

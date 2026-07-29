@@ -9,9 +9,10 @@ from abc import ABC, abstractmethod
 
 import requests
 
+from .. import USER_AGENT          # 名乗る名前は collector/__init__.py に1つだけ
 from ..models import Event
 
-USER_AGENT = "sanin-nomi-collector/1.0 (+personal flea-market tracker)"
+__all__ = ["USER_AGENT", "Source"]
 
 
 class Source(ABC):
