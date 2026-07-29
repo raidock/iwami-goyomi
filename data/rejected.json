@@ -114,5 +114,37 @@
     "deadline_source": "",
     "session_count": null,
     "uid": "5fb2bf4dae6379e20e1b99829aeeaead"
+  },
+  {
+    "title": "益田市介護相談員の募集について",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.city.masuda.lg.jp/soshikikarasagasu/fukushikankyobu/koreishafukushika/1/7519.html",
+    "source": "masuda_city",
+    "raw_date_text": "",
+    "city": "益田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "",
+    "published_at": "2026-07-01",
+    "deadline": null,
+    "category": "健康・福祉",
+    "tags": [
+      "要申込",
+      "高齢者向け"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "募集",
+    "status": "開催予定",
+    "review_state": "rejected",
+    "score": 1,
+    "reason": "弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "",
+    "deadline_source": "",
+    "session_count": null,
+    "uid": "061bf8796b4da2cb7ca8004713cf75c1"
   }
 ]

@@ -1,8 +1,9 @@
 {
-  "checked_at": "2026-07-28T21:52:35",
+  "checked_at": "2026-07-29T13:22:35",
   "per_source": {
-    "hamada_city": 79,
+    "hamada_city": 81,
     "gotsu_city": 100,
+    "masuda_city": 20,
     "hamanavi": 10,
     "gotsu_kanko": 7
   }
