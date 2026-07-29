@@ -80,7 +80,10 @@ tools: Bash, Read, Glob, Grep, WebFetch, WebSearch, Write
 5. 試しに収集して、**ノイズ率と拾えた件数**を出す
 6. 新しい種類のノイズが出ていないか
    （江津を足したとき「のお知らせ」問題が出た）
-7. **config の案を提示して止まる。** 実装と承認は依頼者が決める
+7. robots.txt を確認する（Crawl-delay、Disallow、Sitemap の宣言）
+   **取りにいく前に見る。** Crawl-delay があれば、その情報源の `fetch_delay_sec` として
+   config の案に書く（全体の既定値は動かさない）
+8. **config の案を提示して止まる。** 実装と承認は依頼者が決める
 
 ## 報告の型
 
