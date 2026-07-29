@@ -175,17 +175,20 @@ def wareki_to_seireki(text: str) -> str:
 
 # ---------------------------------------------------------------- 日付の抽出
 # タイトルに書かれている開催日・締切を拾う。本文のLLM抽出はPhase 1。
+#
+# 年・月・日は名前付きで取る。位置で取ると、年つきの形を足したときに
+# 月日の番号がずれて黙って壊れる（実際にこれで年が捨てられていた）。
 _HELD_RE = [
-    re.compile(r"(\d{1,2})\s*月\s*(\d{1,2})\s*日[^、。]{0,6}?開催"),
-    re.compile(r"(\d{1,2})\s*/\s*(\d{1,2})[（(][^）)]{0,3}[）)]\s*開催"),
+    re.compile(r"(?P<m>\d{1,2})\s*月\s*(?P<d>\d{1,2})\s*日[^、。]{0,6}?開催"),
+    re.compile(r"(?P<m>\d{1,2})\s*/\s*(?P<d>\d{1,2})[（(][^）)]{0,3}[）)]\s*開催"),
     # タイトル冒頭の日付は開催日とみなす
     # 例:「8月22日（土）有福温泉湯の町神楽殿 …神楽上演のお知らせ」
-    re.compile(r"^\s*(?:\d{4}\s*年\s*)?(\d{1,2})\s*月\s*(\d{1,2})\s*日"),
+    re.compile(r"^\s*(?:(?P<y>\d{4})\s*年\s*)?(?P<m>\d{1,2})\s*月\s*(?P<d>\d{1,2})\s*日"),
 ]
 _DEADLINE_RE = [
-    re.compile(r"締[めm]?切[はり]?\s*[:：]?\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日"),
-    re.compile(r"(\d{1,2})\s*月\s*(\d{1,2})\s*日\s*まで"),
-    re.compile(r"(\d{1,2})\s*月\s*(\d{1,2})\s*日\s*(必着|消印)"),
+    re.compile(r"締[めm]?切[はり]?\s*[:：]?\s*(?P<m>\d{1,2})\s*月\s*(?P<d>\d{1,2})\s*日"),
+    re.compile(r"(?P<m>\d{1,2})\s*月\s*(?P<d>\d{1,2})\s*日\s*まで"),
+    re.compile(r"(?P<m>\d{1,2})\s*月\s*(?P<d>\d{1,2})\s*日\s*(?:必着|消印)"),
 ]
 
 
@@ -207,12 +210,29 @@ def _to_date(month: int, day: int, ref: Optional[date] = None) -> Optional[date]
     return None
 
 
+def _matched_date(m: "re.Match[str]", ref: Optional[date]) -> Optional[date]:
+    """一致した月日に年を与える。
+
+    **年が書いてあれば、それを使う。** 掲載日から推し量るのは年が無いときだけ。
+    かつて先頭の「2026年」を捨てて月日だけ見ていたため、掲載日の年に丸められた。
+    先の年の催し（2026年7月に出た「2027年8月1日」の告知）が今年の8月1日になり、
+    しかも掲載日基準では未来なので誰も気づけない形で1年ずれる。
+    """
+    mo, d = int(m.group("m")), int(m.group("d"))
+    if y := m.groupdict().get("y"):
+        try:
+            return date(int(y), mo, d)
+        except ValueError:            # 2026年2月30日 のような書き間違い
+            return None
+    return _to_date(mo, d, ref)
+
+
 def extract_held_date(text: str, ref: Optional[date] = None) -> Optional[date]:
     """ref には記事の掲載日を渡すこと。和暦・略記も先に西暦へ直す。"""
     text = wareki_to_seireki(text)
     for r in _HELD_RE:
         if m := r.search(text):
-            return _to_date(int(m.group(1)), int(m.group(2)), ref)
+            return _matched_date(m, ref)
     return None
 
 
@@ -221,5 +241,5 @@ def extract_deadline(text: str, ref: Optional[date] = None) -> Optional[date]:
     text = wareki_to_seireki(text)
     for r in _DEADLINE_RE:
         if m := r.search(text):
-            return _to_date(int(m.group(1)), int(m.group(2)), ref)
+            return _matched_date(m, ref)
     return None

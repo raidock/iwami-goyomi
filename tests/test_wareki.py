@@ -89,6 +89,26 @@ def test_leading_date_in_title_is_held_date():
     assert got == date(2026, 8, 22), got
 
 
+def test_leading_year_in_title_is_used_as_written():
+    """タイトルに年が書いてあれば、掲載日から推し量らずその年を使う。
+
+    年を捨てて月日だけ見ていたため、2026年7月に出た「2027年8月1日」の告知が
+    2026年8月1日になっていた。掲載日から見ると未来なので、
+    「あと○日」も終了判定も通ってしまい、画面を見ても気づけない。
+    """
+    from collector.models import extract_held_date
+    ref = date(2026, 7, 29)
+    assert extract_held_date("2027年8月1日（日）石見神楽大会", ref) == date(2027, 8, 1)
+    # 過ぎた年もそのまま読む（勝手に来年へ繰り上げない）
+    assert extract_held_date("2024年3月1日 卒業記念公演の記録", ref) == date(2024, 3, 1)
+    # 令和表記も西暦に直したうえで同じ扱いになる
+    assert extract_held_date("令和9年8月1日 神楽競演大会", ref) == date(2027, 8, 1)
+    # 年が書いていないものは従来どおり掲載日基準
+    assert extract_held_date("8月22日（土）有福温泉…", ref) == date(2026, 8, 22)
+    # 書き間違いの日付で落ちない
+    assert extract_held_date("2026年2月30日 なにか", ref) is None
+
+
 def test_category_prefers_title_over_description():
     """説明文の「石見神楽」に引っ張られない（実画面で ぶどうまつり が神楽になった）。"""
     from collector.classify import classify
