@@ -141,8 +141,10 @@ GitHub Actions のサーバーは UTC です。`date.today()` をそのまま使
 ### 12. 情報源への礼儀
 
 - 詳細ページを見に行くのは**仕分けを通過したものだけ**（約200件ではなく約40件）
-- 取得間隔は1秒（`config.yaml` の `fetch_delay_sec`）
-- User-Agent は正直に名乗る
+- 取得間隔は既定1秒（`config.yaml` の `fetch_delay_sec`）。**情報源ごとに上書きできる**
+  ので、robots.txt が `Crawl-delay` を宣言していたらその情報源にだけ書く
+  （全体を上げると関係のない情報源まで遅くなり、収集が終わらなくなる）
+- User-Agent は正直に名乗る（`collector/__init__.py` の `USER_AGENT` 1か所）
 - **本文は転載しない。** 保存するのはタイトル・日付・リンクのみ
 - 全件に一次情報リンクと掲載日を表示する
 
@@ -229,6 +231,7 @@ python tests/test_similar_titles.py # 市またぎ重複の警告（表示専用
 python tests/test_feed_discovery.py # RSS自動発見
 python tests/test_good_antiques.py  # 蚤の市パーサ
 python tests/test_workflow.py       # ワークフローのYAML（CIは手元で動かないので形を守る）
+python tests/test_fetch_delay.py    # 取得間隔が情報源ごとに効くか（Crawl-delay 対応）
 ```
 
 ### 分類器を変えたら必ず測り直す

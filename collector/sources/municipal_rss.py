@@ -16,7 +16,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 from ..models import Event, today_jst
-from .base import Source
+from .base import DEFAULT_FETCH_DELAY_SEC, Source
 
 FEED_TYPES = ("application/rss+xml", "application/atom+xml", "application/rdf+xml")
 # 本文中のRSSリンクを拾うための判定（江津市 /rss/10/list1.xml のような形）
@@ -31,8 +31,10 @@ class MunicipalRSS(Source):
 
     def __init__(self, key: str, site: str, municipality: str,
                  feed_url: str | None = None, max_age_days: int = 400,
-                 url_include: str | None = None, **kw):
-        super().__init__(**{k: v for k, v in kw.items() if k == "timeout"})
+                 url_include: str | None = None,
+                 fetch_delay_sec: float = DEFAULT_FETCH_DELAY_SEC, **kw):
+        super().__init__(fetch_delay_sec=fetch_delay_sec,
+                         **{k: v for k, v in kw.items() if k == "timeout"})
         self.name = key
         self.site = site.rstrip("/")
         self.municipality = municipality

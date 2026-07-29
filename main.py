@@ -16,7 +16,6 @@ from __future__ import annotations
 import argparse
 import pathlib
 import sys
-import time
 
 import yaml
 
@@ -28,6 +27,7 @@ from collector.about import to_about_page
 from collector.publish import to_public_site
 from collector.renderers import to_ics, to_json
 from collector.review import ReviewQueue
+from collector.sources.base import DEFAULT_FETCH_DELAY_SEC, Pacer
 from collector.sources.municipal_rss import MunicipalRSS
 
 ROOT = pathlib.Path(__file__).parent
@@ -35,6 +35,18 @@ ROOT = pathlib.Path(__file__).parent
 
 def load_config(path: pathlib.Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def fetch_delay_for(m: dict, cfg: dict) -> float:
+    """その情報源の取得間隔（秒）。情報源の指定 → 全体の既定値 の順に見る。
+
+    間隔を全体で1つにしていると、robots.txt が `Crawl-delay: 5` を宣言している
+    サイトに合わせた瞬間、関係のない情報源まで5秒待つことになる。
+    かといって無視すれば設計判断12（情報源への礼儀）に反する。
+    **相手が宣言した値は、その相手にだけ効かせる。**
+    """
+    return float(m.get("fetch_delay_sec", cfg.get("fetch_delay_sec",
+                                                  DEFAULT_FETCH_DELAY_SEC)))
 
 
 def build_sources(cfg: dict) -> list[tuple[MunicipalRSS, dict]]:
@@ -46,6 +58,7 @@ def build_sources(cfg: dict) -> list[tuple[MunicipalRSS, dict]]:
                 key=m["key"], site=m["site"], municipality=m["municipality"],
                 feed_url=m.get("feed_url"), max_age_days=cfg.get("max_age_days", 400),
                 url_include=m.get("url_include"),
+                fetch_delay_sec=fetch_delay_for(m, cfg),
             ),
             m,
         ))
@@ -58,13 +71,19 @@ def enrich_with_detail_pages(events: list, cfg: dict) -> None:
     177件すべてではなく残った20件程度だけを取りに行くので、相手にも優しい。
     """
     import requests
-    delay = cfg.get("fetch_delay_sec", 1.0)
+    # 待ち時間は情報源ごとに数える。1つの時計で回すと、間隔の長い情報源に
+    # 引きずられて他まで待つ（逆に、混ぜて均すと宣言を守れない）
+    pacers = {m["key"]: Pacer(fetch_delay_for(m, cfg))
+              for m in cfg.get("municipalities", []) + cfg.get("tourism", [])}
+    default = Pacer(cfg.get("fetch_delay_sec", DEFAULT_FETCH_DELAY_SEC))
     sess = requests.Session()
     sess.headers.update({"User-Agent": USER_AGENT})
     hit = 0
-    for i, ev in enumerate(events):
+    for ev in events:
         if not ev.url:
             continue
+        pacer = pacers.get(ev.source, default)
+        pacer.wait()
         try:
             r = sess.get(ev.url, timeout=20)
             r.raise_for_status()
@@ -73,14 +92,14 @@ def enrich_with_detail_pages(events: list, cfg: dict) -> None:
         except Exception as e:
             print(f"  [warn] 詳細取得に失敗: {ev.title[:24]} … {e}")
             continue
+        finally:
+            pacer.mark()
         # 取れたときは入れる。既存を残す判断は ReviewQueue.ingest 側で行う
         # （こちらで握りつぶすと、繰り返しの催しの次回が更新されない）。
         # ただしタイトル由来の開催日だけは本文抽出に譲らない
         apply_extracted(ev, got)
         if got.date_start or got.deadline:
             hit += 1
-        if i < len(events) - 1:
-            time.sleep(delay)
     print(f"[info] 詳細ページ: {len(events)}件を確認し {hit}件から日付を取得")
 
 
