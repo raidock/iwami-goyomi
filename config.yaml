@@ -17,7 +17,7 @@ site:
   operator: 'TandN Design'
 region_name: 石見
 out_dir: out
-data_dir: ~/iwami-events-data # コードの外に置くのでバージョンを上げても引き継がれる
+data_dir: data # git が保持するのでコードと一緒に動く。GitHub Actions と同じ置き場
 
 # 掲載日がこれより古い記事は捨てる（RSSに古い記事が残り続けるため）
 max_age_days: 400

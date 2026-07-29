@@ -315,8 +315,11 @@ def main(argv=None) -> int:
     print(f"  搭載: {', '.join(feats) if feats else 'なし（旧バージョンです）'}\n")
 
     cfg = load_config(pathlib.Path(args.config))
-    # データはコードの外にも置ける。バージョンを上げるたびに引っ越すのを避けるため、
-    # config.yaml で絶対パス（~/iwami-events-data など）を指定できる。
+    # 置き場は ./data ひとつ。--data-dir で上書きできるが、常用しないこと。
+    # 以前は config.yaml が ~/iwami-events-data を指し、ワークフローだけが
+    # --data-dir ./data を渡していたため、承認済み36件と45件の2つのキューが
+    # 並存する事故を起こした（手元で build すると公開分より古いサイトができる）。
+    # git が data/ を保持するので、コードの外に逃がす理由はもうない。
     _dd = pathlib.Path(args.data_dir or cfg.get("data_dir", "data")).expanduser()
     queue = ReviewQueue(_dd if _dd.is_absolute() else ROOT / _dd)
 
