@@ -187,16 +187,34 @@ def _table_columns(soup: BeautifulSoup) -> list[tuple[str, list[str]]]:
 # タイトルに開催日を書く情報源があり（はまナビ「8月22日（土）有福温泉…」）、
 # 節の見出しを指す名前（main-header / section-header）も一般的。
 # 実測でも header を除いて取れる日付は増えなかったので、危険なだけで益がない。
-_NOISE_PARTS = ("footer", "copyright", "nav", "gnav")
+_NOISE_PARTS = ("footer", "copyright", "nav", "gnav", "related")
+# 区切りをまたぐ名前は、区切りを取り払った全体の先頭で見る。
+#
+# 大田市観光協会（ginzan-wm.jp）は記事の下に「ほかの催し」の一覧を
+# `div#sub_events_area` で置いている。中身は他の記事の見出しなので、
+# そこの「【7月4日～8月30日まで】…」を拾って**全記事に同じ締切 2026-08-30**が
+# 付いていた。関連記事一覧は本文ではないので、日付を見る前に落とす。
+#
+# 語に割ると sub / events / area で、どれも本文側にある普通の語だから
+# 単語では拾えない（「events」を除去語にしたら催しの本文が消える）。
+# かといって sub_events_area と名指しすると、このサイトのこのIDにしか効かない。
+_NOISE_JOINED = ("subevents", "otherevents")
 _NOISE_SPLIT = re.compile(r"[-_\s]+")
 
 
-def _strip_chrome(soup: BeautifulSoup) -> None:
-    """記事本文ではない枠（フッター・ナビ・著作権表示）を落とす。
+def _is_noise(value: str) -> bool:
+    """class/id の値1つが「記事本文ではない枠」を指しているか。"""
+    v = str(value).lower()
+    # 区切りで分けた語の**先頭一致**。単純な部分一致だと「innovation」が nav に
+    # 当たってしまい、逆に完全一致だと「navi」「navbar」「gnav」が漏れる
+    if any(p.startswith(w) for p in _NOISE_SPLIT.split(v) for w in _NOISE_PARTS):
+        return True
+    # 区切りを取り払った全体の先頭一致（sub_events_area / subEventsArea / sub-events）
+    return _NOISE_SPLIT.sub("", v).startswith(_NOISE_JOINED)
 
-    区切りで分けた語の**先頭一致**で見る。単純な部分一致だと「innovation」が
-    nav に当たってしまい、逆に完全一致だと「navi」「navbar」「gnav」が漏れる。
-    """
+
+def _strip_chrome(soup: BeautifulSoup) -> None:
+    """記事本文ではない枠（フッター・ナビ・著作権表示・関連記事一覧）を落とす。"""
     for el in soup.find_all(True):
         if el.decomposed or el.attrs is None:
             continue                       # 親ごと消えた要素は飛ばす
@@ -205,11 +223,8 @@ def _strip_chrome(soup: BeautifulSoup) -> None:
         vals += cls if isinstance(cls, list) else ([cls] if cls else [])
         if el.get("id"):
             vals.append(el.get("id"))
-        for v in vals:
-            parts = _NOISE_SPLIT.split(str(v).lower())
-            if any(p.startswith(w) for p in parts for w in _NOISE_PARTS):
-                el.decompose()
-                break
+        if any(_is_noise(v) for v in vals):
+            el.decompose()
 
 
 _LABEL_WS = re.compile(r"[\s　]+")

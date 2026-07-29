@@ -235,6 +235,62 @@ def test_header_named_elements_are_kept():
     assert got.date_start == date(2026, 9, 13), "header を消して日付が取れなくなった"
 
 
+# 大田市観光協会（ginzan-wm.jp）の実ページの構造。記事の下に「ほかの催し」の
+# 一覧が div#sub_events_area で置かれ、他記事の見出しがそのまま入っている。
+# 中の「【7月4日～8月30日まで】…」を締切として拾い、**全記事に同じ 2026-08-30**が
+# 付いていた（4件中3件。残る1件は本文に本物の締切があり、そちらが先に当たっていた）。
+GINZAN_SUB_EVENTS = """
+<div id="main_content">
+  <h1>島根の観光ビジネスを学ぶ！山陰ツーリズム人材育成塾</h1>
+  <span><b>募集期間</b>：2026年6月25日（木）～ 7月17日（金）</span>
+</div>
+<div id="sub_events_area">
+  <p class="events_order">※開催日順で掲載</p>
+  <div class="event_box">
+    <div class="txt">
+      <p class="event_date">2026.7.4 - 8.30</p>
+      <h3><a href="/events_post/kaigarashi-gurasuart/">【7月4日～8月30日まで】渚にほどける
+          貝殻シーグラスアート作家 井上 麻菜美 個展</a></h3>
+    </div>
+  </div>
+</div>
+"""
+
+
+def test_related_events_list_does_not_become_a_deadline():
+    """関連記事一覧の日付を本文の日付と取り違えない。"""
+    got = extract_dates(GINZAN_SUB_EVENTS, ref=date(2026, 6, 25), today=date(2026, 6, 25))
+    assert got.deadline == date(2026, 7, 17), f"本物の締切が取れていない: {got.deadline}"
+    assert got.deadline != date(2026, 8, 30), "ほかの催しの日付を締切にした"
+
+
+def test_related_events_list_is_stripped_even_without_a_real_date():
+    """本文に日付が無いページで、関連記事一覧から偽の締切を作らない。
+
+    実際にはこちらが多数派だった（お知らせ記事に日付が無く、一覧だけがある）。
+    """
+    html = GINZAN_SUB_EVENTS.replace(
+        "<span><b>募集期間</b>：2026年6月25日（木）～ 7月17日（金）</span>", "")
+    got = extract_dates(html, ref=date(2026, 6, 25), today=date(2026, 6, 25))
+    assert got.deadline is None, f"偽の締切が付いた: {got.deadline}"
+    assert got.date_start is None, f"偽の開催日が付いた: {got.date_start}"
+
+
+def test_sidebar_is_not_a_removal_word():
+    """sidebar は除去語にしない。**入れると本文が丸ごと消える。**
+
+    江津市観光協会は記事本文を包む div に `-sidebar-on` という状態クラスを
+    付けている（サイドバー有りのレイアウト、の意）。実データで測ったところ、
+    sidebar を除去語に足すと公開中の45件のうち5件で開催日が消えた。
+    header を入れなかったのと同じ理由。**枠の名前と、枠の有無を示す名前は違う。**
+    """
+    html = ("<div class='l-container -sidebar-on'>"
+            "<h3>日時</h3><p>2026年7月18日（土）10:00～</p></div>"
+            "<aside class='l-sidebar'><p>2026年12月1日 バックナンバー</p></aside>")
+    got = extract_dates(html, ref=date(2026, 6, 1), today=date(2026, 6, 1))
+    assert got.date_start == date(2026, 7, 18), f"本文が消えた: {got.date_start}"
+
+
 def test_fullwidth_space_in_the_label():
     """江津市観光協会は【日　時】と全角空白で字間を空ける。
 
