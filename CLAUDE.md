@@ -210,6 +210,7 @@ collector/
   sources/
     base.py                アダプター共通
     municipal_rss.py       自治体・観光協会の汎用RSSアダプター（フィード自動発見）
+    oda_city.py            大田市（フィードに掲載日が無いので新着一覧から補う）
     good_antiques.py       蚤の市アダプター（旧版から継続）
 tests/                     10スイート。すべて実データ由来
 config.yaml                情報源・サイト設定
@@ -237,6 +238,7 @@ python tests/test_feed_discovery.py # RSS自動発見
 python tests/test_good_antiques.py  # 蚤の市パーサ
 python tests/test_workflow.py       # ワークフローのYAML（CIは手元で動かないので形を守る）
 python tests/test_fetch_delay.py    # 取得間隔が情報源ごとに効くか（Crawl-delay 対応）
+python tests/test_oda_city.py       # 大田市の掲載日補完（フィードに日付が無い）
 ```
 
 ### 分類器を変えたら必ず測り直す

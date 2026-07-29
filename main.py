@@ -29,6 +29,7 @@ from collector.renderers import to_ics, to_json
 from collector.review import ReviewQueue
 from collector.sources.base import DEFAULT_FETCH_DELAY_SEC, Pacer
 from collector.sources.municipal_rss import MunicipalRSS
+from collector.sources.oda_city import OdaCityRSS
 
 ROOT = pathlib.Path(__file__).parent
 
@@ -49,12 +50,23 @@ def fetch_delay_for(m: dict, cfg: dict) -> float:
                                                   DEFAULT_FETCH_DELAY_SEC)))
 
 
+# 汎用RSSアダプターで足りない情報源だけ、ここで差し替える。
+# config.yaml の key と対応する（config 側にもその旨のコメントを書いてある）。
+# **増やすのは最後の手段。** まず config で足りないかを確かめること。
+ADAPTERS = {
+    # 大田市のフィードは掲載日を持たない（サイト全体の目次で pubDate が無い）。
+    # 新着一覧HTMLから掲載日を補う。詳しくは collector/sources/oda_city.py
+    "oda_city": OdaCityRSS,
+}
+
+
 def build_sources(cfg: dict) -> list[tuple[MunicipalRSS, dict]]:
     """(アダプター, その情報源の設定) の並びを返す。"""
     out = []
     for m in cfg.get("municipalities", []) + cfg.get("tourism", []):
+        cls = ADAPTERS.get(m["key"], MunicipalRSS)
         out.append((
-            MunicipalRSS(
+            cls(
                 key=m["key"], site=m["site"], municipality=m["municipality"],
                 feed_url=m.get("feed_url"), max_age_days=cfg.get("max_age_days", 400),
                 url_include=m.get("url_include"),
