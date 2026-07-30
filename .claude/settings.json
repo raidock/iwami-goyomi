@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(git push --force:*)",
+      "Bash(rm -rf /:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git rebase:*)",
+      "Bash(python main.py review:*)"
+    ],
+    "allow": [
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(.venv/bin/python:*)",
+      "Bash(pip install:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(diff:*)",
+      "Bash(gh run:*)"
+    ]
+  }
+}
