@@ -11,3 +11,6 @@ data_demo/
 
 # 作業指示。その時々の依頼であってプロジェクトの記録ではない
 NEXT.md
+
+.codex/
+AGENTS.md
