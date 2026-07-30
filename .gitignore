@@ -9,8 +9,9 @@ data_demo/
 .DS_Store
 **/.DS_Store
 
-# 作業指示。その時々の依頼であってプロジェクトの記録ではない
+# 作業指示・引き継ぎメモ。その時々の状態であってプロジェクトの記録ではない
 NEXT.md
+HANDOFF.md
 
 .codex/
 AGENTS.md
