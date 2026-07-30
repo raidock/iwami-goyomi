@@ -460,6 +460,35 @@ def test_deadline_note_is_hidden_when_it_equals_the_period_end():
     assert "8/20" in _deadline_note(ev, date(2026, 7, 28))
 
 
+def test_deadline_tag_is_hidden_when_it_equals_the_period_end():
+    """「締切あり」タグも注記と同じ条件で出さない（判断の一貫性）。
+
+    「渚にほどける…個展」の 8/30 はタイトルの「8月30日まで」由来で会期の終わり。
+    7月4日〜8月30日と出ているカードに「締切あり」が付いていた。
+    """
+    from collector.publish import _card
+    ev = _ev(date_start=date(2026, 7, 4), date_end=date(2026, 8, 30))
+    ev.kind, ev.deadline, ev.tags = "催し", date(2026, 8, 30), ["締切あり"]
+    assert "締切あり" not in _card(ev, date(2026, 7, 30)), "会期末に締切タグが付いている"
+    ev.deadline = date(2026, 8, 1)            # 本当の申込締切なら出す
+    assert "締切あり" in _card(ev, date(2026, 7, 30))
+    ev.tags = ["要申込", "締切あり"]           # 他のタグは消さない
+    ev.deadline = date(2026, 8, 30)
+    assert "要申込" in _card(ev, date(2026, 7, 30))
+
+
+def test_empty_category_does_not_leave_a_dot():
+    """カテゴリが空のとき中黒を出さない（「大田市 ・掲載 …」と浮いていた）。"""
+    from collector.publish import _card
+    ev = _ev(date_start=date(2026, 8, 29))
+    ev.city, ev.category, ev.published_at = "大田市", None, date(2026, 7, 22)
+    html = _card(ev, date(2026, 7, 30))
+    assert ">・掲載" not in html, "中黒が浮いている"
+    assert "掲載 2026/07/22" in html
+    ev.category = "学び・講座"                 # あるときは従来どおり
+    assert "学び・講座・掲載 2026/07/22" in _card(ev, date(2026, 7, 30))
+
+
 def _ev(**kw):
     base = dict(title="t", prefecture="島根県", date_start=None, date_end=None,
                 url="https://example.invalid/x", source="hamanavi")
@@ -508,6 +537,62 @@ GINZAN_REVERSED_PERIOD = """
   <ul><li><p>受付時間 ：09:00 ～ 15:00　料金 ：1個 1,500円</p></li></ul>
 </div>
 """
+
+
+# 同じページ（ginzan-wm.jp 夏休みイベント第1弾）の2つの書き方。
+# 人手の本文は第1弾・第2弾・注記を1つの節にまとめて書くので、節の最後の日付
+# （注記の8月17日）を終わりに採ると8日ずれる。テンプレートが出す period_box は崩れない。
+GINZAN_DECLARED_PERIOD = """
+<div id="main_content">
+  <div class="period_box"> <span>イベント期間</span>2026年07月18日(土) ～ 08月09日(日) </div>
+  <h3><span style="font-family: arial;">■ 開催期間</span></h3>
+  <ul>
+    <li><p><span>2026年7月18日（土）～ 8月9日（日）第1弾</span></p></li>
+    <li><p><span>2026年8月18日（火）～ 8月31日（月）第2弾<br/>
+      ※8月10日～8月17日の期間中は開催いたしませんのでご注意ください。</span></p></li>
+  </ul>
+</div>
+"""
+
+# 江津市観光協会。<time datetime> は**記事の掲載日**であって催しの期間ではない。
+# これを構造化された期間として読むと、7件すべての開催日が掲載日に化ける。
+GOTSU_KANKO_POST_TIME = """
+<div>
+  <h1 class="c-postTitle">キッズフェス in GOTSU（2026.7.18開催）</h1>
+  <time datetime="2026-07-08" class="c-postTitle__date u-thin">2026 7/08</time>
+  <p>【日　時】2026年7月18日（土）10:00～15:00</p>
+</div>
+"""
+
+
+def test_declared_period_beats_the_body():
+    """サイトが宣言している期間を、人手の本文より優先する。"""
+    got = extract_dates(GINZAN_DECLARED_PERIOD, ref=date(2026, 6, 15),
+                        today=date(2026, 6, 15))
+    assert got.date_start == date(2026, 7, 18), got.date_start
+    assert got.date_end == date(2026, 8, 9), f"注記の日付を終わりにしている: {got.date_end}"
+    assert "構造化された期間欄" in got.date_source, got.date_source
+
+
+def test_declaration_without_dates_falls_through():
+    """日付の入っていない宣言（実例「イベント期間 (木)」）は見出しに任せる。"""
+    html = ("<div><div class='period_box'><span>イベント期間</span>(木)</div>"
+            "<h3>開催日</h3><p>2026年7月2日（木）</p></div>")
+    got = extract_dates(html, ref=date(2026, 6, 12), today=date(2026, 6, 12))
+    assert got.date_start == date(2026, 7, 2), got.date_start
+    assert got.date_source == "見出し「開催日」", got.date_source
+
+
+def test_post_time_element_is_not_a_period():
+    """`<time datetime>` を期間として読まない。**掲載日が開催日に化ける。**
+
+    江津市観光協会は記事の掲載日を `<time datetime="2026-07-08"
+    class="c-postTitle__date">` で持っている。構造化されていることと、
+    それが催しの期間を指していることは別。
+    """
+    got = extract_dates(GOTSU_KANKO_POST_TIME, ref=date(2026, 7, 8),
+                        today=date(2026, 7, 8))
+    assert got.date_start == date(2026, 7, 18), f"掲載日を拾った: {got.date_start}"
 
 
 def test_reversed_period_drops_the_end():

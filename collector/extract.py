@@ -242,6 +242,39 @@ def _strip_chrome(soup: BeautifulSoup) -> None:
             el.decompose()
 
 
+# サイトが機械可読な形で宣言している期間。class に period を含む要素で見る。
+# 実ページ235件で当たったのは ginzan-wm.jp の `period_box` だけだった。
+#
+# **`<time datetime="...">` は使わない。** 江津市観光協会は記事の掲載日を
+# `<time datetime="2026-07-08" class="c-postTitle__date">` で持っており、
+# これを期間として読むと7件すべての開催日が掲載日に化ける
+# （キッズフェス in GOTSU が 7/18 → 7/8 になる）。構造化されていることと、
+# それが催しの期間を指していることは別。
+_PERIOD_BOX = re.compile(r"period", re.I)
+
+
+def _structured_period(soup: BeautifulSoup,
+                       ref: Optional[date]) -> tuple[list[date], str]:
+    """宣言された期間を (日付の並び, ラベル) で返す。無ければ空。
+
+    ginzan-wm.jp は
+      `<div class="period_box"><span>イベント期間</span>
+        2026年07月18日(土) ～ 08月09日(日)</div>`
+    を持つ。**人手で書かれた本文より信頼できる。** 本文側は
+    「8月31（金）」のように日が落ちたり、第1弾・第2弾・注記を1つの節に
+    まとめて書いたりするが、宣言はテンプレートが出すので崩れない。
+
+    日付が入っていない宣言もある（「イベント期間 (木)」だけの実例が1件）。
+    その場合は空を返し、既存の見出しベース・文脈語ベースに任せる。
+    """
+    for el in soup.find_all(attrs={"class": _PERIOD_BOX}):
+        label = el.get_text(" ", strip=True)
+        dates = [d for d, _ in _find_dates(wareki_to_seireki(label), ref)]
+        if dates:
+            return dates, label
+    return [], ""
+
+
 _LABEL_WS = re.compile(r"[\s　]+")
 
 
@@ -343,6 +376,23 @@ def extract_dates(html: str, ref: Optional[date] = None,
         else:
             got.date_source = f"表「{label}」の列"
         break
+
+    # ---- 層0': サイトが宣言している期間 ---------------------------------
+    # 見出しベースより優先する。構造化された宣言は、見出しの直下にある人手の
+    # テキストより信頼できる（本文は「8月31（金）」と日を落とすことがある）。
+    #
+    # 層0（横組みの表）はそのまま先に見る。あちらは飛び石の複数回を数える別の
+    # 役目で、宣言と両方を持つページは実データに無い。無いものに順序を決めない。
+    if not got.date_start:
+        declared, label = _structured_period(soup, ref)
+        if declared:
+            # ラベルは日付の手前まで（「イベント期間 2026年07月…」→「イベント期間」）。
+            # 既存の date_source と同じ読み方にする
+            name = re.split(r"[\d０-９]", label, maxsplit=1)[0].strip(" 　:：")
+            got.date_start = declared[0]
+            got.date_source = f"構造化された期間欄「{name or '期間'}」"
+            if len(declared) > 1:
+                got.date_end = declared[-1]
 
     # ---- 層1: 見出しベース（【日時】形式も同じ扱い）---------------------
     plain = wareki_to_seireki(soup.get_text(" ", strip=True))
