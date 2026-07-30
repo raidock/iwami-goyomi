@@ -560,7 +560,7 @@
     "score": 3,
     "reason": "イベント語: フェス / 弱い手がかり: 開催",
     "source_trust": "normal",
-    "date_source": "見出し「日　時」",
+    "date_source": "タイトル冒頭",
     "deadline_source": "",
     "session_count": null,
     "uid": "ddae586009adc0f6d505793cf1201e31"

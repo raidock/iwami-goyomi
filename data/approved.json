@@ -1214,7 +1214,7 @@
     "score": 1,
     "reason": "弱い手がかり: 開催",
     "source_trust": "normal",
-    "date_source": "見出し「日時」",
+    "date_source": "タイトル冒頭",
     "deadline_source": "見出し「申込締切」",
     "session_count": null,
     "uid": "0cd876d25228d7656d996450f0aba231"
@@ -1694,7 +1694,7 @@
     "score": 3,
     "reason": "イベント語: マルシェ / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "本文「…時〜/開催」",
+    "date_source": "タイトル冒頭",
     "deadline_source": "",
     "session_count": null,
     "uid": "38cda512ec978cc8a16e5302c6d23cd5"
