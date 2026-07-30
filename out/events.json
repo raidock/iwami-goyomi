@@ -758,7 +758,7 @@
     "distance_tier": null,
     "description": "金唐紙（きんからかみ）とは？金属箔を貼った和紙に文様を浮き上がらせ、彩色とワニスで仕上げる日本独自の装飾壁紙。鹿鳴館や国会議事堂など歴史的な建築にも使われてきた贅沢な壁装材です。一度は途絶えた技法が復活・継承されており、... <a class=\"view-article\" href=\"https://kankou-hamada.or.jp/archives/36464\">View Article</a>",
     "published_at": "2026-07-14",
-    "deadline": null,
+    "deadline": "2026-07-28",
     "category": "学び・講座",
     "tags": [
       "要申込"
@@ -772,7 +772,7 @@
     "reason": "イベント語: ワークショップ/体験",
     "source_trust": "high",
     "date_source": "見出し「日時」",
-    "deadline_source": "",
+    "deadline_source": "本文「…までに/必着」",
     "session_count": null,
     "uid": "51c4a1550524cb40d5bf1c513250be9e"
   },
@@ -979,7 +979,7 @@
     "reason": "開催・募集の明示 / イベント語: 教室 / 弱い手がかり: 開催",
     "source_trust": "normal",
     "date_source": "",
-    "deadline_source": "本文「…までに/必着」",
+    "deadline_source": "見出し「申込締切」",
     "session_count": null,
     "uid": "0ad3823b35115f32668e6fbc4828e059"
   },
@@ -1464,7 +1464,7 @@
   {
     "title": "令和８年度「おおだ教育フェスタ２０２６ｉｎさんべ祭」を開催します！",
     "prefecture": "島根県",
-    "date_start": null,
+    "date_start": "2026-10-03",
     "date_end": null,
     "url": "https://www.city.oda.lg.jp/update_info/10989",
     "source": "oda_city",
@@ -1485,7 +1485,7 @@
     "score": 7,
     "reason": "開催・募集の明示 / イベント語: 体験/フェスタ / 弱い手がかり: 開催",
     "source_trust": "normal",
-    "date_source": "",
+    "date_source": "見出し「開催日」",
     "deadline_source": "",
     "session_count": null,
     "uid": "6916933fe0c16597d99a6d5faa816af6"
@@ -1972,7 +1972,7 @@
   {
     "title": "第４４回「天領さん」 （２０２６）",
     "prefecture": "島根県",
-    "date_start": null,
+    "date_start": "2026-08-01",
     "date_end": null,
     "url": "https://www.city.oda.lg.jp/update_info/10971",
     "source": "oda_city",
@@ -1993,7 +1993,7 @@
     "score": 1,
     "reason": "繰り返しの催しの印: 第N回",
     "source_trust": "normal",
-    "date_source": "",
+    "date_source": "見出し「日時」",
     "deadline_source": "",
     "session_count": null,
     "uid": "b6cb28d44007518070a6c2998fa81975"
