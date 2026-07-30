@@ -560,7 +560,7 @@
     "score": 3,
     "reason": "イベント語: フェス / 弱い手がかり: 開催",
     "source_trust": "normal",
-    "date_source": "タイトル冒頭",
+    "date_source": "見出し「日　時」",
     "deadline_source": "",
     "session_count": null,
     "uid": "ddae586009adc0f6d505793cf1201e31"
@@ -620,7 +620,7 @@
     "score": 0,
     "reason": "手がかりなし",
     "source_trust": "high",
-    "date_source": "見出し「開催期間：」",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "",
     "session_count": null,
     "uid": "4a384b4189c9cc89a586d93cb3532bc3"

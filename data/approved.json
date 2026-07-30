@@ -1214,7 +1214,7 @@
     "score": 1,
     "reason": "弱い手がかり: 開催",
     "source_trust": "normal",
-    "date_source": "タイトル冒頭",
+    "date_source": "見出し「日時」",
     "deadline_source": "見出し「申込締切」",
     "session_count": null,
     "uid": "0cd876d25228d7656d996450f0aba231"
@@ -1514,7 +1514,7 @@
     "score": 7,
     "reason": "開催・募集の明示 / イベント語: ワークショップ / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "見出し「開催日時」",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "",
     "session_count": null,
     "uid": "9695d57addab8c91f6022a9a0a5f2c5a"
@@ -1545,7 +1545,7 @@
     "score": 3,
     "reason": "イベント語: 体験 / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "見出し「日時」",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "",
     "session_count": null,
     "uid": "fceff389d049731b3a8857615a1bf6ac"
@@ -1554,7 +1554,7 @@
     "title": "夏休みイベント☀～貼るだけ簡単！オリジナルフォトフレームを作ろう！！第２弾～",
     "prefecture": "島根県",
     "date_start": "2026-08-18",
-    "date_end": null,
+    "date_end": "2026-08-31",
     "url": "https://www.ginzan-wm.jp/events_post/photostand-nima2/",
     "source": "oda_kanko",
     "raw_date_text": "",
@@ -1574,7 +1574,7 @@
     "score": 7,
     "reason": "開催・募集の明示 / イベント語: 体験 / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "見出し「■ 開催期間」",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "",
     "session_count": null,
     "uid": "b937f625df49c6e2bda1950344648c47"
@@ -1583,7 +1583,7 @@
     "title": "夏休みイベント☀～貼るだけ簡単！オリジナルフォトフレームを作ろう！！第１弾～",
     "prefecture": "島根県",
     "date_start": "2026-07-18",
-    "date_end": "2026-08-17",
+    "date_end": "2026-08-09",
     "url": "https://www.ginzan-wm.jp/events_post/photostand-nima1/",
     "source": "oda_kanko",
     "raw_date_text": "",
@@ -1603,7 +1603,7 @@
     "score": 7,
     "reason": "開催・募集の明示 / イベント語: 体験 / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "見出し「■ 開催期間」",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "",
     "session_count": null,
     "uid": "d21371acd2c00e8f4dad46a829827b90"
@@ -1632,7 +1632,7 @@
     "score": 7,
     "reason": "開催・募集の明示 / イベント語: ワークショップ / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "見出し「開催日」",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "",
     "session_count": null,
     "uid": "b7c9dbd7138ad024b46e3c13bfc41540"
@@ -1663,7 +1663,7 @@
     "score": 5,
     "reason": "開催・募集の明示 / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "見出し「開催期間」",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "本文「…までに/必着」",
     "session_count": null,
     "uid": "88149c0f74da7de9f2a766cd903f69aa"
@@ -1694,7 +1694,7 @@
     "score": 3,
     "reason": "イベント語: マルシェ / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "タイトル冒頭",
+    "date_source": "本文「…時〜/開催」",
     "deadline_source": "",
     "session_count": null,
     "uid": "38cda512ec978cc8a16e5302c6d23cd5"
@@ -1702,8 +1702,8 @@
   {
     "title": "この春、ハンモックデビューしませんか？三瓶山の絶景を特等席で楽しもう！",
     "prefecture": "島根県",
-    "date_start": null,
-    "date_end": null,
+    "date_start": "2026-04-01",
+    "date_end": "2026-06-30",
     "url": "https://www.ginzan-wm.jp/events_post/sanbesan-hanmokku/",
     "source": "oda_kanko",
     "raw_date_text": "",
@@ -1725,7 +1725,7 @@
     "score": 2,
     "reason": "イベント語: 体験",
     "source_trust": "high",
-    "date_source": "",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "",
     "session_count": null,
     "uid": "8a6866c697de7229b87ce37bb9f44e92"
@@ -1754,7 +1754,7 @@
     "score": 5,
     "reason": "開催・募集の明示 / 弱い手がかり: 開催",
     "source_trust": "high",
-    "date_source": "見出し「開催期間」",
+    "date_source": "構造化された期間欄「イベント期間」",
     "deadline_source": "",
     "session_count": null,
     "uid": "2288b5159b0969ae3aeda5072cba513b"
