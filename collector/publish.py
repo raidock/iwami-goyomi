@@ -109,13 +109,10 @@ def _deadline_note(ev: Event, today: date) -> str:
 def _card(ev: Event, today: date) -> str:
     badge = STATUS_BADGE.get(ev.status, "")
     badge_html = f"<span class='badge'>{badge}</span>" if badge else ""
-    # 「締切あり」は申込締切があるという意味。期間の終わりと同じ日なら締切ではない
-    # （会期の終わり）。`_deadline_note()` が注記を出さないのと同じ条件で外す。
-    # 「渚にほどける…個展」はタイトルの「8月30日まで」が会期末で、
-    # 7月4日〜8月30日と出ているカードに「締切あり」が付いていた
-    shown = [t for t in (ev.tags or [])
-             if not (t == "締切あり" and ev.date_end and ev.deadline == ev.date_end)]
-    tags = "".join(f"<span class='tg'>{_html.escape(t)}</span>" for t in shown)
+    # かつて「締切あり」タグを会期末と同じ日のときだけ隠していたが、タグ自体を
+    # 廃止したので抑制も要らなくなった（理由は classify.py）。
+    # 隠していたのは誤爆の一部だけで、`deadline` が取れなかった側は素通りしていた
+    tags = "".join(f"<span class='tg'>{_html.escape(t)}</span>" for t in (ev.tags or []))
     cls = {"中止": "cancelled", "終了": "ended", "最後の開催": "last"}.get(ev.status, "")
     fetched = ev.published_at.strftime("%Y/%m/%d") if ev.published_at else "—"
     # カテゴリが空のときは中黒も出さない。「大田市 ・掲載 2026/07/22」と

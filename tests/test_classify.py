@@ -211,6 +211,30 @@ SERIAL_CASES = [
 ]
 
 
+# 「締切あり」タグを付けていた実データ。**タグは廃止した。**
+# どちらも締切ではなく**会期末の「まで」**で、公開中70件で締切が取れている
+# 16件には1件も付いていなかった。見ている場所が違う（タグはRSS要約、
+# 締切は詳細ページ）ので、そもそも噛み合わない。
+NO_DEADLINE_TAG = [
+    "今井美術館「Atelier Sunoiro 作品展ーそのまま。」（開催中～2026.7.26まで）",
+    "【7月4日～8月30日まで】渚にほどける 貝殻シーグラスアート作家 井上 麻菜美 個展",
+    "しまねふるさとフェア２０２７の出展者を募集します",   # 締切は取れるが本文には無い
+    "申込期限は8月1日です",
+]
+
+
+def check_no_deadline_tag() -> int:
+    """「締切あり」タグが復活していないか。締切は注記で具体的に伝える。"""
+    bad = 0
+    for t in NO_DEADLINE_TAG:
+        v = classify(t)
+        if "締切あり" in (v.tags or []):
+            print(f"  [NG] 「締切あり」が復活している: {t}")
+            bad += 1
+    print(f"  締切タグの不在: {len(NO_DEADLINE_TAG) - bad}/{len(NO_DEADLINE_TAG)} 件")
+    return bad
+
+
 def check_serial_floor() -> int:
     """「第N回」の床が、救うものと救わないものを分けられているか。"""
     bad = 0
@@ -283,6 +307,9 @@ def main():
 
     print("\n--- 「第N回」の床の点検 ---")
     bad += check_serial_floor()
+
+    print("\n--- 「締切あり」タグの不在 ---")
+    bad += check_no_deadline_tag()
 
     # 見逃しゼロを最重要視する（公開物として取りこぼしが一番痛い）
     return 0 if fn == 0 and bad == 0 else 1

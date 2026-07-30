@@ -460,21 +460,21 @@ def test_deadline_note_is_hidden_when_it_equals_the_period_end():
     assert "8/20" in _deadline_note(ev, date(2026, 7, 28))
 
 
-def test_deadline_tag_is_hidden_when_it_equals_the_period_end():
-    """「締切あり」タグも注記と同じ条件で出さない（判断の一貫性）。
+def test_deadline_is_told_by_the_note_not_by_a_tag():
+    """締切は注記で具体的に伝える。タグでは伝えない（「締切あり」は廃止した）。
 
-    「渚にほどける…個展」の 8/30 はタイトルの「8月30日まで」由来で会期の終わり。
-    7月4日〜8月30日と出ているカードに「締切あり」が付いていた。
+    かつて `_card()` は会期末と同じ日の「締切あり」タグだけを隠していたが、
+    タグ自体を廃止したので抑制も消した。**隠していたのは誤爆の半分だけ**で、
+    `deadline` が取れなかった側（今井美術館の個展）は素通りしていた。
     """
     from collector.publish import _card
     ev = _ev(date_start=date(2026, 7, 4), date_end=date(2026, 8, 30))
-    ev.kind, ev.deadline, ev.tags = "催し", date(2026, 8, 30), ["締切あり"]
-    assert "締切あり" not in _card(ev, date(2026, 7, 30)), "会期末に締切タグが付いている"
-    ev.deadline = date(2026, 8, 1)            # 本当の申込締切なら出す
-    assert "締切あり" in _card(ev, date(2026, 7, 30))
-    ev.tags = ["要申込", "締切あり"]           # 他のタグは消さない
-    ev.deadline = date(2026, 8, 30)
-    assert "要申込" in _card(ev, date(2026, 7, 30))
+    ev.kind, ev.deadline, ev.tags = "催し", date(2026, 8, 1), ["要申込"]
+    card = _card(ev, date(2026, 7, 30))
+    assert "申込締切 8/1" in card, "締切は注記で具体的に出す"
+    assert "要申込" in card, "申込が要ることは要申込タグが伝える"
+    # 分類器が付けなくなったので、カードにも出ない
+    assert "締切あり" not in card
 
 
 def test_empty_category_does_not_leave_a_dot():

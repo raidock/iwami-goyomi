@@ -196,7 +196,17 @@ TAG_RULES: list[tuple[str, list[str]]] = [
     ("オンライン可", ["オンライン", "Zoom", "ウェビナー", "配信"]),
 ]
 
-DEADLINE_RE = re.compile(r"(締切|締め切り|まで|期限)")
+# 「締切あり」タグは廃止した（2026-07-31）。**戻さないこと。**
+#
+# タグは RSS のタイトルと要約に「まで」等があるかを見ていたが、締切そのものは
+# 詳細ページから抽出している。**見ている場所が違うので、一度も噛み合わなかった。**
+# 公開中70件で測ると:
+#   - 締切が取れている16件には、タグは1件も付かない
+#   - タグが付いた2件は、両方とも締切ではなく**会期末の「まで」**の誤爆
+#     （「（開催中～2026.7.26まで）」「【7月4日～8月30日まで】…個展」）
+# 締切があるときは `_deadline_note()` が「申込締切 8/1・あと5日」と具体的に出す。
+# 無いときに「締切あり」とだけ言われても住民には何もできない。
+# 申込が要ることは `要申込` タグが伝える。
 
 # ---------------------------------------------------------------- 種別（kind）
 # 催し=行く / 募集=申し込む / 制度=使う。時間軸と並び順が種別ごとに違う。
@@ -335,12 +345,10 @@ def classify(title: str, body: str = "") -> Verdict:
 
     # 5. タグ
     tags = [name for name, words in TAG_RULES if _hits(text, words)]
-    if DEADLINE_RE.search(text):
-        tags.append("締切あり")
 
     kind = detect_kind(text)
     if kind == "制度":
-        tags = [t for t in tags if t != "締切あり"] + ["随時"]
+        tags = tags + ["随時"]
 
     return Verdict(score >= 4, score, category, tags,
                    " / ".join(reasons) or "手がかりなし", kind)
