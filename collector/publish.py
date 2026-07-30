@@ -103,9 +103,18 @@ def _deadline_note(ev: Event, today: date) -> str:
 def _card(ev: Event, today: date) -> str:
     badge = STATUS_BADGE.get(ev.status, "")
     badge_html = f"<span class='badge'>{badge}</span>" if badge else ""
-    tags = "".join(f"<span class='tg'>{_html.escape(t)}</span>" for t in (ev.tags or []))
+    # 「締切あり」は申込締切があるという意味。期間の終わりと同じ日なら締切ではない
+    # （会期の終わり）。`_deadline_note()` が注記を出さないのと同じ条件で外す。
+    # 「渚にほどける…個展」はタイトルの「8月30日まで」が会期末で、
+    # 7月4日〜8月30日と出ているカードに「締切あり」が付いていた
+    shown = [t for t in (ev.tags or [])
+             if not (t == "締切あり" and ev.date_end and ev.deadline == ev.date_end)]
+    tags = "".join(f"<span class='tg'>{_html.escape(t)}</span>" for t in shown)
     cls = {"中止": "cancelled", "終了": "ended", "最後の開催": "last"}.get(ev.status, "")
     fetched = ev.published_at.strftime("%Y/%m/%d") if ev.published_at else "—"
+    # カテゴリが空のときは中黒も出さない。「大田市 ・掲載 2026/07/22」と
+    # 先頭に「・」が浮いていた（カテゴリ未判定は公開59件中8件ある）
+    cat = f"{_html.escape(ev.category)}・" if ev.category else ""
     return f"""
     <article class="card {cls}">
       <div class="when" title="{_html.escape(ev.date_source or ev.deadline_source or '')}">{_when_html(ev, today)}{badge_html}</div>
@@ -113,7 +122,7 @@ def _card(ev: Event, today: date) -> str:
       {_deadline_note(ev, today)}
       <div class="tags">{tags}</div>
       <div class="foot"><span class="muni">{_html.escape(ev.city or '')}</span>
-        <span class="src">{_html.escape(ev.category or '')}・掲載 {fetched}</span></div>
+        <span class="src">{cat}掲載 {fetched}</span></div>
     </article>"""
 
 
