@@ -12,6 +12,7 @@ data_demo/
 # 作業指示・引き継ぎメモ。その時々の状態であってプロジェクトの記録ではない
 NEXT.md
 HANDOFF.md
+REPORT.md
 
 .codex/
 AGENTS.md
