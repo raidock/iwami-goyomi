@@ -411,3 +411,30 @@ def apply_extracted(ev, got: Extracted) -> None:
     if got.deadline:
         ev.deadline = got.deadline
         ev.deadline_source = got.deadline_source
+    drop_reversed_period(ev)
+
+
+def drop_reversed_period(ev) -> bool:
+    """期間の終わりが始まりより前なら、終わりを捨てる。単日として扱う。
+
+    **抽出の失敗ではなく、結果の検証。** どんな抽出器でも起こりうるので出口に置く。
+
+    実例（ginzan-wm.jp 夏休みイベント第2弾）:
+      「■ 開催期間 2026年8月18日（火）～ 8月31（金）
+        ※8月10日～8月17日の期間中は開催いたしませんのでご注意ください。」
+    終わりの「8月31（金）」は**日が抜けていて**日付として読めないため、
+    同じ節の最後の日付である注記の「8月17日」を終わりに採ってしまい、
+    公開画面に「8月18日（火）〜8月17日」と出た。
+
+    入口（「8月31」を日付として読む）は直さない。`8月31日〜9月1日` の一部を
+    誤読しかねないため。注記の切り落としも、他のページで本物の日付を消す危険がある。
+
+    捨てたことは必ず警告に出す。**抽出がおかしいことに気づける必要がある。**
+    """
+    if ev.date_start and ev.date_end and ev.date_end < ev.date_start:
+        print(f"  [warn] 期間が逆転しているため終わりを捨てました: {ev.title[:24]} "
+              f"{ev.date_start.month}/{ev.date_start.day} → "
+              f"{ev.date_end.month}/{ev.date_end.day}")
+        ev.date_end = None
+        return True
+    return False

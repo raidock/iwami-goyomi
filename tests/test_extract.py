@@ -9,7 +9,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from datetime import date
 
-from collector.extract import TITLE_SOURCE, apply_extracted, extract_dates
+from collector.extract import (TITLE_SOURCE, Extracted, apply_extracted,
+                               drop_reversed_period, extract_dates)
 from collector.models import Event
 
 # 江津市 Go-Con2026（2026年5月18日掲載）の構造。日付が7個ある。
@@ -493,6 +494,58 @@ def test_body_date_is_used_when_the_title_had_none():
 def test_no_date_returns_nothing():
     got = extract_dates(NO_DATE, ref=date(2026, 7, 10))
     assert got.date_start is None and got.deadline is None
+
+
+# ginzan-wm.jp 夏休みイベント第2弾の実ページ。終わりの「8月31（金）」は
+# **日が抜けていて**日付として読めない。そのため同じ節の最後の日付である
+# 注記の「8月17日」が終わりに採られ、公開画面に「8月18日（火）〜8月17日」と出た。
+GINZAN_REVERSED_PERIOD = """
+<div id="main_content">
+  <h3><span style="font-family: arial;">■ 開催期間</span></h3>
+  <ul><li><p><span style="font-family: arial;">2026年8月18日（火）～ 8月31（金）
+    ※8月10日～8月17日の期間中は開催いたしませんのでご注意ください。</span></p></li></ul>
+  <h3><span>■ イベント詳細</span></h3>
+  <ul><li><p>受付時間 ：09:00 ～ 15:00　料金 ：1個 1,500円</p></li></ul>
+</div>
+"""
+
+
+def test_reversed_period_drops_the_end():
+    """期間が逆転していたら終わりを捨てて単日にする（出口での検証）。"""
+    got = extract_dates(GINZAN_REVERSED_PERIOD, ref=date(2026, 6, 15),
+                        today=date(2026, 6, 15))
+    assert got.date_start == date(2026, 8, 18), got.date_start
+    assert got.date_end == date(2026, 8, 17), "前提が変わっている（注記を拾わなくなった）"
+    ev = _ev()
+    apply_extracted(ev, got)
+    assert ev.date_start == date(2026, 8, 18), ev.date_start
+    assert ev.date_end is None, f"逆転した終わりが残っている: {ev.date_end}"
+
+
+def test_same_day_period_is_kept():
+    """始まりと終わりが同じ日は捨てない（1日だけの催し）。"""
+    ev = _ev()
+    got = Extracted(date_start=date(2026, 8, 1), date_end=date(2026, 8, 1),
+                    date_source="見出し「開催期間」")
+    apply_extracted(ev, got)
+    assert ev.date_end == date(2026, 8, 1), "同日を捨ててしまった"
+
+
+def test_normal_period_is_untouched():
+    """正常な期間は影響を受けない（スタンプラリー 8/1〜12/15）。"""
+    ev = _ev()
+    apply_extracted(ev, extract_dates(HAMANAVI_STAMP, ref=date(2026, 7, 21),
+                                      today=date(2026, 7, 21)))
+    assert ev.date_start == date(2026, 8, 1)
+    assert ev.date_end == date(2026, 12, 15), ev.date_end
+
+
+def test_reversed_period_is_dropped_even_without_extraction():
+    """すでに持っている値が逆転していても捨てる（保存済みデータの検証）。"""
+    ev = _ev(date_start=date(2026, 8, 18), date_end=date(2026, 8, 17))
+    assert drop_reversed_period(ev) is True
+    assert ev.date_end is None
+    assert drop_reversed_period(ev) is False, "2度目は何もしない"
 
 
 def test_source_is_recorded():
