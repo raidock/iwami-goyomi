@@ -53,6 +53,9 @@ PERIOD_EVENT_WORDS = ["実施", "開催"]
 # （かつて会期を PERIOD_EVENT_WORDS に入れていたが、あちらは「期間」を含む
 #   見出しにしか効かないため一度も一致しない死にコードだった）
 SELF_PERIOD_HEADS = ["会期"]
+# 記号つきの平文ラベル（`_marked_sections`）で「これはラベルだ」と認める語。
+# 既知のラベル語に限る。ここを緩めると箇条書きの飾りを節にしてしまう。
+_ALL_HEADS = frozenset(HELD_HEADS + DEADLINE_HEADS + PERIOD_HEADS)
 
 # ---------------------------------------------------------------- 日付の形
 # 「8月3日（月曜日）」「12月13日（日）」「2026年8月3日」いずれも拾う
@@ -67,13 +70,19 @@ _BRACKET_LABEL = re.compile(r"[【〔\[]\s*([^】〕\]]{1,12})\s*[】〕\]]")
 # 分を許していなかったため、浜田市お魚料理教室の申込締切
 # 「８ 月２1 日（金） 午後５時１５分まで」が締切として拾えず、
 # 代わりに下の _HELD_TAIL の「午後◯時」に当たって開催日にされていた。
+#
+# 24時間表記（13：00 / 13:00）も同じ形で書かれる。**両方に足す。**
+# 締切側だけ足すと「17:15まで」が拾えず、開催側だけ足すと締切が開催日に化ける。
+# 層2は日付ごとに締切を先に判定するので、両方にあれば順序で守れる。
+_CLOCK = r"(?:正午|(?:午前|午後)?\s*\d{1,2}\s*時(?:\s*\d{1,2}\s*分)?|\d{1,2}\s*[:：]\s*\d{2})"
 _DEADLINE_TAIL = re.compile(
     r"(?:（[^）]{0,6}）|\([^)]{0,6}\)|\s)*"
-    r"(?:正午|(?:午前|午後)?\s*\d{1,2}\s*時(?:\s*\d{1,2}\s*分)?)?\s*"
+    + _CLOCK + r"?\s*"
     r"(?:まで|までに|必着|消印有効|締切|締め切り)")
 # 日付の「後ろ」に開演時刻が来ていれば開催日
 _HELD_TAIL = re.compile(
-    r"(?:（[^）]{0,6}）|\([^)]{0,6}\)|\s)*(?:午前|午後)\s*\d{1,2}\s*時|開演|開場|開催")
+    r"(?:（[^）]{0,6}）|\([^)]{0,6}\)|\s)*"
+    r"(?:(?:午前|午後)\s*\d{1,2}\s*時|\d{1,2}\s*[:：]\s*\d{2})|開演|開場|開催")
 
 
 # タイトル（＋概要）から取った日付につける印。main.py の仕分けで立てる。
@@ -307,6 +316,44 @@ def _is_event_period(label: str) -> bool:
     return "期間" in label and any(w in label for w in PERIOD_EVENT_WORDS)
 
 
+# 記号つきの平文ラベル。「〇日 時　令和８年８月１日（土）」の形。
+# 大田市最大の祭り「天領さん」は、見出しタグも【】も使わず、<p>の中に
+# この形で書いていた（層1に届かず、日程が取れないまま公開された）。
+#
+# **記号の直後が既知のラベル語のときだけ**節として扱う。記号だけを手がかりに
+# すると箇条書きの飾りを全部拾う。`・`（中黒）は本文のあらゆる場所に出るので入れない。
+_MARK_RE = re.compile(r"[〇◯○●◆◇■□▲△▼▽★☆]")
+
+
+def _match_head(chunk: str) -> Optional[tuple[str, int]]:
+    """記号の直後がラベル語なら (ラベル語, 生の文字数) を返す。
+
+    空白は無視して比べる。「日 時」「日　時」のように字間を空ける書き方が多い
+    （江津市観光協会の【日　時】と同じ事情）。
+    """
+    seen = ""
+    for i, ch in enumerate(chunk[:14]):
+        if ch in " 　\t":
+            continue
+        seen += ch
+        if seen in _ALL_HEADS:
+            return seen, i + 1
+    return None
+
+
+def _marked_sections(text: str) -> list[tuple[str, str]]:
+    """「〇日 時 …」「◆申込締切：…」の形から (ラベル, 中身) を取り出す。"""
+    out, marks = [], list(_MARK_RE.finditer(text))
+    for i, m in enumerate(marks):
+        end = marks[i + 1].start() if i + 1 < len(marks) else min(len(text), m.end() + 160)
+        chunk = text[m.end():end]
+        if not (hit := _match_head(chunk)):
+            continue
+        label, used = hit
+        out.append((label, chunk[used:].strip(" 　:：")[:160]))
+    return out
+
+
 def _bracket_sections(text: str) -> list[tuple[str, str]]:
     """【日時】…【場所】… の形から (ラベル, 中身) を取り出す。"""
     out, marks = [], list(_BRACKET_LABEL.finditer(text))
@@ -398,6 +445,7 @@ def extract_dates(html: str, ref: Optional[date] = None,
     plain = wareki_to_seireki(soup.get_text(" ", strip=True))
     sections = [(l, wareki_to_seireki(b)) for l, b in _sections(soup)]
     sections += _bracket_sections(plain)
+    sections += _marked_sections(plain)
     for label, body in sections:
         dates = _find_dates(body, ref)
         if not dates:
@@ -431,9 +479,15 @@ def extract_dates(html: str, ref: Optional[date] = None,
     text = plain
     for dt, pos in _find_dates(text, ref):
         tail = text[pos:pos + 24]
-        if not got.deadline and _DEADLINE_TAIL.match(tail):
-            got.deadline = dt
-            got.deadline_source = "本文「…までに/必着」"
+        # **「まで」と書いてある日付は、開催日には決してしない。**
+        # elif にしていたため、締切が層1で既に取れていると、同じ日付が
+        # 開催日の判定に落ちてきて「午後５時１５分まで」の「午後◯時」に当たり、
+        # 申込締切が開催日として拾われていた（浜田市お魚料理教室 8/21）。
+        # 締切が埋まっているかどうかとは無関係に、締切の日付は開催日にしない。
+        if _DEADLINE_TAIL.match(tail):
+            if not got.deadline:
+                got.deadline = dt
+                got.deadline_source = "本文「…までに/必着」"
         elif not got.date_start and _HELD_TAIL.match(tail):
             got.date_start = dt
             got.date_source = "本文「…時〜/開催」"

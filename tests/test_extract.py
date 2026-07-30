@@ -565,6 +565,89 @@ GOTSU_KANKO_POST_TIME = """
 """
 
 
+# 大田市「第４４回「天領さん」」の実ページ。見出しタグも【】も使わず、
+# <p> の中に「〇日　時」と記号つきの平文ラベルで書いている。
+# 層1に届かず、大田市最大の夏祭りが「日程は詳細ページで」のまま公開された。
+ODA_TENRYO = """
+<div id="main_content">
+  <p>第４４回「天領さん」は以下のとおり開催されます</p>
+  <p>大田会場「大田会場チラシ」をダウンロードする（JPG：679kB）</p>
+  <p>〇日　時　　2026年８月１日（土）　１３：００～２１：００<br>
+     〇場　所　　大田市民会館駐車場<br>
+     〇内　容　　１３：００　ウォーターサバゲー、屋台村</p>
+  <p>〇日　時　　2026年８月４日（火）　１７：３０～２１：３０</p>
+</div>
+"""
+
+# 浜田市「お魚料理教室（受講者募集）」の実ページ。◆ラベルで書かれている。
+# 8月21日は**申込締切**であって開催日ではない（開催日は9月16日）。
+# 以前ここで「午後５時１５分まで」を開催日として拾い、自動公開する事故を起こした。
+HAMADA_SAKANA = """
+<div>
+  <p>◆日にち：2026年９月１６日（水）</p>
+  <p>◆時間：１０：００～１３：００</p>
+  <p>◆申込締切：８ 月２1 日（金） 午後５時１５分まで</p>
+  <p>◆申込先・問合せ先：浜田市水産業振興協会</p>
+</div>
+"""
+
+
+def test_marked_plain_label_is_read_as_a_section():
+    """記号つきの平文ラベル「〇日　時」を見出しと同じに扱う。"""
+    got = extract_dates(ODA_TENRYO, ref=date(2026, 6, 17), today=date(2026, 6, 17))
+    assert got.date_start == date(2026, 8, 1), got.date_start
+    assert "日時" in got.date_source, got.date_source
+
+
+def test_marked_label_requires_a_known_head():
+    """記号だけでは節にしない。ラベル語を伴うときだけ（飾りを全部拾わない）。"""
+    html = ("<div><p>〇内　容　１３：００　ウォーターサバゲー</p>"
+            "<p>〇場　所　2026年8月1日の会場は市民会館</p></div>")
+    got = extract_dates(html, ref=date(2026, 6, 17), today=date(2026, 6, 17))
+    assert got.date_start is None, f"飾りを節にした: {got.date_source}"
+
+
+def test_nakaguro_is_not_a_label_mark():
+    """`・`（中黒）は記号に入れない。本文のあらゆる場所に出る。"""
+    html = "<div><p>持ち物・日時のご案内は2026年8月1日に掲載します</p></div>"
+    got = extract_dates(html, ref=date(2026, 6, 17), today=date(2026, 6, 17))
+    assert got.date_start is None, f"中黒を節の印にした: {got.date_source}"
+
+
+def test_deadline_label_does_not_become_the_held_date():
+    """◆申込締切の日付を開催日にしない。
+
+    層1で締切が取れると、層2で同じ日付が開催日の判定に落ちてきて
+    「午後５時１５分まで」の「午後◯時」に当たっていた。
+    """
+    got = extract_dates(HAMADA_SAKANA, ref=date(2026, 7, 15), today=date(2026, 7, 15))
+    assert got.deadline == date(2026, 8, 21), got.deadline
+    assert got.date_start != date(2026, 8, 21), "締切が開催日になっている"
+
+
+def test_24h_clock_after_a_date_means_held():
+    """「10月3日（土）11：00～15：00」の24時間表記を開催の手がかりにする。"""
+    html = "<div><p>〇開催日：2026年10月3日（土）11：00～15：00</p></div>"
+    got = extract_dates(html, ref=date(2026, 6, 23), today=date(2026, 6, 23))
+    assert got.date_start == date(2026, 10, 3), got.date_start
+
+
+def test_24h_clock_before_made_means_deadline():
+    """「7月28日（火）17：00までに」は締切。開催日にしない。
+
+    24時間表記を開催側だけに足すと、締切が開催日に化ける。
+    両方に足したうえで、層2が締切を先に見ることで順序を守っている。
+    """
+    html = "<div><p>7月28日（火）17：00までに、石州和紙会館までお申し込みください。</p></div>"
+    got = extract_dates(html, ref=date(2026, 7, 1), today=date(2026, 7, 1))
+    assert got.deadline == date(2026, 7, 28), got.deadline
+    assert got.date_start is None, f"締切を開催日にした: {got.date_start}"
+    # 半角コロンでも同じ
+    html2 = html.replace("17：00", "17:15")
+    got2 = extract_dates(html2, ref=date(2026, 7, 1), today=date(2026, 7, 1))
+    assert got2.deadline == date(2026, 7, 28) and got2.date_start is None
+
+
 def test_declared_period_beats_the_body():
     """サイトが宣言している期間を、人手の本文より優先する。"""
     got = extract_dates(GINZAN_DECLARED_PERIOD, ref=date(2026, 6, 15),
