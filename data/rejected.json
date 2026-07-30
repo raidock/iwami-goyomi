@@ -26,6 +26,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "d758907c07056388f86b8f36e4b80522"
   },
   {
@@ -55,6 +56,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "9527a640f3a175d31d91b37d90147be0"
   },
   {
@@ -84,6 +86,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "4559a2bac0b27571be184c768f27504a"
   },
   {
@@ -113,6 +116,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "5fb2bf4dae6379e20e1b99829aeeaead"
   },
   {
@@ -145,6 +149,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "061bf8796b4da2cb7ca8004713cf75c1"
   },
   {
@@ -174,6 +179,7 @@
     "date_source": "",
     "deadline_source": "見出し「相談受付期間」の終わり",
     "session_count": null,
+    "other_dates": 0,
     "uid": "852b6432faffff9b6d506c77bdfccb40"
   },
   {
@@ -203,6 +209,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "7e53f27edcaee4bacc96e8efcd9c3dbf"
   },
   {
@@ -234,6 +241,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "79440f7fa5bd39403d753b40cf92f8e0"
   },
   {
@@ -263,6 +271,7 @@
     "date_source": "見出し「【日　時】」",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "2f1b8efdbd40b7084003816b0e29916b"
   },
   {
@@ -294,6 +303,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "7f96832e556fc8d7d35b65fd6c6f5c66"
   },
   {
@@ -325,6 +335,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "216b3c4293ec69db0a71c87fcb578b98"
   },
   {
@@ -354,6 +365,7 @@
     "date_source": "タイトル冒頭",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "d702a0fef1e3adbd302cbca72e067731"
   },
   {
@@ -383,6 +395,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "5e3c7692b8dd9f6f1540ac404f38a4ea"
   },
   {
@@ -412,6 +425,7 @@
     "date_source": "タイトル冒頭",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "ddae586009adc0f6d505793cf1201e31"
   },
   {
@@ -441,6 +455,7 @@
     "date_source": "",
     "deadline_source": "",
     "session_count": null,
+    "other_dates": 0,
     "uid": "63fc0e6d24b23c5433462db114b118d1"
   }
 ]
