@@ -32,7 +32,7 @@
   {
     "title": "2026年8月 石州和紙会館新聞",
     "prefecture": "島根県",
-    "date_start": null,
+    "date_start": "2026-08-08",
     "date_end": null,
     "url": "https://kankou-hamada.or.jp/archives/36565",
     "source": "hamanavi",
@@ -53,7 +53,7 @@
     "score": 0,
     "reason": "手がかりなし",
     "source_trust": "high",
-    "date_source": "",
+    "date_source": "本文「…時〜/開催」",
     "deadline_source": "",
     "session_count": null,
     "other_dates": 0,
