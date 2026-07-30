@@ -1767,12 +1767,10 @@
     "published_at": "2026-04-10",
     "deadline": null,
     "category": "学び・講座",
-    "tags": [
-      "随時"
-    ],
+    "tags": [],
     "organizer": null,
     "organizer_type": "観光協会",
-    "kind": "制度",
+    "kind": "催し",
     "status": "開催予定",
     "review_state": "approved",
     "score": 2,
