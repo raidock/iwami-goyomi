@@ -4,7 +4,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from datetime import date
 
-from collector.classify import detect_kind
+from collector.classify import classify, detect_kind
 from collector.models import Event, extract_deadline, extract_held_date
 from collector.publish import to_public_site
 
@@ -31,6 +31,26 @@ def test_kind_detection():
     for title, expect in KIND_CASES:
         got = detect_kind(title)
         assert got == expect, f"{title[:30]} → {got}（期待 {expect}）"
+
+
+def test_kind_reads_the_title_only():
+    """種別はタイトルだけで決める。本文まで見ると引っ張られる。
+
+    三瓶山のハンモック（大田市観光協会の実データ）は、サイト自身が
+    「イベント期間 2026年04月01日～06月30日」と宣言している催しだが、
+    RSS要約の末尾にあった「貸出」の1語で制度になっていた。制度は
+    `is_past()` を見ない（設計判断1）ので、会期が終わっても
+    「いつでも使えるもの」に残り続けた。
+    """
+    title = "この春、ハンモックデビューしませんか？三瓶山の絶景を特等席で楽しもう！"
+    body = ("実はなかなか体験できない「外でのハンモック」。…"
+            "貸出期間：4月1日（水）～6月30日（火）")
+    assert detect_kind(title) == "催し"
+    # 分類器に本文を渡しても種別は動かない（ここが壊れると元に戻る）
+    assert classify(title, body).kind == "催し"
+    # タイトルに制度語があるものは制度のまま。3種別の判定順序を壊さない
+    assert classify("出前講座をご利用ください", "夏祭りの相談も承ります").kind == "制度"
+    assert classify("移動図書館の貸出について", "").kind == "制度"
 
 
 def test_year_inferred_from_publication_date():

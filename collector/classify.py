@@ -234,12 +234,26 @@ BOSHU_PAT = [           # 募集（締切が主役）
 ]
 
 
-def detect_kind(text: str) -> str:
-    if any(w in text for w in SEIDO_PAT):
+def detect_kind(title: str) -> str:
+    """種別を決める。**タイトルだけを見る。**
+
+    本文まで見ると引っ張られる。三瓶山のハンモック（大田市観光協会）は
+    サイト自身が「イベント期間 2026年04月01日～06月30日」と宣言している催しだが、
+    RSS要約の末尾にあった **「貸出」の1語**で制度になり、`is_past()` が
+    制度を見ない（設計判断1）ため、会期が終わっても「いつでも使えるもの」に
+    残り続けていた。
+
+    カテゴリをタイトル優先にしたのと同じ話（設計判断10）。設計判断13の
+    「語彙には適用範囲がある」で**4回目**の同じ形になる
+    （カテゴリ・過去の報告・除外語・種別）。
+
+    タイトルに制度語があるものは変わらない（「出前講座をご利用ください」は制度のまま）。
+    """
+    if any(w in title for w in SEIDO_PAT):
         return "制度"
-    if any(w in text for w in MOYOSHI_NOUN):
+    if any(w in title for w in MOYOSHI_NOUN):
         return "催し"
-    if any(w in text for w in BOSHU_PAT):
+    if any(w in title for w in BOSHU_PAT):
         return "募集"
     return "催し"
 
@@ -346,7 +360,7 @@ def classify(title: str, body: str = "") -> Verdict:
     # 5. タグ
     tags = [name for name, words in TAG_RULES if _hits(text, words)]
 
-    kind = detect_kind(text)
+    kind = detect_kind(title)
     if kind == "制度":
         tags = tags + ["随時"]
 
