@@ -150,8 +150,27 @@ class ReviewQueue:
     REFRESHABLE = ("date_start", "date_end", "deadline",
                    "date_source", "deadline_source", "session_count",
                    "other_dates")
-    # 人の判断。どちらのリストにも入っていないことを起動時に確かめる
-    assert not ({"review_state", "status"} & set(ENRICHABLE + REFRESHABLE))
+
+    # 分類器が毎回すべて出す値。**空でも正しい答えなのでそのまま上書きする。**
+    #
+    # 抽出（日付）とは性質が違う。抽出は失敗しうるので空欄は「まだ分からない」だが、
+    # 分類は必ず答えを返すので空欄は「タグは無い」という答えそのもの。
+    # ENRICHABLE と同じ「空なら飛ばす」で扱うと、**分類器を直しても公開中の
+    # データから消えない。** 実際に2回踏んだ:
+    #   - 「締切あり」タグを廃止したのに `tags: ['締切あり']` が2件残った
+    #   - 種別をタイトル優先にしたのに `kind: 制度` `tags: ['随時']` が1件残った
+    # どちらも手でデータを直して回復した。3回目を人の注意力で防ぐのは無理がある。
+    CLASSIFIED = ("kind", "tags", "category", "score", "reason")
+
+    # 取得元がそのまま持っている値。uid が同じなら同じ記事なので更新しない。
+    FROM_SOURCE = ("title", "prefecture", "url", "source", "raw_date_text",
+                   "city", "distance_tier", "description", "published_at",
+                   "organizer", "organizer_type", "source_trust")
+
+    # 人の判断。**どのリストにも入っていないことを起動時に確かめる。**
+    HUMAN_DECIDED = ("review_state", "status")
+    assert not (set(HUMAN_DECIDED)
+                & set(ENRICHABLE + REFRESHABLE + CLASSIFIED + FROM_SOURCE))
 
     def ingest(self, events: list[Event], auto_approve: bool = True) -> dict:
         """新規は取り込み、既知のものは新しく分かった情報で更新する。
@@ -170,6 +189,12 @@ class ReviewQueue:
             if ev.uid in by_uid:
                 old, _ = by_uid[ev.uid]
                 changed = False
+                # 分類器の出力は毎回そのまま反映する（空欄も答えのうち）
+                for f in self.CLASSIFIED:
+                    new_v = getattr(ev, f, None)
+                    if getattr(old, f, None) != new_v:
+                        setattr(old, f, new_v)
+                        changed = True
                 for f in self.ENRICHABLE:
                     new_v = getattr(ev, f, None)
                     if not new_v:
