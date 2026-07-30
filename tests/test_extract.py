@@ -623,6 +623,33 @@ def test_repeated_labels_take_the_next_future_date():
     assert "ほか" in got.date_source, got.date_source
 
 
+def test_other_dates_is_counted_and_shown():
+    """別日程の数を数え、「ほか」と出す。**「全N回」とは別物。**
+
+    救命講習の全6回は同じ催しの繰り返し。天領さんは1つの祭りが
+    大田8/1・久手8/4・大森8/30 と会場を変えて開かれる。
+    「全3回」と書くと同じものが3回あると誤解される。
+    """
+    from collector.publish import _when_html
+    got = extract_dates(ODA_TENRYO, ref=date(2026, 6, 17), today=date(2026, 7, 30))
+    assert got.other_dates == 2, got.other_dates
+    assert got.session_count is None, "会場違いを回数にしている"
+    ev = _ev(date_start=got.date_start)
+    apply_extracted(ev, got)
+    assert ev.other_dates == 2
+    html = _when_html(ev, date(2026, 7, 30))
+    assert "ほか" in html and "全" not in html, html
+
+
+def test_sessions_win_over_other_dates():
+    """回数と別日程が両方立ったら「全N回」を出す（回数のほうが具体的）。"""
+    from collector.publish import _when_html
+    ev = _ev(date_start=date(2026, 9, 12))
+    ev.session_count, ev.other_dates = 6, 2
+    html = _when_html(ev, date(2026, 7, 30))
+    assert "（全6回）" in html and "ほか" not in html, html
+
+
 def test_single_label_is_unchanged():
     """節が1つなら従来どおり（未来の日でなくてもその日を採る）。"""
     html = "<div><p>〇日　時　　2026年7月10日（金）　10：00～</p></div>"

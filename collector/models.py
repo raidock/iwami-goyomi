@@ -87,6 +87,11 @@ class Event:
     # 飛び石で複数回ある催しの回数。date_start は「次回」を指す。
     # 期間ではないので date_end には触れない（「9月12日〜翌3月17日」は嘘になる）
     session_count: Optional[int] = None
+    # 同じ催しの別日程の数（会場違いなど）。**session_count とは意味が違う。**
+    # 救命講習の「全6回」は同じ催しが6回繰り返される。天領さんの3会場は
+    # 1つの祭りが大田・久手・大森で日を変えて開かれる。前者は「全N回」、
+    # 後者は「ほか」と出す。
+    other_dates: int = 0
 
     @classmethod
     def from_listing(cls, raw_title: str, raw_date_text: str, url: str, source: str) -> "Event":

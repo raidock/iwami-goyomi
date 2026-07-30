@@ -68,6 +68,12 @@ def _when_html(ev: Event, today: date) -> str:
         # 期間として「9月12日〜翌3月17日」とは書かない（6か月続くと誤解される）
         if ev.session_count and ev.session_count > 1:
             txt += f"<span class='sessions'>（全{ev.session_count}回）</span>"
+        # 会場違いなどで別の日程もあるものは「ほか」と添える。
+        # **「全N回」とは別物。** 救命講習は同じ催しが6回繰り返されるが、
+        # 天領さんは1つの祭りが大田8/1・久手8/4・大森8/30 と会場を変えて開かれる。
+        # 「全3回」と書くと、同じものが3回あると誤解される
+        elif ev.other_dates:
+            txt += "<span class='sessions'>ほか</span>"
         return txt
     return "<span class='tbd'>日程は詳細ページで</span>"
 

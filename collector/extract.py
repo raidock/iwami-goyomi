@@ -98,6 +98,7 @@ class Extracted:
     date_source: str = ""        # どこから取ったか（承認画面に出す）
     deadline_source: str = ""
     session_count: Optional[int] = None   # 飛び石で複数回ある催しの回数
+    other_dates: int = 0                  # 同じ催しの別日程の数（会場違いなど）
 
 
 def _find_dates(text: str, ref: Optional[date]) -> list[tuple[date, int]]:
@@ -472,6 +473,7 @@ def extract_dates(html: str, ref: Optional[date] = None,
             got.date_start = future[0] if future else uniq[-1]
             label = next(l for l, d in firsts if d == got.date_start)
             got.date_source = f"見出し「{label}」ほか{len(uniq) - 1}件"
+            got.other_dates = len(uniq) - 1
 
     for label, body in sections:
         dates = _find_dates(body, ref)
@@ -537,6 +539,7 @@ def apply_extracted(ev, got: Extracted) -> None:
         ev.date_start = got.date_start
         ev.date_source = got.date_source
         ev.session_count = got.session_count
+        ev.other_dates = got.other_dates
         if got.date_end:
             ev.date_end = got.date_end
     if got.deadline:

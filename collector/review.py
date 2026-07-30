@@ -132,7 +132,8 @@ class ReviewQueue:
     # ---- 取り込み ------------------------------------------------------
     # 空欄なら埋めるもの
     ENRICHABLE = ("date_start", "date_end", "deadline",
-                  "date_source", "deadline_source", "venue", "session_count")
+                  "date_source", "deadline_source", "venue", "session_count",
+                  "other_dates")
     # 値が入っていても、毎回の抽出結果で上書きしてよいもの。
     #
     # 日付は機械が抽出した値なので、最新の抽出結果を正とする。埋めるだけにすると、
@@ -147,7 +148,8 @@ class ReviewQueue:
     # review_state と status は絶対に入れないこと。日付は機械の抽出値、
     # 承認は人が下した判断で、性質が違う。
     REFRESHABLE = ("date_start", "date_end", "deadline",
-                   "date_source", "deadline_source", "session_count")
+                   "date_source", "deadline_source", "session_count",
+                   "other_dates")
     # 人の判断。どちらのリストにも入っていないことを起動時に確かめる
     assert not ({"review_state", "status"} & set(ENRICHABLE + REFRESHABLE))
 
