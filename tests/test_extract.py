@@ -575,7 +575,12 @@ ODA_TENRYO = """
   <p>〇日　時　　2026年８月１日（土）　１３：００～２１：００<br>
      〇場　所　　大田市民会館駐車場<br>
      〇内　容　　１３：００　ウォーターサバゲー、屋台村</p>
-  <p>〇日　時　　2026年８月４日（火）　１７：３０～２１：３０</p>
+  <p>久手会場（港まつり）</p>
+  <p>〇日　時　　2026年８月４日（火）　１７：３０～２１：３０<br>
+     〇場　所　　久手港周辺</p>
+  <p>大森会場</p>
+  <p>〇日　時　　2026年８月３０日（日）　１０：００～１５：００<br>
+     〇場　所　　石見銀山世界遺産センター</p>
 </div>
 """
 
@@ -597,6 +602,45 @@ def test_marked_plain_label_is_read_as_a_section():
     got = extract_dates(ODA_TENRYO, ref=date(2026, 6, 17), today=date(2026, 6, 17))
     assert got.date_start == date(2026, 8, 1), got.date_start
     assert "日時" in got.date_source, got.date_source
+
+
+def test_repeated_labels_take_the_next_future_date():
+    """同じラベルの節が複数あるなら、今日以降でいちばん早い日を採る。
+
+    天領さんは3会場を「〇日 時」で3つ並べる（大田8/1・久手8/4・大森8/30）。
+    先頭だけを採ると、8/2 には 8/1 が過去になって「終わった催し」に畳まれ、
+    まだ残っている久手8/4・大森8/30 ごと消える。
+    """
+    ref = date(2026, 6, 17)
+    for today, want in ((date(2026, 7, 30), date(2026, 8, 1)),
+                        (date(2026, 8, 1), date(2026, 8, 1)),
+                        (date(2026, 8, 2), date(2026, 8, 4)),
+                        (date(2026, 8, 5), date(2026, 8, 30)),
+                        (date(2026, 8, 31), date(2026, 8, 30))):   # 全部過ぎたら最後の日
+        got = extract_dates(ODA_TENRYO, ref=ref, today=today)
+        assert got.date_start == want, f"{today} で {got.date_start}（期待 {want}）"
+    got = extract_dates(ODA_TENRYO, ref=ref, today=date(2026, 7, 30))
+    assert "ほか" in got.date_source, got.date_source
+
+
+def test_single_label_is_unchanged():
+    """節が1つなら従来どおり（未来の日でなくてもその日を採る）。"""
+    html = "<div><p>〇日　時　　2026年7月10日（金）　10：00～</p></div>"
+    got = extract_dates(html, ref=date(2026, 6, 1), today=date(2026, 8, 1))
+    assert got.date_start == date(2026, 7, 10), got.date_start
+    assert "ほか" not in got.date_source, got.date_source
+
+
+def test_period_sections_are_not_merged():
+    """期間の節はこの経路に乗せない。注記の日付を拾ってしまうため。
+
+    「■ 開催期間 …第1弾 …第2弾 ※8月10日～8月17日は開催しません」の節から
+    最も早い未来の日を選ぶと、注記の 8/10 が開催日になる。
+    """
+    got = extract_dates(GINZAN_DECLARED_PERIOD, ref=date(2026, 6, 15),
+                        today=date(2026, 7, 30))
+    assert got.date_start == date(2026, 7, 18), got.date_start
+    assert got.date_end == date(2026, 8, 9), got.date_end
 
 
 def test_marked_label_requires_a_known_head():

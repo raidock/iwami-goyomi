@@ -446,6 +446,33 @@ def extract_dates(html: str, ref: Optional[date] = None,
     sections = [(l, wareki_to_seireki(b)) for l, b in _sections(soup)]
     sections += _bracket_sections(plain)
     sections += _marked_sections(plain)
+
+    # 同じ日時ラベルの節が複数あるページは、**それぞれの最初の日付を集めて
+    # 今日以降で最も早いものを採る。** 表で並ぶ複数回（救命講習）と同じ扱い。
+    #
+    # 大田市「天領さん」は3会場を「〇日 時」で3つ並べる（大田8/1・久手8/4・大森8/30）。
+    # 先頭だけを採ると、8/2 には 8/1 が過去になって「終わった催し」に畳まれ、
+    # まだ残っている久手8/4・大森8/30 ごと消える。
+    #
+    # **節ごとの最初の日付だけを見る。** 節の中の全日付を混ぜると、
+    # 「※8月10日～8月17日は開催しません」のような注記の日付を拾う
+    # （フォトフレーム第2弾で確認）。期間の節（開催期間など）は始まりと終わりの
+    # 意味があるので、この経路には乗せない。
+    if not got.date_start:
+        firsts = []
+        for label, body in sections:
+            name = _norm_label(label)
+            if not any(k in name for k in HELD_HEADS) or _is_event_period(name):
+                continue
+            if dates := _find_dates(body, ref):
+                firsts.append((label, dates[0][0]))
+        uniq = sorted({d for _, d in firsts})
+        if len(firsts) >= 2 and len(uniq) >= 2:
+            future = [d for d in uniq if d >= today]
+            got.date_start = future[0] if future else uniq[-1]
+            label = next(l for l, d in firsts if d == got.date_start)
+            got.date_source = f"見出し「{label}」ほか{len(uniq) - 1}件"
+
     for label, body in sections:
         dates = _find_dates(body, ref)
         if not dates:
