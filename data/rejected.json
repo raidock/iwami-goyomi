@@ -457,5 +457,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "63fc0e6d24b23c5433462db114b118d1"
+  },
+  {
+    "title": "令和８年熊本地震災害義援金箱設置について",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.city.oda.lg.jp/update_info/11192",
+    "source": "oda_city",
+    "raw_date_text": "",
+    "city": "大田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "2026年7月28日に熊本県熊本地方を震源とする地震があり、熊本県宇城市、氷川町で震度７の揺れを観測しました。大田市では、被災された方々を支援するため、義援金募集のための募金箱を設置することといたしましたので、お知らせします。",
+    "published_at": "2026-07-30",
+    "deadline": null,
+    "category": null,
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "rejected",
+    "score": 1,
+    "reason": "弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "e1b64d6c989c7be43438bfbb694014ad"
   }
 ]
