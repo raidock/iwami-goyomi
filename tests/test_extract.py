@@ -397,6 +397,41 @@ def test_kaiki_heading_is_an_event_period():
     assert got.date_end == date(2026, 9, 27), f"会期の終わりが違う: {got.date_end}"
 
 
+# 邑南町観光協会（SWELLテーマ）の実ページ。**ラベルが `<th>` ではなく `<td>` で、
+# 同じ表の中で行ごとに混ざる。** 値は次のセルにある。
+OHNAN_KANKO = """
+<table><tbody>
+  <tr><th><span>名称</span></th><td>平和と 美術と 音楽と</td></tr>
+  <tr><td><span><strong>開催時期</strong></span></td>
+      <td>2026年8月5日（水）～8月9日（日）<br>10：00～17：00</td></tr>
+  <tr><th><span>公式サイト等</span></th><td>https://example.com/</td></tr>
+</tbody></table>
+"""
+
+
+def test_label_cell_written_as_td_is_still_read():
+    """`<td><strong>開催時期</strong></td>` を見出しとして読む。
+
+    `<strong>` は隣の兄弟しか見ていなかったため、値（次の `<td>`）に届かず、
+    本文の別経路が終わりの日だけを拾って **8/9 だけ**になっていた。
+    """
+    got = extract_dates(OHNAN_KANKO, ref=date(2026, 7, 20), today=date(2026, 7, 20))
+    assert got.date_start == date(2026, 8, 5), f"開始日が違う: {got.date_start}"
+    assert got.date_end == date(2026, 8, 9), f"終わりが違う: {got.date_end}"
+    assert "開催時期" in got.date_source, got.date_source
+
+
+def test_kaisai_jiki_is_an_event_period():
+    """**「開催時期」は期間。** 終わりを落とすと会期の途中で消える。
+
+    「夏休みトロッコ 7/4〜8/30」の終わりを落とすと、7/5 から過去扱いになり、
+    まだ2か月ある催しが畳まれる（設計判断4）。
+    """
+    from collector.extract import HELD_HEADS, SELF_PERIOD_HEADS
+    assert "開催時期" in HELD_HEADS
+    assert "開催時期" in SELF_PERIOD_HEADS, "期間として読まないと終わりの日を落とす"
+
+
 def test_kaiki_survives_until_the_end_of_the_period():
     """会期の途中なら「これから」に残る（期間ものは終わりの日で見る）。"""
     from collector.models import Event

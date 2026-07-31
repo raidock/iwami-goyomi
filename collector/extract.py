@@ -46,6 +46,10 @@ HELD_HEADS = [
     "会期",          # 浜田市 世界こども美術館「会期 7月4日～9月27日」
     # 浜田市 お魚料理教室「◆日にち：令和８年９月１６日（水）」
     "日にち",
+    # 邑南町観光協会「開催時期 2026年8月5日（水）～8月9日（日）」。
+    # **SELF_PERIOD_HEADS にも入れること**（期間なので終わりの日が要る）。
+    # 実ページ82件で測って、公開中72件への誤爆は0件
+    "開催時期",
     # **「時間」は入れないこと。** 実ページ72件で測ったところ、
     # 足しても取れるようになるものは**0件**なのに、
     # 開庁時間 31ページ / 受付時間 6 / 開館時間 4 / 営業時間 2 / 相談時間 1
@@ -59,7 +63,11 @@ PERIOD_EVENT_WORDS = ["実施", "開催"]
 # それ自体が「催しが続く期間」を意味する見出し。「期間」の語を含まない。
 # （かつて会期を PERIOD_EVENT_WORDS に入れていたが、あちらは「期間」を含む
 #   見出しにしか効かないため一度も一致しない死にコードだった）
-SELF_PERIOD_HEADS = ["会期"]
+# 「開催時期」も同じ性質。邑南町観光協会が「2026年8月5日（水）～8月9日（日）」を
+# この見出しで書く。**ここに入れないと終わりの日を落とす。**
+# 「夏休みトロッコ 7/4～8/30」が 7/4 だけになり、翌日から過去扱いで消える
+# （設計判断4「期間ものは終わりの日で見る」）
+SELF_PERIOD_HEADS = ["会期", "開催時期"]
 # 記号つきの平文ラベル（`_marked_sections`）で「これはラベルだ」と認める語。
 # 既知のラベル語に限る。ここを緩めると箇条書きの飾りを節にしてしまう。
 _ALL_HEADS = frozenset(HELD_HEADS + DEADLINE_HEADS + PERIOD_HEADS)
@@ -392,6 +400,16 @@ def _sections(soup: BeautifulSoup) -> list[tuple[str, str]]:
         # th/dt/strong は同じ行の隣を見る
         if not chunks and h.name in ("th", "dt", "strong", "b"):
             nxt = h.find_next(["td", "dd"]) if h.name in ("th", "dt") else h.next_sibling
+            # 表のラベルを `<th>` ではなく `<td><strong>…</strong></td>` で書く
+            # サイトがある（邑南町観光協会。同じ表の中で行ごとに th と td が混ざる）。
+            # このとき値は**セルの外**の次の `<td>` にあるので、隣が空で、かつ
+            # **セルの中にいるときだけ**そちらを見る。
+            # `find_next` を無条件に使うと、本文中の `<strong>` が
+            # ページ下部の無関係な表まで飛んで拾う。
+            if nxt is None and h.name in ("strong", "b"):
+                cell = h.find_parent(["td", "th"])
+                if cell is not None:
+                    nxt = cell.find_next(["td", "dd"])
             if nxt is not None:
                 txt = nxt.get_text(" ", strip=True) if hasattr(nxt, "get_text") else str(nxt)
                 if txt:
