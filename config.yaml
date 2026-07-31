@@ -28,7 +28,8 @@ max_age_days: 400
 # （全体を上げると関係のない情報源まで遅くなり、収集が終わらなくなる）。
 fetch_delay_sec: 1.0
 
-# 石見9市町のうち4市（浜田・江津・益田・大田）。残りは邑南・川本・美郷・津和野・吉賀。
+# 石見9市町のうち4市（浜田・江津・益田・大田）。邑南町は観光協会だけ入れてある。
+# 残りは邑南（公式）・川本・美郷・津和野・吉賀。
 # feed_url を省略するとトップページから自動発見する。
 municipalities:
   - key: hamada_city
@@ -75,6 +76,20 @@ tourism:
     # サイト全体のRSSしかないため、お知らせ記事だけに絞る
     # （/kankou/see/ などの観光スポット紹介ページを除外）
     url_include: '/news/'
+  # 邑南町（石見9市町の5つ目）。**公式より先に観光協会だけを足している。**
+  # 公式は40件中の催しが2〜3件でノイズ率75%、しかも「日時：」を平文で流し込む型で
+  # 開催日が取れない。まとめて足すと問題の切り分けができないので分けた。
+  # 実データ10件はすべて催しで、イベント以外の混入なし（ノイズ率0%）。
+  # 日付は「開催時期」という見出しで書く（`extract.py` の HELD_HEADS /
+  # SELF_PERIOD_HEADS。**津和野町観光協会は別の型**なので5町共通ではない）
+  - key: ohnan_kanko
+    municipality: 邑南町
+    site: https://ohnan-kanko.com
+    feed_url: https://ohnan-kanko.com/feed
+    organizer_type: 観光協会
+    trust: high
+    # robots.txt が無いので既定の1秒でよい（fetch_delay_sec は書かない）
+
   - key: oda_kanko
     municipality: 大田市
     site: https://www.ginzan-wm.jp
@@ -88,4 +103,5 @@ tourism:
     # robots.txt に Crawl-delay の宣言なし（宣言しているのは市公式のほう）。
     # 既定の1秒で足りるので fetch_delay_sec は書かない
 
-# 今後の追加候補: 邑南町 / 川本町 / 美郷町 / 津和野町 / 吉賀町
+# 今後の追加候補: 邑南町（公式）/ 川本町 / 美郷町 / 津和野町 / 吉賀町
+# 下調べの結果は CLAUDE.md「いま分かっている課題」の残り4町の項にある
