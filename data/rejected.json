@@ -489,5 +489,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "e1b64d6c989c7be43438bfbb694014ad"
+  },
+  {
+    "title": "学校に行きづらさを感じているお子様を支えるために",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.city.oda.lg.jp/update_info/10634",
+    "source": "oda_city",
+    "raw_date_text": "",
+    "city": "大田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "学校への通いづらさは、決して特別なことではありません。それは、子ども自身の弱さでも、保護者の育て方の問題でもありません。\n　社会や学校のあり方を含め、さまざまな要因の中で生まれる課題の１つです。「なぜ行けないのか」を責めるのではなく、「どうすれば安心して学び、自分らしく成長していけるのか」という視点で、一人ひとりに寄り添った支援を進めていく必要があります。\n　学校に行くのがつらい日や、教室に入るのが難しいときでも、子どもたちを支える場所があります。大田市教育委員会では学習・生活・心理・家庭を含めた支援体制を整えています。",
+    "published_at": "2026-02-09",
+    "deadline": null,
+    "category": "学び・講座",
+    "tags": [
+      "子ども向け"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "rejected",
+    "score": 2,
+    "reason": "イベント語: 教室",
+    "source_trust": "normal",
+    "date_source": "",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "e7ad147e3add8e1cfd97a9f6147de2de"
   }
 ]
