@@ -24,6 +24,7 @@ from collector.classify import classify
 from collector.extract import TITLE_SOURCE, apply_extracted, extract_dates
 from collector.models import extract_deadline, extract_held_date
 from collector.about import to_about_page
+from collector.manual import merge_for_build
 from collector.publish import to_public_site
 from collector.renderers import to_ics, to_json
 from collector.review import ReviewQueue
@@ -193,12 +194,20 @@ def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True) -> Non
     stats = queue.ingest(kept)
     print(f"[info] 自動承認 {stats['new_auto']}件 / 要承認 {stats['new_pending']}件 "
           f"/ 既知 {stats['skipped']}件 / 日付を追記 {stats.get('updated', 0)}件")
+    if stats.get("manual"):
+        print(f"[info] 手動の掲載と同じURLだった {stats['manual']}件は取り込みません"
+              f"（data/manual.json が優先）")
     if stats["new_pending"]:
         print(f"\n→ `python main.py review` で {stats['new_pending']}件を確認してください")
 
 
 def cmd_build(cfg: dict, queue: ReviewQueue) -> None:
-    events = [e for e in queue.approved if e.review_state == "approved"]
+    # 手で書いた掲載（data/manual.json）はここで合流する。収集では触らない。
+    # フィードに乗らない催し（LP告知の大きな祭りなど）を足す唯一の口なので、
+    # 公開の直前に必ず通す。詳しくは collector/manual.py
+    manual = queue.manual
+    events = merge_for_build(
+        [e for e in queue.approved if e.review_state == "approved"], manual)
     out = ROOT / cfg.get("out_dir", "out")
     out.mkdir(parents=True, exist_ok=True)
     (out / "index.html").write_text(
@@ -209,7 +218,8 @@ def cmd_build(cfg: dict, queue: ReviewQueue) -> None:
     srcs = cfg.get("municipalities", []) + cfg.get("tourism", [])
     (out / "about.html").write_text(
         to_about_page(cfg.get("site", {}), srcs), encoding="utf-8")
-    print(f"[done] {len(events)}件で公開サイトを生成 → {out}/index.html")
+    hand = f"（うち手動 {len(manual)}件）" if manual else ""
+    print(f"[done] {len(events)}件{hand}で公開サイトを生成 → {out}/index.html")
 
 
 def cmd_pending(queue: ReviewQueue) -> None:
@@ -298,9 +308,13 @@ def cmd_health(cfg: dict) -> int:
 
 
 def cmd_status(queue: ReviewQueue) -> None:
+    manual = queue.manual
     print(f"  承認待ち : {len(queue.pending)}件")
     print(f"  公開中   : {len(queue.approved)}件")
     print(f"  却下済み : {len(queue.rejected)}件")
+    # 手動分は build のときだけ合流するので、ここに出さないと存在を忘れる
+    # （書き間違いで載っていないことにも、この行で気づける）
+    print(f"  手動掲載 : {len(manual)}件  ({queue.manual_path})")
 
 
 def main(argv=None) -> int:

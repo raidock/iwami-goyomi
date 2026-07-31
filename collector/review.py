@@ -5,8 +5,10 @@
 ここは意図的に自動化していない。
 
 - pending.json  : 人の判断待ち
-- approved.json : 公開してよいと判断したもの（サイトはここだけを見る）
+- approved.json : 公開してよいと判断したもの
 - rejected.json : 捨てたもの。uidを覚えておき、次回以降は二度と聞かない
+- manual.json   : 人が手で書いた掲載。**収集は読むだけで書き換えない**
+                  （collector/manual.py。フィードに乗らない催しを足す口）
 """
 from __future__ import annotations
 
@@ -15,6 +17,7 @@ import pathlib
 import re
 import unicodedata
 
+from .manual import load_manual
 from .models import ERA_BASE, Event
 
 # ---- 市またぎ重複の気づき（表示専用） ----------------------------------
@@ -72,6 +75,8 @@ class ReviewQueue:
         self.pending_path = self.dir / "pending.json"
         self.approved_path = self.dir / "approved.json"
         self.rejected_path = self.dir / "rejected.json"
+        # 人が書く。**このクラスは絶対に書き込まない**（_save に渡さないこと）
+        self.manual_path = self.dir / "manual.json"
 
     # ---- 入出力 --------------------------------------------------------
     def _load(self, path: pathlib.Path) -> list[Event]:
@@ -96,9 +101,15 @@ class ReviewQueue:
     def rejected(self) -> list[Event]:
         return self._load(self.rejected_path)
 
+    @property
+    def manual(self) -> list[Event]:
+        """手で書いた掲載。書き間違いは警告して飛ばす（公開は止めない）。"""
+        return load_manual(self.manual_path)
+
     def known_uids(self) -> set[str]:
         """一度でも判断したものは二度と聞かない。"""
-        return {e.uid for e in self.pending + self.approved + self.rejected}
+        return {e.uid for e in
+                self.pending + self.approved + self.rejected + self.manual}
 
     # ---- 市またぎ重複の気づき ------------------------------------------
     def similarity_warnings(
@@ -182,10 +193,17 @@ class ReviewQueue:
         by_uid = {e.uid: (e, bucket) for bucket in ("a", "p", "r")
                   for e in (approved if bucket == "a" else
                             pending if bucket == "p" else rejected)}
-        stats = {"new_auto": 0, "new_pending": 0, "skipped": 0, "updated": 0}
+        # 手で書いたものは触らない。**同じURLが自動収集で来ても、こちらが勝つ。**
+        # キューにも入れない（人が書いた1件を、もう一度人に判断させない）。
+        manual_uids = {e.uid for e in self.manual}
+        stats = {"new_auto": 0, "new_pending": 0, "skipped": 0, "updated": 0,
+                 "manual": 0}
         touched = False
 
         for ev in events:
+            if ev.uid in manual_uids:
+                stats["manual"] += 1
+                continue
             if ev.uid in by_uid:
                 old, _ = by_uid[ev.uid]
                 changed = False
