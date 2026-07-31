@@ -235,6 +235,32 @@ def check_no_deadline_tag() -> int:
     return bad
 
 
+# カテゴリ判定。(タイトル, 期待するカテゴリ, 何を守っているか)
+CATEGORY_CASES = [
+    # スポーツ（2026-07-31 追加）。実データはこの1件だけ
+    ("２０２６三瓶高原クロスカントリー大会について", "スポーツ", "実データ。唯一の実例"),
+    # **入れなかった語の反例。** ここが落ちたら、危ない語が足されている
+    ("令和８年度　大田市文化団体育成事業等補助金", "ビジネス・創業・補助金",
+     "「文化団**体育**成」。`体育` を入れるとスポーツに化ける（実データ）"),
+    ("令和8年度島根県統計グラフコンクール作品募集について", None,
+     "コンクール。`大会` を入れると弁論大会・合唱大会まで拾う"),
+    # 末尾に置いたので既存の判定は奪わない
+    ("石見海浜公園 姉ヶ浜海水浴場 海開き", "季節・自然", "海開きが先に当たる"),
+    ("ぶどうまつり", "祭り・市・マルシェ", "事故表1件目。神楽に戻さない"),
+]
+
+
+def check_categories() -> int:
+    bad = 0
+    for title, expect, why in CATEGORY_CASES:
+        got = classify(title).category
+        if got != expect:
+            print(f"  [NG] {title[:34]} → {got}（期待 {expect}／{why}）")
+            bad += 1
+    print(f"  カテゴリ判定: {len(CATEGORY_CASES) - bad}/{len(CATEGORY_CASES)} 件")
+    return bad
+
+
 def check_serial_floor() -> int:
     """「第N回」の床が、救うものと救わないものを分けられているか。"""
     bad = 0
@@ -310,6 +336,9 @@ def main():
 
     print("\n--- 「締切あり」タグの不在 ---")
     bad += check_no_deadline_tag()
+
+    print("\n--- カテゴリ判定 ---")
+    bad += check_categories()
 
     # 見逃しゼロを最重要視する（公開物として取りこぼしが一番痛い）
     return 0 if fn == 0 and bad == 0 else 1
