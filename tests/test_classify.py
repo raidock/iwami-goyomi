@@ -235,6 +235,33 @@ def check_no_deadline_tag() -> int:
     return bad
 
 
+# 除外語を広げるときに道連れにしてはいけないもの。
+# **どれも実データにはまだ無い。** 残り5市町を足せば必ず出るので、
+# 語を足す前に反例として先に置いておく（案Aで天領さんが消えた型を繰り返さない）。
+MUST_NOT_DROP_BY_EXCLUSION = [
+    # `公募展` は美術の催し（公募して展示する展覧会）。裸の `公募` を入れると消える
+    "第41回浜田市美術展公募展のご案内",
+    "しまね公募展2027 作品募集",
+    # `補助金説明会` は本物の催し。裸の `補助金` を入れると消える
+    "創業支援補助金説明会を開催します",
+    "省エネ補助金活用セミナー",
+    # 「事業者の公募」を落とすようにしたが、事業者向けの**催し**は残す
+    "創業をお考えの事業者のみなさまへ 起業セミナーを開催します",
+]
+
+
+def check_not_dropped_by_exclusion() -> int:
+    bad = 0
+    for t in MUST_NOT_DROP_BY_EXCLUSION:
+        v = classify(t)
+        if v.bucket == "drop":
+            print(f"  [NG] 除外に巻き込まれた: {t}  ← {v.reason}")
+            bad += 1
+    n = len(MUST_NOT_DROP_BY_EXCLUSION)
+    print(f"  除外の巻き込み: {n - bad}/{n} 件")
+    return bad
+
+
 # カテゴリ判定。(タイトル, 期待するカテゴリ, 何を守っているか)
 CATEGORY_CASES = [
     # スポーツ（2026-07-31 追加）。実データはこの1件だけ
@@ -339,6 +366,9 @@ def main():
 
     print("\n--- カテゴリ判定 ---")
     bad += check_categories()
+
+    print("\n--- 除外の巻き込み点検 ---")
+    bad += check_not_dropped_by_exclusion()
 
     # 見逃しゼロを最重要視する（公開物として取りこぼしが一番痛い）
     return 0 if fn == 0 and bad == 0 else 1
