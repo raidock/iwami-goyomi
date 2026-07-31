@@ -696,6 +696,27 @@ def test_deadline_label_does_not_become_the_held_date():
     assert got.date_start != date(2026, 8, 21), "締切が開催日になっている"
 
 
+def test_hiragana_date_label_is_read():
+    """`◆日にち：` を開催日のラベルとして読む（実ページで9/16が取れていなかった）。"""
+    got = extract_dates(HAMADA_SAKANA, ref=date(2026, 7, 15), today=date(2026, 7, 15))
+    assert got.date_start == date(2026, 9, 16), got.date_start
+
+
+def test_jikan_is_not_a_held_head():
+    """**「時間」をラベル語にしないこと。**
+
+    HELD_HEADS は `any(k in name ...)` で部分一致するので、「時間」を足すと
+    開庁時間・受付時間・開館時間・営業時間・相談時間に当たる。
+    実ページ72件で測ったところ、足しても取れるようになるものは**0件**だった。
+    利益ゼロで危険だけがある（`公募` `補助金` を入れなかったのと同じ判断）。
+    """
+    from collector.extract import HELD_HEADS
+    assert "時間" not in HELD_HEADS
+    # 「◆時間：１０：００～」があっても開催日は日にちのほうから取る
+    got = extract_dates(HAMADA_SAKANA, ref=date(2026, 7, 15), today=date(2026, 7, 15))
+    assert got.date_start == date(2026, 9, 16), got.date_start
+
+
 def test_24h_clock_after_a_date_means_held():
     """「10月3日（土）11：00～15：00」の24時間表記を開催の手がかりにする。"""
     html = "<div><p>〇開催日：2026年10月3日（土）11：00～15：00</p></div>"
