@@ -30,8 +30,8 @@ max_age_days: 400
 # （全体を上げると関係のない情報源まで遅くなり、収集が終わらなくなる）。
 fetch_delay_sec: 1.0
 
-# 石見9市町のうち6市町（浜田・江津・益田・大田・津和野・邑南）。
-# 残りは川本町・美郷町・吉賀町の3町。
+# 石見9市町のうち6市町（浜田・江津・益田・大田・津和野・邑南）が公式まで揃っている。
+# 川本町は観光協会だけ（公式はフィードが使えない。CLAUDE.md 参照）。残りは美郷町・吉賀町。
 # feed_url を省略するとトップページから自動発見する。
 municipalities:
   - key: hamada_city
@@ -80,8 +80,9 @@ municipalities:
     url_include: '/update_info/[^/?#]'
     fetch_delay_sec: 5 # robots.txt の Crawl-delay: 5（石見で宣言しているのはここだけ）
 
-# 観光協会。イベント専用のRSSなのでノイズが少なく、trust: high で扱う。
-# （自治体と同じ厳しさで仕分けると、語彙にない催しを取りこぼすため）
+# 観光協会。イベント専用のRSSならノイズが少ないので trust: high で扱う。
+# （自治体と同じ厳しさで仕分けると、語彙にない催しを取りこぼすため）。
+# **ただし川本町だけは high にしていない** — サイト全体のフィードで店舗情報が流れる
 tourism:
   - key: hamanavi
     municipality: 浜田市
@@ -128,6 +129,22 @@ tourism:
     organizer_type: 観光協会
     trust: high
     feed_pages: 3
+  # 川本町観光協会。**ここだけ `trust: high` にしていない。**
+  # 設計判断11 の前提は「イベント専用RSSでイベントしか流れてこない」ことだが、
+  # ここはサイト全体のフィードで、店舗の営業案内（ふくむら食堂の月次営業・
+  # 弥山荘の休業日・入浴料金変更）・開花状況・メディア掲載が定期的に流れる。
+  # URLはすべて `/info/2026/post-NNNN/` なので url_include でも分けられない。
+  # 実測（2026-08-01・30件）: high なら auto 9 / review 18、normal なら
+  # auto 4 / review 10。normal で落ちる13件のうち**本物は1件だけ**
+  # （「梶原徹也と刄田綴色《プロドラマーの共演》」。タイトルに催しの語が無い）。
+  # **公式（town.shimane-kawamoto.lg.jp）はまだ足せない** — フィードが
+  # サイト目次で記事URLを1件も持たない。詳しくは CLAUDE.md
+  - key: kawamoto_kanko
+    municipality: 川本町
+    site: https://www.kawamoto-kankou.jp
+    feed_url: https://www.kawamoto-kankou.jp/feed/
+    organizer_type: 観光協会
+    feed_pages: 3
   - key: oda_kanko
     municipality: 大田市
     site: https://www.ginzan-wm.jp
@@ -148,5 +165,5 @@ tourism:
     # 1200日にすると3件とも入る。**この情報源だけ**。全体は400日のまま
     max_age_days: 1200
 
-# 今後の追加候補: 川本町 / 美郷町 / 吉賀町
+# 今後の追加候補: 川本町（公式・要アダプター）/ 美郷町 / 吉賀町
 # 下調べの結果は CLAUDE.md「いま分かっている課題」の残り町の項にある
