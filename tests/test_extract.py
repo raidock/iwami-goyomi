@@ -849,6 +849,49 @@ def test_source_is_recorded():
     assert got.deadline_source, "根拠が記録されていない"
 
 
+# --- 期間の終わりで月が省かれる形（2026-08 追加）----------------------------
+# 浜田市世界こども美術館の企画展はこう書く。実ページ3件で確認:
+#   ブルーインパルス写真展   2026年7月1日（水）～29日（水）
+#   浜田のチカラ展           2026年6月6日（土）～28日（日）
+#   陶芸作品展示会           2026年6月5日（金）～28日（日）
+#
+# **表示が粗くなるだけでは済まない。** 取り込みの終了判定
+# （ReviewQueue.is_finished）が始まりの日だけで判断するので、
+# 会期中の企画展が「始まった日に終わった」ことにされて取り込まれない。
+
+_KIKAKU = ("<html><body><h3>【期間】</h3>"
+           "<p>2026年7月1日（水）～29日（水） 9：30～17：00 ※月曜休館</p>"
+           "</body></html>")
+
+
+def test_period_end_without_month():
+    got = extract_dates(_KIKAKU, ref=date(2026, 6, 4))
+    assert got.date_start == date(2026, 7, 1), got.date_start
+    assert got.date_end == date(2026, 7, 29), f"会期末が取れていない: {got.date_end}"
+
+
+def test_time_range_is_not_a_date():
+    """**`日` を必須にする。** 省くと「9：30～17：00」の 17 を日として拾う。"""
+    got = extract_dates(
+        "<html><body><h3>【日時】</h3><p>2026年8月3日（月） 9：30～17：00</p>"
+        "</body></html>", ref=date(2026, 7, 1))
+    assert got.date_start == date(2026, 8, 3)
+    assert got.date_end is None, f"時刻を日付にしている: {got.date_end}"
+
+
+def test_middle_dot_is_not_a_range():
+    """「7月18日（土）・25日（土）」は2日開催であって期間ではない。"""
+    from collector.extract import _find_dates
+    got = _find_dates("2026年7月18日（土）・25日（土） 18：30～21：00", date(2026, 7, 6))
+    assert [d for d, _ in got] == [date(2026, 7, 18)], got
+
+
+def test_range_tail_crossing_the_month():
+    from collector.extract import _find_dates
+    got = [d for d, _ in _find_dates("2026年1月28日（水）～3日（火）", date(2026, 1, 1))]
+    assert got == [date(2026, 1, 28), date(2026, 2, 3)], got
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

@@ -116,6 +116,42 @@ class Extracted:
     other_dates: int = 0                  # 同じ催しの別日程の数（会場違いなど）
 
 
+# 期間の終わりで**月が省かれる**書き方。「2026年7月1日（水）～29日（水）」。
+# 美術館の企画展でよく使われる（浜田市世界こども美術館の実ページで確認）。
+#
+# これが読めないと期間の終わりが取れず、画面は「7月1日」とだけ出る。
+# それだけなら表示の粗さで済むが、**取り込みの終了判定（ReviewQueue.is_finished）
+# が始まりの日だけで判断してしまう。** 7/20〜8/20 の会期中の企画展が
+# 「7/20で終わった」と見なされて取り込まれない。
+#
+# **`日` を必須にすること。** 省くと「9：30～17：00」の 17 を日として拾う。
+# 曜日の括弧が挟まるので、そこだけ飛ばす。
+#
+# 先頭に `^` を書かないこと。`Pattern.match(text, pos)` は pos から当てるが、
+# `^` は文字列の先頭だけを指すので、いつまでも一致しない（一度踏んだ）。
+_RANGE_TAIL_DAY = re.compile(
+    r"\s*(?:[（(][^）)]{0,6}[）)])?\s*[〜~～\-–—]\s*(\d{1,2})\s*日")
+
+
+def _range_tail_day(text: str, pos: int, start: date) -> Optional[date]:
+    """`start` の直後が「～29日」なら、その日を返す。
+
+    月は書かれていないので `start` と同じ月とみなす。
+    日が戻っていたら翌月（「1月28日～3日」は2月3日）。
+    """
+    m = _RANGE_TAIL_DAY.match(text, pos)
+    if not m:
+        return None
+    day = int(m.group(1))
+    year, month = start.year, start.month
+    if day < start.day:                      # 月をまたいだ
+        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+    try:
+        return date(year, month, day)
+    except ValueError:                       # 2月30日 のような書き間違い
+        return None
+
+
 def _find_dates(text: str, ref: Optional[date]) -> list[tuple[date, int]]:
     """テキスト中の日付を (日付, 出現位置) で返す。"""
     out = []
@@ -124,6 +160,8 @@ def _find_dates(text: str, ref: Optional[date]) -> list[tuple[date, int]]:
         dt = date(int(y), mo, d) if y else _to_date(mo, d, ref)
         if dt:
             out.append((dt, m.end()))
+            if end := _range_tail_day(text, m.end(), dt):
+                out.append((end, m.end()))
     if not out:
         for m in _DATE_SLASH.finditer(text):
             y, mo, d = m.group(1), int(m.group(2)), int(m.group(3))
