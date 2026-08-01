@@ -21,7 +21,7 @@ import sys
 import yaml
 
 from collector import USER_AGENT, __version__
-from collector.classify import classify
+from collector.classify import classify, decide_bucket
 from collector.extract import TITLE_SOURCE, apply_extracted, extract_dates
 from collector.models import extract_deadline, extract_held_date, today_jst
 from collector.about import to_about_page
@@ -160,25 +160,16 @@ def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True,
     kinds: dict[str, int] = {}
     for ev in raw:
         v = classify(ev.title, ev.description)
-        bucket = v.bucket
-        # 観光協会のイベント専用RSSは、そもそもイベントしか流れてこない。
-        # 自治体サイトと同じ厳しさで仕分けると、語彙にない催しを取りこぼす。
-        #
-        # ここでやるのは**しきい値を下げること**であって、除外を無効化することではない。
-        # drop には2つの原因がある — 除外語を踏んだ -10 と、手がかりが何もない 0。
-        # 拾いたいのは後者（語彙にない催し）だけなので、-10 は通さない。
-        # 以前は無条件に上書きしていたため、観光協会から入札や通行止めが流れてきたら
-        # そのまま承認キューに入る穴が空いていた（実害が出る前に塞いだ）。
+        # どこへ入れるかは `decide_bucket` に集めてある（観光協会のしきい値と、
+        # 「人を通さず公開するならタイトルに根拠が要る」の2つ）。
+        # **判断が散ると必ず食い違う**ので、ここでは呼ぶだけにする。
         #
         # auto のしきい値は 2 のまま。3 に上げると実データ17件で
         # auto 12→6 / review 4→10 となり、承認作業が2.5倍になる（2026-07 実測）。
         # 落ちる6件（ぶどうまつり・第3回岡見花火・和紙と灯りの夕べ・金唐紙ワーク
         # ショップ・inclusive×海 講演会・神楽定期公演ステッカー）は全部本物なので、
         # 人が見ても「はい」を6回押すだけになる。
-        # trust: high の根拠はスコアではなく情報源そのもの（観光協会が既に選んでいる）。
-        # しきい値を上げるのは trust: high の存在理由と衝突する。
-        if v.score > -10 and getattr(ev, "source_trust", "normal") == "high":
-            bucket = "auto" if v.score >= 2 else "review"
+        bucket = decide_bucket(v, ev.title, getattr(ev, "source_trust", "normal"))
         if bucket == "drop":
             dropped += 1
             continue
@@ -354,9 +345,8 @@ def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10) -> None:
         keep, unseen, over = 0, [], []
         for ev in got:
             v = classify(ev.title, ev.description)
-            bucket = v.bucket
-            if v.score > -10 and conf.get("trust", "normal") == "high":
-                bucket = "auto" if v.score >= 2 else "review"
+            # collect と同じ判断を使う。**別々に書くと必ず食い違う**
+            bucket = decide_bucket(v, ev.title, conf.get("trust", "normal"))
             if bucket == "drop":
                 continue
             keep += 1
