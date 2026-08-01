@@ -30,8 +30,8 @@ max_age_days: 400
 # （全体を上げると関係のない情報源まで遅くなり、収集が終わらなくなる）。
 fetch_delay_sec: 1.0
 
-# 石見9市町のうち4市（浜田・江津・益田・大田）。邑南町は観光協会だけ入れてある。
-# 残りは邑南（公式）・川本・美郷・津和野・吉賀。
+# 石見9市町のうち4市（浜田・江津・益田・大田）＋津和野町。邑南町は観光協会だけ。
+# 残りは邑南（公式）・川本・美郷・吉賀。
 # feed_url を省略するとトップページから自動発見する。
 municipalities:
   - key: hamada_city
@@ -46,6 +46,15 @@ municipalities:
     municipality: 益田市
     site: https://www.city.masuda.lg.jp
     feed_url: https://www.city.masuda.lg.jp/cgi-bin/feed.php?siteNew=1 # クエリ形式のためFEED_HREF_REに掛からず明示（リンク自体は //host 形式）
+  # 津和野町（石見9市町の6つ目）。浜田市と同じCMSで、URLも /www/contents/… の型。
+  # **feed_url は必ず書くこと。** 自動発見はトップの <a> から
+  # `emergency.rdf`（緊急情報）を拾う。放置すると災害情報だけを集めるサイトになる。
+  # 実測（2026-08-01）: news.rdf は21件・掲載日あり・ノイズ率66%（入札案件が7件）。
+  # `?paged=N` は効かない（浜田市・江津市・益田市と同じ）ので feed_pages は書かない
+  - key: tsuwano_town
+    municipality: 津和野町
+    site: https://www.town.tsuwano.lg.jp
+    feed_url: https://www.town.tsuwano.lg.jp/www/rss/news.rdf
   # ドメインは oda。ohda ではない（www.city.ohda.lg.jp は名前解決できない）
   - key: oda_city
     municipality: 大田市
@@ -98,6 +107,18 @@ tourism:
     # robots.txt が無いので既定の1秒でよい（fetch_delay_sec は書かない）
     feed_pages: 3 # 窓10件（約4か月ぶん）。取りこぼしは実測1件だが、投稿が増えたら効く
 
+  # 津和野町観光協会。自動発見が /feed/ を正しく拾うが、明示しておく。
+  # 実測（2026-08-01）: 在庫17件・**ノイズ率0%**（3ページ目は404＝読み切り）。
+  # タイトルが「【津和野盆踊り】8/15　409回目の夏」の形で、
+  # **【…】の直後にスラッシュ日付**が来る（8つ目の日付表記。models.py の _BR）。
+  # 本文には日付の見出しが無いページが多く、日付はタイトル頼りになる
+  - key: tsuwano_kanko
+    municipality: 津和野町
+    site: https://tsuwano-kanko.net
+    feed_url: https://tsuwano-kanko.net/feed/
+    organizer_type: 観光協会
+    trust: high
+    feed_pages: 3
   - key: oda_kanko
     municipality: 大田市
     site: https://www.ginzan-wm.jp
@@ -118,5 +139,5 @@ tourism:
     # 1200日にすると3件とも入る。**この情報源だけ**。全体は400日のまま
     max_age_days: 1200
 
-# 今後の追加候補: 邑南町（公式）/ 川本町 / 美郷町 / 津和野町 / 吉賀町
-# 下調べの結果は CLAUDE.md「いま分かっている課題」の残り4町の項にある
+# 今後の追加候補: 邑南町（公式）/ 川本町 / 美郷町 / 吉賀町
+# 下調べの結果は CLAUDE.md「いま分かっている課題」の残り町の項にある
