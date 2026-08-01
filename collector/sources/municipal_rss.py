@@ -192,7 +192,13 @@ class MunicipalRSS(Source):
             try:
                 got = self.parse_feed(self.get(url))
             except Exception as e:
-                print(f"[warn] {self.name}: 取得失敗（{page}ページ目）: {e}")
+                # 在庫を読み切ると 404 を返すサイトがある（大田市観光協会の
+                # events_post は全15件で、3ページ目が404）。**これは異常ではない。**
+                # 警告にすると毎日鳴り、本物の異常が埋もれる
+                if page > 1 and "404" in str(e):
+                    print(f"[info] {self.name}: {page}ページ目は無し（在庫を読み切りました）")
+                else:
+                    print(f"[warn] {self.name}: 取得失敗（{page}ページ目）: {e}")
                 break
             fresh = [ev for ev in got if ev.uid not in seen]
             # **`paged` を解さないCMSは、同じ内容をそのまま返す。**

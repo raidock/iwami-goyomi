@@ -110,6 +110,46 @@ def test_stops_on_empty_page():
     assert len(s.fetched) == 2
 
 
+# --- 情報源ごとの掲載日の足切り --------------------------------------------
+# **繰り返しの催しは記事を作り直さない。** 毎週の天体観察会（2024-05 投稿）や
+# 毎月の朝市は掲載日が何年も前のままで、既定の400日だと落ちる。
+# 全体を伸ばすと浜田市の公式RSSに残っていた2022年のコロナ情報まで拾うので、
+# **イベント専用のフィードにだけ**書く。
+
+def _dated_feed(*pairs):
+    items = "".join(
+        f"<item><title>{t}</title><link>https://example.com/{t}</link>"
+        f"<pubDate>{d}</pubDate></item>" for t, d in pairs)
+    return f"<?xml version='1.0'?><rss version='2.0'><channel>{items}</channel></rss>"
+
+
+_OLD = _dated_feed(("新しい記事", "Mon, 21 Jul 2026 00:00:00 +0900"),
+                   ("毎週の天体観察会", "Thu, 02 May 2024 00:00:00 +0900"))
+
+
+def test_default_cuts_off_the_old_article():
+    s = _FakeRSS([_OLD])
+    assert [e.title for e in s.collect()] == ["新しい記事"]
+
+
+def test_per_source_max_age_keeps_it():
+    s = _FakeRSS([_OLD], max_age_days=1200)
+    got = [e.title for e in s.collect()]
+    assert got == ["新しい記事", "毎週の天体観察会"], got
+
+
+def test_config_reaches_the_adapter():
+    """config.yaml の1行が実際にアダプターへ届くこと（配線の回帰）。"""
+    import main
+    cfg = {"municipalities": [], "tourism": [
+        {"key": "a", "municipality": "大田市", "site": "https://example.com",
+         "max_age_days": 1200},
+        {"key": "b", "municipality": "浜田市", "site": "https://example.com"},
+    ], "max_age_days": 400}
+    got = {src.name: src.max_age_days for src, _ in main.build_sources(cfg)}
+    assert got == {"a": 1200, "b": 400}, got
+
+
 # --- 終わったものを取り込まない ---------------------------------------------
 
 def test_finished_new_item_is_not_ingested():

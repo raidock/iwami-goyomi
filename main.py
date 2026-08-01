@@ -70,7 +70,13 @@ def build_sources(cfg: dict) -> list[tuple[MunicipalRSS, dict]]:
         out.append((
             cls(
                 key=m["key"], site=m["site"], municipality=m["municipality"],
-                feed_url=m.get("feed_url"), max_age_days=cfg.get("max_age_days", 400),
+                feed_url=m.get("feed_url"),
+                # 掲載日の足切りも情報源ごとに上書きできる。
+                # **繰り返しの催しは記事を作り直さない**ので、毎週の天体観察会や
+                # 毎月の朝市は掲載日が何年も前のまま生き続ける。全体を伸ばすと
+                # 浜田市の公式RSSに残っていた2022年のコロナ情報まで拾うので、
+                # イベント専用のフィードにだけ書くこと（config.yaml に理由を残す）
+                max_age_days=m.get("max_age_days", cfg.get("max_age_days", 400)),
                 url_include=m.get("url_include"),
                 fetch_delay_sec=fetch_delay_for(m, cfg),
                 # フィードを何ページさかのぼるか。効く情報源だけ config で指定する
@@ -246,7 +252,10 @@ def cmd_pending(queue: ReviewQueue) -> None:
     warnings = queue.similarity_warnings(items)
     print(f"承認待ち {len(items)}件\n")
     for i, e in enumerate(items, 1):
-        print(f"{i}. [{e.city}] {e.title}")
+        # 番号の行に印を出す。詳細だけだと20件を超えたときに見落とす
+        # （同じ催しが4回投稿されていることがある。はまナビの朝のビーチヨガ）
+        mark = "⚠ " if e.uid in warnings else "  "
+        print(f"{i}. {mark}[{e.city}] {e.title}")
         print(f"   〈{e.kind}〉{e.category or 'カテゴリ未判定'} / score={e.score} / {e.reason}")
         if e.date_start:
             print(f"   開催 {e.date_start}  ({e.date_source or '—'})")
