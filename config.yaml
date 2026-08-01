@@ -82,7 +82,7 @@ municipalities:
 
 # 観光協会。イベント専用のRSSならノイズが少ないので trust: high で扱う。
 # （自治体と同じ厳しさで仕分けると、語彙にない催しを取りこぼすため）。
-# **ただし川本町だけは high にしていない** — サイト全体のフィードで店舗情報が流れる
+# 店舗情報が混ざる情報源（川本町）は high のまま除外語で落とす（config 内に理由）
 tourism:
   - key: hamanavi
     municipality: 浜田市
@@ -129,14 +129,18 @@ tourism:
     organizer_type: 観光協会
     trust: high
     feed_pages: 3
-  # 川本町観光協会。**ここだけ `trust: high` にしていない。**
-  # 設計判断11 の前提は「イベント専用RSSでイベントしか流れてこない」ことだが、
-  # ここはサイト全体のフィードで、店舗の営業案内（ふくむら食堂の月次営業・
-  # 弥山荘の休業日・入浴料金変更）・開花状況・メディア掲載が定期的に流れる。
-  # URLはすべて `/info/2026/post-NNNN/` なので url_include でも分けられない。
-  # 実測（2026-08-01・30件）: high なら auto 9 / review 18、normal なら
-  # auto 4 / review 10。normal で落ちる13件のうち**本物は1件だけ**
-  # （「梶原徹也と刄田綴色《プロドラマーの共演》」。タイトルに催しの語が無い）。
+  # 川本町観光協会。サイト全体のフィードで、店舗の営業案内（ふくむら食堂の
+  # 月次営業・弥山荘の休業日・入浴料金変更）・開花状況が定期的に流れる。
+  # URLはすべて `/info/2026/post-NNNN/` なので url_include では分けられない。
+  #
+  # **`trust: high` にしたうえで、店舗情報は除外語で落とす**（2026-08-02）。
+  # 一度 normal で入れたが、それだと「梶原徹也と刄田綴色《プロドラマーの
+  # 共演》」のような**タイトルに催しの語が無い本物**を取りこぼす。
+  # **ノイズは人が n を押せば済むが、取りこぼしは気づけない。**
+  # 実測（30件）: normal は auto 4/review 10/drop 16、
+  # high＋除外語は auto 9/review 10/**drop 11**。承認の手間は同じで
+  # 取りこぼしだけ消える（除外語は classify.py の「店舗・施設の営業案内」）。
+  #
   # **公式（town.shimane-kawamoto.lg.jp）はまだ足せない** — フィードが
   # サイト目次で記事URLを1件も持たない。詳しくは CLAUDE.md
   - key: kawamoto_kanko
@@ -144,6 +148,7 @@ tourism:
     site: https://www.kawamoto-kankou.jp
     feed_url: https://www.kawamoto-kankou.jp/feed/
     organizer_type: 観光協会
+    trust: high
     feed_pages: 3
   - key: oda_kanko
     municipality: 大田市
