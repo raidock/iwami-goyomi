@@ -68,6 +68,10 @@ tourism:
     feed_url: https://kankou-hamada.or.jp/archives/category/event/feed/
     organizer_type: 観光協会
     trust: high
+    # **窓が10件しかなく、投稿が多いので約2週間分しか見えない。**
+    # 浜田市最大の祭り（浜っ子夏まつり・7/2投稿）が窓から落ちて載らなかった。
+    # 3ページで30件＝約6週間分。負荷は1日2リクエスト増（設計判断12の範囲）
+    feed_pages: 3
   - key: gotsu_kanko
     municipality: 江津市
     site: https://www.gotsu-kanko.jp
@@ -76,6 +80,7 @@ tourism:
     # サイト全体のRSSしかないため、お知らせ記事だけに絞る
     # （/kankou/see/ などの観光スポット紹介ページを除外）
     url_include: '/news/'
+    feed_pages: 3 # 窓9件。いまの取りこぼしは0件だが、他の観光協会と揃えておく
   # 邑南町（石見9市町の5つ目）。**公式より先に観光協会だけを足している。**
   # 公式は40件中の催しが2〜3件でノイズ率75%、しかも「日時：」を平文で流し込む型で
   # 開催日が取れない。まとめて足すと問題の切り分けができないので分けた。
@@ -89,6 +94,7 @@ tourism:
     organizer_type: 観光協会
     trust: high
     # robots.txt が無いので既定の1秒でよい（fetch_delay_sec は書かない）
+    feed_pages: 3 # 窓10件（約4か月ぶん）。取りこぼしは実測1件だが、投稿が増えたら効く
 
   - key: oda_kanko
     municipality: 大田市
@@ -102,6 +108,7 @@ tourism:
     url_include: '/events_post/'
     # robots.txt に Crawl-delay の宣言なし（宣言しているのは市公式のほう）。
     # 既定の1秒で足りるので fetch_delay_sec は書かない
+    feed_pages: 3 # events_post は全15件しかないので、2ページ目で在庫を読み切る
 
 # 今後の追加候補: 邑南町（公式）/ 川本町 / 美郷町 / 津和野町 / 吉賀町
 # 下調べの結果は CLAUDE.md「いま分かっている課題」の残り4町の項にある
