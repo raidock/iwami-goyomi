@@ -75,6 +75,17 @@ ICS の UID（`{uid}@sanin-nomi`）と PRODID も同じ理由で変更しませ�
 - **日付が分からないものは終了扱いにしない**（勝手に消してはいけない）
 - **期間ものは終わりの日で見る**（「石見神楽定期公演 2026.4〜2027.3」は開始日が過去でも開催中）
 
+**ただし、一度も載っていないものを終了済みとして足すことはしません。**
+残す価値は「載っていたものが終わった」という過程にあります。一度も載らなかった
+ものには、その過程がありません。畳んだ節が膨らむだけです。
+
+そこで `ReviewQueue.is_finished()` が、**初めて見るもので、分かっている日付が
+全部過去のもの**を取り込みません。**既知には適用しません**（一度載ったものは畳んで残す）。
+フィードの窓を広げると終了済みが大量に流れ込むので、この2つは対になっています。
+
+`publish.is_past()` とは基準が違います。あちらは**画面での見せ方**（種別ごとに見る
+欄を変える）、こちらは**そもそも取り込むか**。名前が似ているので混ぜないこと。
+
 ### 5. 生活インフラ情報は載せない
 
 断水、通行止め、ごみ収集の変更、水道メーター取替などは対象外です。
@@ -309,7 +320,7 @@ CMSに存在しないので**どんなフィードにも絶対に出ません**�
 ## 構成
 
 ```
-main.py                    collect / pending / review / build / dedupe / health / status
+main.py                    collect / pending / review / build / dedupe / audit / health / status
 collector/
   classify.py              仕分け器と種別判定（このプロジェクトの心臓）
   extract.py               詳細ページからの日付・締切抽出（見出しベース＋文脈語ベース）
@@ -348,6 +359,7 @@ python tests/test_wareki.py         # 和暦・略記・タイトル冒頭
 python tests/test_dedup.py          # uid 安定性（重複事故の回帰）
 python tests/test_review_refresh.py # 既知への追記・上書きの線引き
 python tests/test_manual.py         # 手で足す掲載（収集で消えない・同じURLは手動が勝つ）
+python tests/test_feed_pages.py     # フィードの窓（?paged=N）と、終わったものを取り込まない規則
 python tests/test_similar_titles.py # 市またぎ重複の警告（表示専用）
 python tests/test_feed_discovery.py # RSS自動発見
 python tests/test_good_antiques.py  # 蚤の市パーサ
