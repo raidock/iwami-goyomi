@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-08-01T20:01:22",
+  "checked_at": "2026-08-01T20:46:42",
   "per_source": {
     "hamada_city": 74,
     "gotsu_city": 100,
@@ -11,6 +11,7 @@
     "gotsu_kanko": 8,
     "ohnan_kanko": 30,
     "tsuwano_kanko": 17,
+    "kawamoto_kanko": 30,
     "oda_kanko": 15
   }
 }
