@@ -46,6 +46,10 @@ WRITABLE = (
     "date_start", "date_end", "deadline",
     "venue", "organizer", "organizer_type",
     "published_at", "description",
+    # **なぜ手で足したか。** `_` の覚え書きと違い、公開データ（events.json）の
+    # `reason` に残る。根拠が追えることは公開物の生命線なので、
+    # 自動収集で拾えない理由は消えない場所に置く
+    "note",
 )
 REQUIRED = ("title", "url")
 DATE_FIELDS = ("date_start", "date_end", "deadline", "published_at")
@@ -139,7 +143,9 @@ def _to_event(d: dict, where: str) -> "Event | None":
     )
     # ここから下は手で書かせない。出どころが必ず追える状態にする
     ev.review_state = "approved"          # 人が書いた時点で人の判断は済んでいる
-    ev.score, ev.reason = 0, MANUAL_REASON
+    note = str(vals.get("note") or "").strip()
+    ev.score = 0
+    ev.reason = f"{MANUAL_REASON}（{note}）" if note else MANUAL_REASON
     if ev.date_start:
         ev.date_source = HAND_TYPED
     if ev.deadline:

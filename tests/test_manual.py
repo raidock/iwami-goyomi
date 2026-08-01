@@ -93,6 +93,18 @@ def test_origin_is_recorded():
         shutil.rmtree(d)
 
 
+def test_note_is_kept_in_the_published_reason():
+    """**なぜ手で足したかは公開データに残す。** `_` の覚え書きは残らない。"""
+    d = _dir([dict(ENTRY, note="記事の日付が古い繰り返しの催しのため",
+                   _メモ="こちらはJSONに残るだけ")])
+    try:
+        ev = ReviewQueue(d).manual[0]
+        assert "記事の日付が古い繰り返しの催しのため" in ev.reason, ev.reason
+        assert "こちらは" not in ev.reason
+    finally:
+        shutil.rmtree(d)
+
+
 def test_machine_only_fields_cannot_be_forged():
     """source を手で書いても、手動であることは隠せない。"""
     d = _dir([dict(ENTRY, source="hamada_city", date_source="見出し「日時」",

@@ -17,6 +17,7 @@
     "organizer_type": "省略可。観光協会 / 自治体 / 企業 など",
     "tags": ["省略可", "画面に丸いラベルで出ます"],
     "status": "省略可。開催予定 / 中止 / 終了 / 最後の開催",
+    "note": "なぜ手で足したか。公開データ（events.json）の reason に残ります。_ で始まる覚え書きと違い、消えない場所に残るので、自動収集で拾えない理由はこちらへ",
 
     "_書かなくてよい欄": "source（手動）・date_source/deadline_source（手入力）・review_state・score・reason は自動で入ります。書いても無視されます",
     "_最低限": "title と url だけあれば載ります",
