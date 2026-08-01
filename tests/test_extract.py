@@ -918,6 +918,60 @@ def test_sane_declaration_is_still_used():
     assert "構造化" in got.date_source, got.date_source
 
 
+# --- 記号の付かない「ラベル：値」（2026-08 / 邑南町公式）--------------------
+# 邑南町公式は ■イベント概要 の下に平文で流し込む。
+#   名称：はっしーマルシェ（久万林業まつり）
+#   日時：令和8年10月17日（土曜日）18日（日曜日）
+#   場所：久万公園（…）
+# 記号にも【】にも見出しタグにも掛からないので、専用の受け皿が要る。
+
+_OHNAN = ("<html><body><p>■イベント概要 "
+          "名称：はっしーマルシェ（久万林業まつり） "
+          "日時：令和8年10月17日（土曜日）18日（日曜日） "
+          "場所：久万公園（愛媛県上浮穴郡久万高原町菅生2番耕地1644番地1）</p>"
+          "<p>■申込締切 ・令和8年8月10日（月曜日）</p></body></html>")
+
+
+def test_plain_colon_label():
+    got = extract_dates(_OHNAN, ref=date(2026, 7, 27))
+    assert got.date_start == date(2026, 10, 17), f"{got.date_start} / {got.date_source}"
+    assert got.deadline == date(2026, 8, 10), got.deadline
+
+
+def test_page_update_date_is_never_the_event_date():
+    """**邑南町の全ページに「更新日：」がある。**
+
+    ラベルの一致を緩めると、全ページの開催日がページ更新日に化ける。
+    ここが落ちたら、その緩め方は間違っている。
+    """
+    html = ("<html><body><p>はっしーマルシェ出展者募集のお知らせ "
+            "ページID：0009240 更新日：2026年7月27日更新 印刷ページ表示</p>"
+            "<p>開庁時間：午前8時30分から午後5時15分まで</p></body></html>")
+    got = extract_dates(html, ref=date(2026, 7, 27))
+    assert got.date_start is None, f"更新日を開催日にした: {got.date_start}"
+    assert got.deadline is None, f"開庁時間を締切にした: {got.deadline}"
+
+
+def test_colon_label_needs_a_boundary():
+    """文中の括弧書きは拾わない（実データ・邑南町 町政運営説明会）。
+
+    「説明会アンケート入力フォーム（受付期間：7月14日～8月16日）」の
+    アンケート期限が、催しの申込締切になっていた。
+    """
+    html = ("<html><body><p>説明会の資料を掲載します。"
+            "説明会アンケート入力フォーム（受付期間：7月14日～8月16日）＜外部リンク＞"
+            "</p></body></html>")
+    got = extract_dates(html, ref=date(2026, 6, 17))
+    assert got.deadline is None, f"文中の括弧書きを拾った: {got.deadline}"
+
+
+def test_colon_label_tolerates_spacing():
+    """「日 時：」のように字間を空ける書き方がある（記号ラベルと同じ事情）。"""
+    html = "<html><body><p>ご案内 日 時：2026年9月5日（金） 会場：中央公民館</p></body></html>"
+    got = extract_dates(html, ref=date(2026, 8, 1))
+    assert got.date_start == date(2026, 9, 5), got.date_start
+
+
 def test_range_tail_crossing_the_month():
     from collector.extract import _find_dates
     got = [d for d, _ in _find_dates("2026年1月28日（水）～3日（火）", date(2026, 1, 1))]

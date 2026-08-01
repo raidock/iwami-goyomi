@@ -378,6 +378,16 @@ def _is_event_period(label: str) -> bool:
 # すると箇条書きの飾りを全部拾う。`・`（中黒）は本文のあらゆる場所に出るので入れない。
 _MARK_RE = re.compile(r"[〇◯○●◆◇■□▲△▼▽★☆]")
 
+# 記号の付かない「日時：…」を拾う（`_colon_sections`）。
+# **長い語を先に並べる**（`開催日時` が `開催日` に食われないように）。
+# 字間の空白は許す（「日 時：」と書くサイトがある）が、**ラベルの前には
+# 区切りを要求する**（文中の括弧書きを拾わないため）。
+_COLON_LABEL_RE = re.compile(
+    r"(?:^|[\s　]|" + _MARK_RE.pattern + r")"
+    r"(" + "|".join(r"\s*".join(re.escape(c) for c in h)
+                    for h in sorted(_ALL_HEADS, key=len, reverse=True)) + r")"
+    r"\s*[：:]")
+
 
 def _match_head(chunk: str) -> Optional[tuple[str, int]]:
     """記号の直後がラベル語なら (ラベル語, 生の文字数) を返す。
@@ -405,6 +415,36 @@ def _marked_sections(text: str) -> list[tuple[str, str]]:
             continue
         label, used = hit
         out.append((label, chunk[used:].strip(" 　:：")[:160]))
+    return out
+
+
+def _colon_sections(text: str) -> list[tuple[str, str]]:
+    """記号の付かない「日時：令和8年10月17日（土曜日）」から節を取り出す。
+
+    邑南町公式はこの形で書く。`■イベント概要` の下に平文で流し込まれていて、
+    記号（`_marked_sections`）にも【】（`_bracket_sections`）にも掛からない。
+
+        ■イベント概要
+        名称：はっしーマルシェ（久万林業まつり）
+        日時：令和8年10月17日（土曜日）18日（日曜日）
+        場所：久万公園（…）
+
+    **既知のラベル語で終わるときだけ**節にする。ここを「含む」に緩めてはいけない。
+    邑南町の全ページに `更新日：2026年7月27日`（ページの更新日）があるので、
+    緩めると**全ページの開催日がページ更新日に化ける**。
+
+    実データ（邑南町9ページ）で `ラベル：` は29種類あり、当たるのは `日時`
+    `募集期間` だけだった。`更新日` `開庁時間` `ページID` `場所` `テーマ`
+    `電話番号` は当たらない。
+
+    **ラベルの前に区切りを要求する。** 空白か行頭か記号の直後だけを認める。
+    要求しないと「説明会アンケート入力フォーム（**受付期間**：7月14日～8月16日）」
+    のような**文中の括弧書き**を拾い、アンケートの期限が催しの締切になる（実測）。
+    """
+    out = []
+    for m in _COLON_LABEL_RE.finditer(text):
+        label = re.sub(r"\s+", "", m.group(1))
+        out.append((label, text[m.end():m.end() + 160].strip()))
     return out
 
 
@@ -523,6 +563,10 @@ def extract_dates(html: str, ref: Optional[date] = None,
     sections = [(l, wareki_to_seireki(b)) for l, b in _sections(soup)]
     sections += _bracket_sections(plain)
     sections += _marked_sections(plain)
+    # **いちばん後ろに置くこと。** 記号や【】や見出しタグで取れているページの
+    # 挙動を変えないため（層1は先に見つけた節を採る）。
+    # 平文の `ラベル：` は、他に手がかりが無いときの最後の受け皿
+    sections += _colon_sections(plain)
 
     # 同じ日時ラベルの節が複数あるページは、**それぞれの最初の日付を集めて
     # 今日以降で最も早いものを採る。** 表で並ぶ複数回（救命講習）と同じ扱い。
