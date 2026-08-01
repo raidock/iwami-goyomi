@@ -87,10 +87,15 @@ def build_sources(cfg: dict) -> list[tuple[MunicipalRSS, dict]]:
     return out
 
 
-def enrich_with_detail_pages(events: list, cfg: dict) -> None:
+def enrich_with_detail_pages(events: list, cfg: dict) -> set:
     """仕分けを通過したものだけ詳細ページを見て、開催日と締切を取る。
 
     177件すべてではなく残った20件程度だけを取りに行くので、相手にも優しい。
+
+    **取れなかったものの uid を返す。** 呼び出し側で取り込みを見送るため。
+    詳細が読めないと日付が分からず、日付が分からないと `is_finished` が
+    働かないので、**終わった催しが「これから」に居座る**（2026-08-01 に
+    「新町商店街 土曜夜市」で発生。7/18・7/25 の催しが日付なしで公開に回った）。
     """
     import requests
     # 待ち時間は情報源ごとに数える。1つの時計で回すと、間隔の長い情報源に
@@ -101,21 +106,31 @@ def enrich_with_detail_pages(events: list, cfg: dict) -> None:
     sess = requests.Session()
     sess.headers.update({"User-Agent": USER_AGENT})
     hit = 0
+    failed: set = set()
     for ev in events:
         if not ev.url:
             continue
         pacer = pacers.get(ev.source, default)
-        pacer.wait()
-        try:
-            r = sess.get(ev.url, timeout=20)
-            r.raise_for_status()
-            r.encoding = r.apparent_encoding or r.encoding
-            got = extract_dates(r.text, ref=ev.published_at)
-        except Exception as e:
-            print(f"  [warn] 詳細取得に失敗: {ev.title[:24]} … {e}")
+        got = None
+        # 1回だけ取り直す。**相手の一時的な不調で取りこぼさないため。**
+        # 2回に増やさないこと（失敗するときは続けて失敗するので、
+        # 相手のサーバを余計に叩くだけになる。設計判断12）
+        for attempt in (1, 2):
+            pacer.wait()
+            try:
+                r = sess.get(ev.url, timeout=20)
+                r.raise_for_status()
+                r.encoding = r.apparent_encoding or r.encoding
+                got = extract_dates(r.text, ref=ev.published_at)
+                break
+            except Exception as e:
+                if attempt == 2:
+                    print(f"  [warn] 詳細取得に失敗: {ev.title[:24]} … {e}")
+                    failed.add(ev.uid)
+            finally:
+                pacer.mark()
+        if got is None:
             continue
-        finally:
-            pacer.mark()
         # 取れたときは入れる。既存を残す判断は ReviewQueue.ingest 側で行う
         # （こちらで握りつぶすと、繰り返しの催しの次回が更新されない）。
         # ただしタイトル由来の開催日だけは本文抽出に譲らない
@@ -123,6 +138,7 @@ def enrich_with_detail_pages(events: list, cfg: dict) -> None:
         if got.date_start or got.deadline:
             hit += 1
     print(f"[info] 詳細ページ: {len(events)}件を確認し {hit}件から日付を取得")
+    return failed
 
 
 def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True,
@@ -195,7 +211,18 @@ def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True,
 
     if fetch_detail and kept:
         print(f"[info] 詳細ページを確認中（{len(kept)}件）…")
-        enrich_with_detail_pages(kept, cfg)
+        failed = enrich_with_detail_pages(kept, cfg)
+        # **詳細が取れなかった新規は、その回は取り込まない。**
+        # 日付が分からないまま公開に回ると、終わった催しが「これから」に居座る。
+        # **消えるわけではない** — フィードに載っているかぎり次の収集で
+        # また対象になる（uid は URL 基準なので同じものとして扱われる）。
+        # 既知のものは対象外。既にある日付を消さないため、そのまま更新に回す。
+        known = queue.known_uids()
+        if hold := [e for e in kept if e.uid in failed and e.uid not in known]:
+            for e in hold:
+                print(f"[info] 詳細が読めなかったので今回は見送ります: {e.title[:34]}")
+            print(f"        （{len(hold)}件。次の収集で取り直します）")
+            kept = [e for e in kept if e not in hold]
 
     stats = queue.ingest(kept)
     print(f"[info] 自動承認 {stats['new_auto']}件 / 要承認 {stats['new_pending']}件 "

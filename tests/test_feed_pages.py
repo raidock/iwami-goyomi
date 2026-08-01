@@ -242,6 +242,42 @@ def test_rejected_item_stays_rejected_not_finished():
         shutil.rmtree(d)
 
 
+# --- 詳細ページが読めなかったとき（2026-08-02 追加）------------------------
+# はまナビが3件タイムアウトし、うち新規1件（新町商店街 土曜夜市・7/18と7/25）が
+# **日付なしのまま公開に回った。** 日付が無いと is_finished が働かないので、
+# 終わった催しが「これから」に居座る。
+# 町を足すほど詳細取得の回数が増えるので、構造的な問題。
+
+def test_failed_detail_is_held_back_but_not_lost():
+    """取り込みを見送るだけで、**次の収集では取り込まれる**こと。
+
+    見送ったまま永久に入らないなら、それは取りこぼし。
+    uid は URL 基準なので、次回も同じものとして扱われる。
+    """
+    q, d = _queue()
+    try:
+        # 1回目: 詳細が読めず日付なし → 呼び出し側が kept から外す（＝ingest に渡さない）
+        assert len(q.approved) == 0 and len(q.pending) == 0
+        # 2回目: 読めて日付が付いた
+        got = _ev(date_start=date(2026, 9, 20))
+        q.ingest([got], today=TODAY)
+        assert len(q.approved) == 1, "次の収集で取り込まれていない"
+        assert q.approved[0].date_start == date(2026, 9, 20)
+    finally:
+        shutil.rmtree(d)
+
+
+def test_known_item_is_not_held_back():
+    """既知のものは見送らない。**既にある日付を消さないため。**"""
+    q, d = _queue()
+    try:
+        q.ingest([_ev(date_start=date(2026, 9, 20))], today=TODAY)
+        known = q.known_uids()
+        assert _ev().uid in known, "既知として数えられていない"
+    finally:
+        shutil.rmtree(d)
+
+
 def test_is_finished_does_not_replace_is_past():
     """publish.is_past とは基準が違う。混ぜないための覚え書き。"""
     from collector.publish import is_past
