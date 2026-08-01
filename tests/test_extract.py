@@ -886,6 +886,38 @@ def test_middle_dot_is_not_a_range():
     assert [d for d, _ in got] == [date(2026, 7, 18)], got
 
 
+def test_reversed_declaration_is_thrown_away_whole():
+    """**宣言が逆さまなら、その宣言ごと捨てる。**
+
+    大田市観光協会のクロスカントリー大会は、サイト側が年を打ち間違えていた:
+      イベント期間 2026年07月14日(火) ～ 2025年10月04日(土)
+    終わりだけ捨てると開催日が 7/14 になり、**過ぎた日付なので畳まれて消える。**
+    本文には「〇 日 に ち 令和８年１０月４日（日）」と正しく書いてある。
+
+    形式が正しくても中身が正しいとは限らない（設計判断14）。
+    """
+    html = ("<html><body>"
+            "<div class='period_box'><span>イベント期間</span>"
+            "<span>2026年07月14日(火) ～ 2025年10月04日(土)</span></div>"
+            "<p>〇 日 に ち 令和８年１０月４日（日）</p>"
+            "<p>〇 申込締切 令和８年８月２１日（金）</p>"
+            "</body></html>")
+    got = extract_dates(html, ref=date(2025, 6, 12))
+    assert got.date_start == date(2026, 10, 4), f"{got.date_start} / {got.date_source}"
+    assert got.deadline == date(2026, 8, 21), got.deadline
+    assert "構造化" not in got.date_source, got.date_source
+
+
+def test_sane_declaration_is_still_used():
+    """逆さまでない宣言はこれまでどおり最優先（回帰よけ）。"""
+    html = ("<html><body><div class='period_box'><span>イベント期間</span>"
+            "<span>2026年07月18日(土) ～ 08月09日(日)</span></div></body></html>")
+    got = extract_dates(html, ref=date(2026, 7, 1))
+    assert got.date_start == date(2026, 7, 18)
+    assert got.date_end == date(2026, 8, 9)
+    assert "構造化" in got.date_source, got.date_source
+
+
 def test_range_tail_crossing_the_month():
     from collector.extract import _find_dates
     got = [d for d, _ in _find_dates("2026年1月28日（水）～3日（火）", date(2026, 1, 1))]
