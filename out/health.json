@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "checked_at": "2026-08-01T21:43:37",
+=======
+  "checked_at": "2026-08-02T08:11:33",
+>>>>>>> 443ae0e (chore: 収集 2026-08-02)
   "per_source": {
     "hamada_city": 73,
     "gotsu_city": 100,
