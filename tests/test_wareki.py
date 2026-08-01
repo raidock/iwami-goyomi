@@ -118,6 +118,50 @@ def test_category_prefers_title_over_description():
     assert v2.category is not None
 
 
+# --- タイトル頭の【…】に続く日付（2026-08 / 津和野町観光協会）---------------
+# 8つ目の日付表記。津和野町観光協会は「【津和野盆踊り】8/15　409回目の夏」の形。
+# 実データ153件で測って、当たるのは津和野の6件だけ・全部正しい。
+
+def test_bracket_then_slash_date():
+    from datetime import date
+    from collector.models import extract_held_date
+    cases = [
+        ("【津和野町日本遺産センター】8/2〜9/27「津和野踊り企画展」開催",
+         date(2026, 7, 30), date(2026, 8, 2)),
+        ("【津和野盆踊り】8/15　409回目の夏　殿町盆踊り開催のお知らせ",
+         date(2026, 7, 15), date(2026, 8, 15)),
+        ("【鷺舞神事】7/20・7/27祇園祭弥栄神社の鷺舞神事催行のお知らせ",
+         date(2026, 6, 15), date(2026, 7, 20)),
+        ("【駅開業記念日】8/1(土)、津和野駅夜市を今年も開催します！",
+         date(2026, 7, 1), date(2026, 8, 1)),
+    ]
+    for title, ref, want in cases:
+        assert extract_held_date(title, ref) == want, title
+
+
+def test_bracket_date_does_not_swallow_a_deadline():
+    """**「まで」が続くなら開催日にしない。**
+
+    後ろ向き言明だけでは足りない。`(?!\\d)` が無いと「8/31まで」の日を
+    「3」に縮めて言明をすり抜け、8月3日になっていた。
+    """
+    from datetime import date
+    from collector.models import extract_held_date
+    for t in ("【募集】8/31まで作品を受け付けます", "【募集】8/9まで受付"):
+        assert extract_held_date(t, date(2026, 7, 1)) is None, t
+
+
+def test_bracket_without_a_date_is_untouched():
+    """【】で始まるタイトルは実データに24件ある。日付が無いものを壊さない。"""
+    from datetime import date
+    from collector.models import extract_held_date
+    for t in ("【要申込】夏休みこども木工教室",
+              "【第57回浜田市美術展】　現代美術の部　事前相談を受け付けます",
+              "【石見神楽】津和野夜神楽公演　次回9/19(土)公演",   # 冒頭ではない
+              "【お知らせ】2026/8/1 サイトを更新しました"):       # 年つきは対象外
+        assert extract_held_date(t, date(2026, 7, 1)) is None, t
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
