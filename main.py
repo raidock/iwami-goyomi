@@ -6,6 +6,7 @@
   python main.py review    # 承認する（1日5分の作業）
   python main.py build     # 承認済みだけで公開サイトを作る
   python main.py dedupe    # 重複をまとめる
+  python main.py audit     # 情報源の在庫と突き合わせ、見ていない記事を出す（月1回）
   python main.py health    # 情報源が生きているか確かめる
   python main.py status    # いまの状況を見る
 
@@ -22,7 +23,7 @@ import yaml
 from collector import USER_AGENT, __version__
 from collector.classify import classify
 from collector.extract import TITLE_SOURCE, apply_extracted, extract_dates
-from collector.models import extract_deadline, extract_held_date
+from collector.models import extract_deadline, extract_held_date, today_jst
 from collector.about import to_about_page
 from collector.manual import merge_for_build
 from collector.publish import to_public_site
@@ -72,6 +73,8 @@ def build_sources(cfg: dict) -> list[tuple[MunicipalRSS, dict]]:
                 feed_url=m.get("feed_url"), max_age_days=cfg.get("max_age_days", 400),
                 url_include=m.get("url_include"),
                 fetch_delay_sec=fetch_delay_for(m, cfg),
+                # フィードを何ページさかのぼるか。効く情報源だけ config で指定する
+                feed_pages=m.get("feed_pages", 1),
             ),
             m,
         ))
@@ -116,10 +119,16 @@ def enrich_with_detail_pages(events: list, cfg: dict) -> None:
     print(f"[info] 詳細ページ: {len(events)}件を確認し {hit}件から日付を取得")
 
 
-def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True) -> None:
+def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True,
+                pages: int | None = None) -> None:
     raw = []
     health = {}
     for src, conf in build_sources(cfg):
+        # `--pages` は**取りこぼしを一度だけ拾い直す**ための上書き。
+        # 常用しないこと（毎日深く読むぶんだけ相手のサーバを叩く。設計判断12）。
+        # paged が効かないフィードは2ページ目で打ち切るので、無駄は1回で済む
+        if pages:
+            src.feed_pages = pages
         before = len(raw)
         for ev in src.collect():
             ev.organizer_type = conf.get("organizer_type", "自治体")
@@ -194,6 +203,9 @@ def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True) -> Non
     stats = queue.ingest(kept)
     print(f"[info] 自動承認 {stats['new_auto']}件 / 要承認 {stats['new_pending']}件 "
           f"/ 既知 {stats['skipped']}件 / 日付を追記 {stats.get('updated', 0)}件")
+    if stats.get("finished"):
+        print(f"[info] 初めて見るが既に終わっていた {stats['finished']}件は"
+              f"取り込みません（一度載ったものは畳んで残します）")
     if stats.get("manual"):
         print(f"[info] 手動の掲載と同じURLだった {stats['manual']}件は取り込みません"
               f"（data/manual.json が優先）")
@@ -282,6 +294,82 @@ def cmd_dedupe(cfg: dict, queue: ReviewQueue) -> None:
         print("→ `python main.py build` でサイトを作り直してください")
 
 
+def _rough_when(ev) -> "object | None":
+    """タイトルとRSS要約から読める**いちばん後ろの日付**。監査の目安に使う。
+
+    詳細ページは見にいかないので（設計判断12）、ここで分かるのは
+    「もう終わっていそうか」の当たりだけ。判定ではない。
+
+    日付の読み方を書き足さないこと。`extract._find_dates` は
+    「8月11日」も「8/11」も読むので、そのまま借りる（邑南町観光協会は
+    タイトルが `8/11 石見やまんば祭り` の形）。
+    """
+    from collector.extract import _find_dates
+    text = f"{ev.title} {ev.description}"
+    found = [d for d, _ in _find_dates(text, ev.published_at)]
+    if found:
+        return max(found)
+    return (ev.date_start or extract_held_date(text, ev.published_at)
+            or extract_deadline(text, ev.published_at))
+
+
+def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10) -> None:
+    """情報源の在庫と突き合わせ、**一度も見ていない記事**を出す。
+
+    「拾ったものが正しいか」は何度も測ってきたが、
+    **「載るべきものが載っているか」は一度も測っていなかった。**
+    浜田市最大の祭りが載っていないことに、人伝に聞くまで気づけなかったのはそのため。
+    **無いものは画面を見ても目に入らない。** 数えるしかない。
+
+    **読むだけ。データは1バイトも変更しない。** 載せるかは人が決める（設計判断3）。
+    月1回くらい手で回せば足りる（毎日やる必要はない）。
+
+    詳細ページは見にいかない（設計判断12）。日付はタイトルとRSS要約から
+    分かるぶんだけなので、「終了？」は目安であって判定ではない。
+    """
+    known = queue.known_uids()
+    today = today_jst()
+    print(f"手元にあるもの: {len(known)}件（公開中・承認待ち・却下済み・手動）")
+    print(f"フィードを {pages} ページまでさかのぼって突き合わせます。\n")
+    total, total_over = 0, 0
+    for src, conf in build_sources(cfg):
+        src.feed_pages = pages          # 監査のときだけ深く読む
+        try:
+            got = src.collect()
+        except Exception as e:
+            print(f"[warn] {src.name}: {e}")
+            continue
+        # **仕分けで落ちるものは出さない。** それは「見ていない」のではなく
+        # 「見て捨てた」もので、在庫の8〜9割を占める行政の告知（入札・予算・人事）。
+        # 全部並べると読めなくなり、読まれない一覧は無いのと同じ。
+        keep, unseen, over = 0, [], []
+        for ev in got:
+            v = classify(ev.title, ev.description)
+            bucket = v.bucket
+            if v.score > -10 and conf.get("trust", "normal") == "high":
+                bucket = "auto" if v.score >= 2 else "review"
+            if bucket == "drop":
+                continue
+            keep += 1
+            if ev.uid in known:
+                continue
+            when = _rough_when(ev)
+            (over if when and when < today else unseen).append((ev, v, bucket))
+        total += len(unseen)
+        total_over += len(over)
+        print(f"── {src.name}: 在庫 {len(got)}件 / 仕分けを通る {keep}件 / "
+              f"**キューに無い {len(unseen) + len(over)}件**"
+              + (f"（うち終わっていそうなもの {len(over)}件）" if over else ""))
+        for ev, v, bucket in unseen:
+            print(f"   掲載{ev.published_at or '—'} [{bucket}/{v.score}] "
+                  f"{ev.title[:38]}\n     {ev.url}")
+    print(f"\nこれから開催かもしれないのに手元に無いもの: {total}件"
+          f"（終わっていそうなものは別に {total_over}件）")
+    print("載せたいものがあれば data/manual.json に足すか、"
+          "config.yaml の feed_pages を広げてください。")
+    print("**このコマンドはデータを1バイトも変更していません。**")
+
+
 def cmd_health(cfg: dict) -> int:
     """情報源が生きているか確かめる。0件があれば異常終了する。
 
@@ -321,12 +409,16 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="石見暦")
     ap.add_argument("command",
                     choices=["collect", "pending", "review", "build",
-                             "dedupe", "health", "status"])
+                             "dedupe", "audit", "health", "status"])
     ap.add_argument("--config", default=str(ROOT / "config.yaml"))
     ap.add_argument("--data-dir", default=None,
                     help="承認データの保存先（GitHub Actionsでは ./data を指定）")
     ap.add_argument("--no-fetch", action="store_true",
                     help="詳細ページを見にいかない（速いが日付が取れない）")
+    ap.add_argument("--pages", type=int, default=None,
+                    help="フィードを何ページさかのぼるか。"
+                         "audit は既定10 / collect は既定 config.yaml の feed_pages。"
+                         "**取りこぼしを一度だけ拾い直すとき**に collect で指定する")
     args = ap.parse_args(argv)
 
     # どのコードを動かしているのか毎回はっきりさせる。
@@ -368,11 +460,13 @@ def main(argv=None) -> int:
     _dd = pathlib.Path(args.data_dir or cfg.get("data_dir", "data")).expanduser()
     queue = ReviewQueue(_dd if _dd.is_absolute() else ROOT / _dd)
 
-    {"collect": lambda: cmd_collect(cfg, queue, fetch_detail=not args.no_fetch),
+    {"collect": lambda: cmd_collect(cfg, queue, fetch_detail=not args.no_fetch,
+                                    pages=args.pages),
      "pending": lambda: cmd_pending(queue),
      "review": queue.review_cli,
      "build": lambda: cmd_build(cfg, queue),
      "dedupe": lambda: cmd_dedupe(cfg, queue),
+     "audit": lambda: cmd_audit(cfg, queue, pages=args.pages or 10),
      "health": lambda: sys.exit(cmd_health(cfg)),
      "status": lambda: cmd_status(queue)}[args.command]()
     return 0

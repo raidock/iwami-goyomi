@@ -16,9 +16,10 @@ import json
 import pathlib
 import re
 import unicodedata
+from datetime import date
 
 from .manual import load_manual
-from .models import ERA_BASE, Event
+from .models import ERA_BASE, Event, today_jst
 
 # ---- 市またぎ重複の気づき（表示専用） ----------------------------------
 #
@@ -183,12 +184,42 @@ class ReviewQueue:
     assert not (set(HUMAN_DECIDED)
                 & set(ENRICHABLE + REFRESHABLE + CLASSIFIED + FROM_SOURCE))
 
-    def ingest(self, events: list[Event], auto_approve: bool = True) -> dict:
+    @staticmethod
+    def is_finished(ev: Event, today: date) -> bool:
+        """**初めて見る催しが、もう終わっているか。**
+
+        フィードの窓を広げると、終わった催しがまとめて流れ込む
+        （はまナビは3ページで94件・うち74件が終了済み）。
+        一度も載らなかったものを終了済みとして足しても、畳んだ節が膨らむだけ。
+
+        **設計判断4「終わった催しは消さない」とは別の話。** あちらは
+        「載っていたものが終わった」記録を残すという意味で、価値はその過程にある。
+        一度も載っていないものには、その過程がない。
+
+        判定は素朴に、**分かっている日付が全部過去なら終わり**とする。
+
+        - 日付が1つも分からない → **終わりとは言わない**（勝手に捨てない）
+        - 開催日は未来・締切は過去 → 終わりではない（申込は締切っても催しは残る）
+        - 期間ものは終わりの日で見る（`date_end`）
+
+        `publish.is_past()` とは基準が違う。あちらは**画面での見せ方**を決めるもので、
+        種別ごとに見る欄を変える（制度は常に現役、募集は締切だけ見る）。
+        こちらは**そもそも取り込むか**を決める。混ぜないこと。
+        """
+        known = [d for d in (ev.date_end or ev.date_start, ev.deadline) if d]
+        return bool(known) and all(d < today for d in known)
+
+    def ingest(self, events: list[Event], auto_approve: bool = True,
+               today: date | None = None) -> dict:
         """新規は取り込み、既知のものは新しく分かった情報で更新する。
 
         既知を単に飛ばしていたため、後から取れた締切が捨てられていた（v1.5）。
         人の判断（review_state）は絶対に上書きしない。
+
+        **初めて見るもので、もう終わっているものは取り込まない**（is_finished）。
+        既知には適用しない — 一度載ったものは畳んで残す（設計判断4）。
         """
+        today = today or today_jst()
         approved, pending, rejected = self.approved, self.pending, self.rejected
         by_uid = {e.uid: (e, bucket) for bucket in ("a", "p", "r")
                   for e in (approved if bucket == "a" else
@@ -197,7 +228,7 @@ class ReviewQueue:
         # キューにも入れない（人が書いた1件を、もう一度人に判断させない）。
         manual_uids = {e.uid for e in self.manual}
         stats = {"new_auto": 0, "new_pending": 0, "skipped": 0, "updated": 0,
-                 "manual": 0}
+                 "manual": 0, "finished": 0}
         touched = False
 
         for ev in events:
@@ -234,6 +265,14 @@ class ReviewQueue:
                     touched = True
                 else:
                     stats["skipped"] += 1
+                continue
+            if self.is_finished(ev, today):
+                # **静かに捨てない。** 取りこぼしは画面を見ても気づけないので、
+                # ログだけが手がかりになる（GitHub Actions の実行ログに残る）
+                when = ev.date_end or ev.date_start or ev.deadline
+                stats["finished"] += 1
+                print(f"[info] 既に終わっているため取り込みません: "
+                      f"{ev.title[:34]}（{when}）")
                 continue
             if auto_approve and ev.review_state == "auto":
                 ev.review_state = "approved"

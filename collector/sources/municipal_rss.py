@@ -32,7 +32,8 @@ class MunicipalRSS(Source):
     def __init__(self, key: str, site: str, municipality: str,
                  feed_url: str | None = None, max_age_days: int = 400,
                  url_include: str | None = None,
-                 fetch_delay_sec: float = DEFAULT_FETCH_DELAY_SEC, **kw):
+                 fetch_delay_sec: float = DEFAULT_FETCH_DELAY_SEC,
+                 feed_pages: int = 1, **kw):
         super().__init__(fetch_delay_sec=fetch_delay_sec,
                          **{k: v for k, v in kw.items() if k == "timeout"})
         self.name = key
@@ -40,6 +41,9 @@ class MunicipalRSS(Source):
         self.municipality = municipality
         self.feed_url = feed_url
         self.max_age_days = max_age_days
+        # フィードを何ページまでさかのぼるか（WordPress の `?paged=N`）。
+        # **既定は1。効く情報源だけ config.yaml で増やすこと。**
+        self.feed_pages = max(1, int(feed_pages))
         # サイト全体のRSSしかない場合に、記事URLで絞り込む
         # （江津市観光協会は /feed に観光スポット紹介まで流れてくる）
         self.url_include = re.compile(url_include) if url_include else None
@@ -169,14 +173,37 @@ class MunicipalRSS(Source):
             events.append(ev)
         return events
 
+    @staticmethod
+    def paged_url(url: str, page: int) -> str:
+        """WordPress のフィードを N ページ目にする。既にクエリがあれば & で足す。"""
+        return f"{url}{'&' if '?' in url else '?'}paged={page}"
+
     def collect(self) -> list[Event]:
         feed = self.discover_feed()
         if not feed:
             print(f"[warn] {self.name}: RSSが見つかりませんでした")
             return []
-        print(f"[info] {self.name}: {feed}")
-        try:
-            return self.parse_feed(self.get(feed))
-        except Exception as e:
-            print(f"[warn] {self.name}: 取得失敗: {e}")
-            return []
+        print(f"[info] {self.name}: {feed}"
+              + (f"（{self.feed_pages}ページまで）" if self.feed_pages > 1 else ""))
+        events: list[Event] = []
+        seen: set[str] = set()
+        for page in range(1, self.feed_pages + 1):
+            url = feed if page == 1 else self.paged_url(feed, page)
+            try:
+                got = self.parse_feed(self.get(url))
+            except Exception as e:
+                print(f"[warn] {self.name}: 取得失敗（{page}ページ目）: {e}")
+                break
+            fresh = [ev for ev in got if ev.uid not in seen]
+            # **`paged` を解さないCMSは、同じ内容をそのまま返す。**
+            # 自治体3市（浜田・江津・益田）で実測ずみ（2026-08-01）。
+            # 気づかずに回すと、同じページを何度も叩くだけの無駄になる（設計判断12）。
+            if page > 1 and not fresh:
+                print(f"[info] {self.name}: {page}ページ目は前と同じ内容でした"
+                      f"（このフィードは paged が効きません。打ち切ります）")
+                break
+            seen.update(ev.uid for ev in fresh)
+            events.extend(fresh)
+            if not got:                      # 空が返ったら、その先も無い
+                break
+        return events
