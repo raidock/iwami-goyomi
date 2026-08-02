@@ -4385,6 +4385,38 @@
     "uid": "57da4a9ce9f0deb58608a2916636c4e3"
   },
   {
+    "title": "8/16（日）夏ASOBI 2026",
+    "prefecture": "島根県",
+    "date_start": "2026-08-16",
+    "date_end": null,
+    "url": "https://www.misato-kankou.com/information/1681",
+    "source": "misato_kanko",
+    "raw_date_text": "",
+    "city": "美郷町",
+    "venue": null,
+    "distance_tier": null,
+    "description": "大自然の中で、子どもたちの笑顔があふれる夏の一日を、ぜひ美郷町で過ごしてください！皆様のお越しを心よりお待ちしております♪",
+    "published_at": "2026-07-06",
+    "deadline": null,
+    "category": null,
+    "tags": [
+      "子ども向け"
+    ],
+    "organizer": null,
+    "organizer_type": "観光協会",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "approved",
+    "score": 0,
+    "reason": "手がかりなし",
+    "source_trust": "high",
+    "date_source": "見出し「日時」",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "b13e735e1e8d25a88bcb6934683f5aa8"
+  },
+  {
     "title": "2026石州浜っ子夏まつり",
     "prefecture": "島根県",
     "date_start": "2026-08-01",
