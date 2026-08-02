@@ -31,7 +31,7 @@ max_age_days: 400
 fetch_delay_sec: 1.0
 
 # 石見9市町のうち6市町（浜田・江津・益田・大田・津和野・邑南）が公式まで揃っている。
-# 川本町は観光協会だけ（公式はフィードが使えない。CLAUDE.md 参照）。残りは美郷町・吉賀町。
+# 川本町・美郷町は観光協会だけ（公式のフィードが使えない。CLAUDE.md 参照）。残りは吉賀町。
 # feed_url を省略するとトップページから自動発見する。
 municipalities:
   - key: hamada_city
@@ -150,6 +150,24 @@ tourism:
     organizer_type: 観光協会
     trust: high
     feed_pages: 3
+  # 美郷町観光協会（石見9市町の8つ目）。**公式は足さない** — `/feed` は6件で、
+  # 実測（2026-08-02）では6件とも掲載日が400日より古く、使えるものが0件だった。
+  #
+  # `/feed/` はサイト全体で431件（大田市と同じ目次の罠。先頭が「トップ」「お知らせ」）。
+  # **掲載日を持つのは40件だけで、それが `/information/` の記事とほぼ一致する。**
+  # そこで `/information/` に絞ると38件・全部掲載日あり・ノイズ率2%になる
+  # （落ちるのは「年末年始休業日のお知らせ」1件）。町の看板が揃っている
+  # （江の川釣り大会・美郷夏まつり花火大会・君谷マーケット・神楽共演大会など）。
+  # 末尾の [0-9] は索引ページ `/information/` そのものを外すため。
+  # `?paged=N` は効かない
+  - key: misato_kanko
+    municipality: 美郷町
+    site: https://www.misato-kankou.com
+    feed_url: https://www.misato-kankou.com/feed/
+    organizer_type: 観光協会
+    trust: high
+    url_include: '/information/[0-9]'
+    fetch_delay_sec: 5 # robots.txt の Crawl-delay: 5（**記録では「宣言なし」だったが実際はある**）
   - key: oda_kanko
     municipality: 大田市
     site: https://www.ginzan-wm.jp
@@ -170,5 +188,5 @@ tourism:
     # 1200日にすると3件とも入る。**この情報源だけ**。全体は400日のまま
     max_age_days: 1200
 
-# 今後の追加候補: 川本町（公式・要アダプター）/ 美郷町 / 吉賀町
+# 今後の追加候補: 吉賀町（手動掲載で足りるか要判断）/ 川本町・美郷町の公式
 # 下調べの結果は CLAUDE.md「いま分かっている課題」の残り町の項にある
