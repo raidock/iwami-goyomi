@@ -972,6 +972,22 @@ def test_colon_label_tolerates_spacing():
     assert got.date_start == date(2026, 9, 5), got.date_start
 
 
+def test_related_and_prevnext_lists_are_removed():
+    """他記事の一覧は本文から外す。**別の催しの日付が紛れ込むため。**
+
+    大田市観光協会で踏んだ事故（関連記事の「〜まで」を拾い、全記事に同じ締切
+    2026-08-30 が付いた）と同じ入れ物。津和野町観光協会は2種類持っている。
+    """
+    from collector.extract import _is_noise
+    for v in ("related_post",                # 関連記事（`related` で既に落ちる）
+              "previous_next_post_image",    # 前後の記事の送り
+              "sub_events_area", "other_events", "footer"):
+        assert _is_noise(v), v
+    # **本文の入れ物を巻き込まないこと**（`-sidebar-on` で5件消しかけた前例）
+    for v in ("post_image", "article", "entry_content", "-sidebar-on", "left_col"):
+        assert not _is_noise(v), v
+
+
 def test_range_tail_crossing_the_month():
     from collector.extract import _find_dates
     got = [d for d, _ in _find_dates("2026年1月28日（水）～3日（火）", date(2026, 1, 1))]

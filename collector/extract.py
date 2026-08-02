@@ -276,7 +276,15 @@ _NOISE_PARTS = ("footer", "copyright", "nav", "gnav", "related")
 # subevents は実データで踏んで直った（偽締切3件が消え、本物の締切は残った）。
 # **otherevents は未検証。** 49ページで一度も踏まれていない（0件）。
 # 関連記事一覧の名前として一般的なので入れているが、安全性は測れていない。
-_NOISE_JOINED = ("subevents", "otherevents")
+_NOISE_JOINED = ("subevents", "otherevents",
+                 # 「前後の記事」の送り（津和野町観光協会 `previous_next_post_image`）。
+                 # **いまは実害0件**（公開中37ページで足しても差が出ない）。
+                 # ただし中身は他記事のタイトルで、「6/2〜7/31 鷺舞企画展」のような
+                 # **別の催しの日付**が並ぶ。大田市で踏んだ事故（関連記事の「〜まで」を
+                 # 拾って全記事に同じ締切が付いた）と同じ入れ物なので、先に塞いでおく。
+                 # `related_post`（関連記事）のほうは `_NOISE_PARTS` の `related` で
+                 # 既に落ちている
+                 "previousnextpost")
 _NOISE_SPLIT = re.compile(r"[-_\s]+")
 
 
