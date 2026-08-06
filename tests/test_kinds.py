@@ -101,6 +101,36 @@ def test_boshu_sorted_by_deadline_ascending():
     assert html.index("早い") < html.index("遅い")
 
 
+def test_boshu_without_deadline_shows_date_start():
+    """募集で締切が取れなくても、開催日が取れていればそれを出す。
+
+    かつては deadline しか見ておらず、「開催 8/8」を持つ募集カードでも
+    「締切は詳細ページで」しか出ず、並び順も date.max で最後尾に沈んでいた
+    （2026-08-06、川本町のパブリックビューイングが承認当日から実質見えなかった）。
+    """
+    e = _ev("パブリックビューイング", "募集", start=date(2026, 8, 8))
+    html = to_public_site([e], "石見", TODAY)
+    assert "開催 8/8" in html
+    assert "土" in html  # 曜日つき
+
+
+def test_boshu_without_deadline_sorted_by_date_start():
+    """締切が無くても開催日があれば、それで並ぶ（date.max に落とさない）。"""
+    evs = [_ev("先の開催", "募集", start=date(2026, 10, 18)),
+           _ev("近い開催", "募集", start=date(2026, 8, 8)),
+           _ev("日付なし", "募集")]
+    html = to_public_site(evs, "石見", TODAY)
+    assert html.index("近い開催") < html.index("先の開催") < html.index("日付なし")
+
+
+def test_boshu_with_both_dates_shows_deadline_as_main():
+    """締切と開催日の両方があれば、募集は締切が主役（催しの逆）。"""
+    e = _ev("両方あり", "募集", deadline=date(2026, 8, 3), start=date(2026, 9, 1))
+    html = to_public_site([e], "石見", TODAY)
+    assert "締切 8/3" in html and "あと7日" in html
+    assert "開催 9/1" in html  # 従として添えられる
+
+
 def test_countdown_and_seido_display():
     html = to_public_site(
         [_ev("募集X", "募集", deadline=date(2026, 8, 3)), _ev("制度Y", "制度")],

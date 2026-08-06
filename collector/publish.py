@@ -48,7 +48,14 @@ def _when_html(ev: Event, today: date) -> str:
 
     if ev.kind == "募集":
         if not ev.deadline:
-            return "<span class='tbd'>締切は詳細ページで</span>"
+            if not ev.date_start:
+                return "<span class='tbd'>締切は詳細ページで</span>"
+            # 締切は取れなくても開催日は取れている（例: パブリックビューイング）。
+            # 「持っている情報は出す」— date.max に落として最後尾に沈めない
+            s = ev.date_start
+            return (f"<span class='tbd'>開催 {s.month}/{s.day}"
+                    f"<span class='wd'>{_WD[s.weekday()]}</span>"
+                    f"・締切は詳細ページで</span>")
         n = _days_left(ev.deadline, today)
         d = ev.deadline
         label = f"締切 {d.month}/{d.day}"
@@ -80,30 +87,37 @@ def _when_html(ev: Event, today: date) -> str:
 
 def _sort_key(ev: Event):
     if ev.kind == "募集":
-        return ev.deadline or date.max          # 締切が近い順
+        # 締切が近い順。締切が無くても開催日は取れていることがあるので、
+        # date.max に落とすのは「日付を何も持っていない」ときだけにする
+        return ev.deadline or ev.date_start or date.max
     if ev.kind == "催し":
         return ev.date_start or date.max        # 開催日が近い順
     return date.max
 
 
 def _deadline_note(ev: Event, today: date) -> str:
-    """催しにも申込締切はある。開催日とは別に小さく添える。
+    """催しにも申込締切、募集にも開催日はある。主役の日付とは別に小さく添える。
 
     （締切を拾えているのに催しだと画面に出ない、という漏れがあった）
     """
-    if ev.kind != "催し" or not ev.deadline:
-        return ""
-    # 期間の終わりと締切が同じ日なら、開催日の行にすでに「〜12月15日」と
-    # 出ている。二重に見せない（スタンプラリーは実施期間の終わり＝応募締切）
-    if ev.date_end and ev.deadline == ev.date_end:
-        return ""
-    n = _days_left(ev.deadline, today)
-    if n < 0:
-        return "<div class='dl-note over'>申込は終了しています</div>"
-    d = ev.deadline
-    cls = "alert" if n <= ALERT_DAYS else ""
-    left = "本日まで" if n == 0 else f"あと{n}日"
-    return f"<div class='dl-note {cls}'>申込締切 {d.month}/{d.day}・{left}</div>"
+    if ev.kind == "催し" and ev.deadline:
+        # 期間の終わりと締切が同じ日なら、開催日の行にすでに「〜12月15日」と
+        # 出ている。二重に見せない（スタンプラリーは実施期間の終わり＝応募締切）
+        if ev.date_end and ev.deadline == ev.date_end:
+            return ""
+        n = _days_left(ev.deadline, today)
+        if n < 0:
+            return "<div class='dl-note over'>申込は終了しています</div>"
+        d = ev.deadline
+        cls = "alert" if n <= ALERT_DAYS else ""
+        left = "本日まで" if n == 0 else f"あと{n}日"
+        return f"<div class='dl-note {cls}'>申込締切 {d.month}/{d.day}・{left}</div>"
+    if ev.kind == "募集" and ev.deadline and ev.date_start:
+        # 締切が主役の行に出ているので、開催日は従として添える（催しの逆）
+        s = ev.date_start
+        return (f"<div class='dl-note'>開催 {s.month}/{s.day}"
+                f"<span class='wd'>{_WD[s.weekday()]}</span></div>")
+    return ""
 
 
 def _card(ev: Event, today: date) -> str:
