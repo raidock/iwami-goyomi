@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 import html as _html
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import date, datetime
 
 from .models import Event, now_jst, today_jst
@@ -22,6 +22,16 @@ URGENT_DAYS = 14          # これ以内の締切があれば募集を最上段�
 ALERT_DAYS = 7            # これ以内は赤く出す
 
 STATUS_BADGE = {"中止": "中止", "終了": "終了", "最後の開催": "最後の開催"}
+
+# 市町別の絞り込み（#gotsu のようにURLで共有できる）で使う短い記号。
+# config.yaml の情報源キー（hamada_city / gotsu_city / kawamoto_kanko …）の
+# 頭に揃えてある。並び順がそのままナビの表示順になる。
+# 石見9市町が出そろった時点のもの（CLAUDE.md「収集」の並びに吉賀町を足した形）。
+CITY_SLUG = {
+    "浜田市": "hamada", "江津市": "gotsu", "益田市": "masuda",
+    "大田市": "oda", "津和野町": "tsuwano", "邑南町": "ohnan",
+    "川本町": "kawamoto", "美郷町": "misato", "吉賀町": "yoshika",
+}
 
 
 def _days_left(d: date, today: date) -> int:
@@ -133,7 +143,7 @@ def _card(ev: Event, today: date) -> str:
     # 先頭に「・」が浮いていた（カテゴリ未判定は公開59件中8件ある）
     cat = f"{_html.escape(ev.category)}・" if ev.category else ""
     return f"""
-    <article class="card {cls}">
+    <article class="card {cls}" data-city="{_html.escape(ev.city or '')}">
       <div class="when" title="{_html.escape(ev.date_source or ev.deadline_source or '')}">{_when_html(ev, today)}{badge_html}</div>
       <h3><a href="{_html.escape(ev.url)}" target="_blank" rel="noopener">{_html.escape(ev.title)}</a></h3>
       {_deadline_note(ev, today)}
@@ -141,6 +151,43 @@ def _card(ev: Event, today: date) -> str:
       <div class="foot"><span class="muni">{_html.escape(ev.city or '')}</span>
         <span class="src">{cat}掲載 {fetched}</span></div>
     </article>"""
+
+
+def _filter_nav(upcoming: list[Event]) -> tuple[str, str]:
+    """市町別の絞り込み。JSは使わず `:target` + CSS だけで動かす。
+
+    `#gotsu` のようにURLで共有できる（告知のときに市町ごとのリンクを配れる）。
+    既定（ハッシュ無し）は絞り込み無しで、全市町を表示する。
+
+    件数はいまの「これから」（催し＋募集＋制度）だけで数える。0件の市町は
+    畳んだ節にしか無いことがあるので「載っていません」と決めつけず、
+    メッセージは出さない（畳んだ節を開けば見える）。
+    """
+    counts = Counter(e.city for e in upcoming if e.city)
+    links = [f"<a href=\"#all\" class=\"all\">ぜんぶ<span class='c'>"
+             f"{len(upcoming)}</span></a>"]
+    rules = []
+    empties = []
+    for city, slug in CITY_SLUG.items():
+        n = counts.get(city, 0)
+        esc = _html.escape(city)
+        links.append(f"<a href=\"#{slug}\">{esc}<span class='c'>{n}</span></a>")
+        rules.append(
+            f"#{slug}:target ~ * .card:not([data-city=\"{esc}\"]){{display:none}}"
+            f"#{slug}:target ~ .block:not(:has(.card[data-city=\"{esc}\"])),"
+            f"#{slug}:target ~ details.past:not(:has(.card[data-city=\"{esc}\"]))"
+            "{display:none}"
+        )
+        if n == 0:
+            rules.append(f"#{slug}:target ~ .empty-city#empty-{slug}{{display:block}}")
+            empties.append(f"<p class='empty-city' id='empty-{slug}'>"
+                           f"いま {esc} に載っている催し・募集はありません。"
+                           f"下の畳んだ節（終わった分）には残っているかもしれません。</p>")
+    anchors = "".join(f"<span id=\"{s}\" class=\"anchor\"></span>"
+                      for s in ["all"] + list(CITY_SLUG.values()))
+    nav = (f"<nav class='pick' aria-label='市町で絞り込む'>{''.join(links)}</nav>"
+           f"{anchors}{''.join(empties)}")
+    return nav, "".join(rules)
 
 
 def _block(title: str, lead: str, evs: list[Event], today: date, kind_cls: str) -> str:
@@ -199,6 +246,8 @@ def to_public_site(events: list[Event], region: str = "石見",
     if not body:
         body = "<p class='empty'>いまのところ掲載できるものがありません。</p>"
 
+    filter_nav, filter_css = _filter_nav(moyoshi + boshu + seido)
+
     site = site or {}
     title = site.get("title") or f"{region}の催し"
     reading = site.get("reading") or ""
@@ -244,7 +293,8 @@ def to_public_site(events: list[Event], region: str = "石見",
                        title=_html.escape(title), tagline=_html.escape(tagline),
                        h1_html=h1_html,
                        contact_html=contact_html, operator_html=operator_html,
-                       canonical=canonical, og_url=og_url)
+                       canonical=canonical, og_url=og_url,
+                       filter_nav=filter_nav, filter_css=filter_css)
 
 
 _TPL = """<!doctype html>
@@ -333,6 +383,18 @@ _TPL = """<!doctype html>
   details.past .grid{{margin-top:.9rem;opacity:.6}}
   details.past[open] summary{{margin-bottom:.3rem}}
   .empty{{color:var(--soft);padding:3rem 0}}
+  .pick{{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1.1rem}}
+  .pick a{{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;
+    color:var(--ink);text-decoration:none;border:1px solid var(--line);
+    border-radius:999px;padding:.25rem .8rem .25rem .7rem;background:var(--card)}}
+  .pick a:hover{{border-color:var(--sekishu)}}
+  .pick a.all{{font-weight:700}}
+  .pick a .c{{font-size:.64rem;color:var(--soft);background:var(--paper);
+    border-radius:999px;padding:.02rem .42rem}}
+  .anchor{{display:block}}
+  .empty-city{{display:none;color:var(--soft);font-size:.8rem;text-align:center;
+    padding:2.2rem 1rem;margin:1rem 0;border:1px dashed var(--line);border-radius:4px}}
+  {filter_css}
   footer{{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
     font-size:.7rem;color:var(--soft)}}
   a:focus-visible{{outline:2px solid var(--ai);outline-offset:2px}}
@@ -345,6 +407,7 @@ _TPL = """<!doctype html>
   <div class="counts">
     <span>催し {n_m}</span><span>募集 {n_b}</span><span>制度 {n_s}</span><span>ぜんぶで {total}</span>
   </div>
+  {filter_nav}
   <p class="notice">
     自動で集めた情報です。日時・会場・締切・申込方法は、必ず各カードのリンク先（主催者の公式ページ）で
     最終確認してください。中止や変更が反映されていない場合があります。

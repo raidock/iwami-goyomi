@@ -147,6 +147,39 @@ def test_event_with_deadline_shows_note():
     assert "申込締切 8/1" in html and "あと5日" in html
 
 
+# --- 市町別の絞り込み（:target + CSS。JSは使わない）-----------------------
+
+
+def test_city_filter_nav_lists_towns_even_with_zero_count():
+    """ナビには9市町ぶんのリンクが常に出る。0件の町もリンクごと消さない
+
+    （いずれ吉賀町がそうなる。0件でも選べないと空の理由が分からない）。
+    """
+    e = _ev("浜田の催し", "催し", start=date(2026, 8, 10))
+    html = to_public_site([e], "石見", TODAY)
+    assert 'href="#all"' in html
+    assert 'href="#hamada"' in html
+    assert 'href="#gotsu"' in html  # 0件の江津市もリンクは出る
+
+
+def test_city_filter_marks_cards_with_data_city():
+    """カードに data-city が付く（CSSの :not([data-city=…]) が頼る属性）。"""
+    e = _ev("浜田の催し", "催し", start=date(2026, 8, 10))
+    html = to_public_site([e], "石見", TODAY)
+    assert 'data-city="浜田市"' in html
+
+
+def test_city_filter_shows_empty_message_only_for_zero_towns():
+    """0件の市町を選んだときは空のグリッドではなく案内文を出す。
+
+    件数がある町には出さない（画面をふさがないため）。
+    """
+    e = _ev("浜田の催し", "催し", start=date(2026, 8, 10))
+    html = to_public_site([e], "石見", TODAY)
+    assert "id='empty-gotsu'" in html      # 0件
+    assert "id='empty-hamada'" not in html  # 1件ある
+
+
 
 
 # --- 過去のものを「これから」に出さない（2026-07 実画面で発覚）-----------------
