@@ -84,6 +84,18 @@
   details.past .grid{margin-top:.9rem;opacity:.6}
   details.past[open] summary{margin-bottom:.3rem}
   .empty{color:var(--soft);padding:3rem 0}
+  .pick{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1.1rem}
+  .pick a{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;
+    color:var(--ink);text-decoration:none;border:1px solid var(--line);
+    border-radius:999px;padding:.25rem .8rem .25rem .7rem;background:var(--card)}
+  .pick a:hover{border-color:var(--sekishu)}
+  .pick a.all{font-weight:700}
+  .pick a .c{font-size:.64rem;color:var(--soft);background:var(--paper);
+    border-radius:999px;padding:.02rem .42rem}
+  .anchor{display:block}
+  .empty-city{display:none;color:var(--soft);font-size:.8rem;text-align:center;
+    padding:2.2rem 1rem;margin:1rem 0;border:1px dashed var(--line);border-radius:4px}
+  #hamada:target ~ * .card:not([data-city="浜田市"]){display:none}#hamada:target ~ .block:not(:has(.card[data-city="浜田市"])),#hamada:target ~ details.past:not(:has(.card[data-city="浜田市"])){display:none}#gotsu:target ~ * .card:not([data-city="江津市"]){display:none}#gotsu:target ~ .block:not(:has(.card[data-city="江津市"])),#gotsu:target ~ details.past:not(:has(.card[data-city="江津市"])){display:none}#masuda:target ~ * .card:not([data-city="益田市"]){display:none}#masuda:target ~ .block:not(:has(.card[data-city="益田市"])),#masuda:target ~ details.past:not(:has(.card[data-city="益田市"])){display:none}#oda:target ~ * .card:not([data-city="大田市"]){display:none}#oda:target ~ .block:not(:has(.card[data-city="大田市"])),#oda:target ~ details.past:not(:has(.card[data-city="大田市"])){display:none}#tsuwano:target ~ * .card:not([data-city="津和野町"]){display:none}#tsuwano:target ~ .block:not(:has(.card[data-city="津和野町"])),#tsuwano:target ~ details.past:not(:has(.card[data-city="津和野町"])){display:none}#ohnan:target ~ * .card:not([data-city="邑南町"]){display:none}#ohnan:target ~ .block:not(:has(.card[data-city="邑南町"])),#ohnan:target ~ details.past:not(:has(.card[data-city="邑南町"])){display:none}#kawamoto:target ~ * .card:not([data-city="川本町"]){display:none}#kawamoto:target ~ .block:not(:has(.card[data-city="川本町"])),#kawamoto:target ~ details.past:not(:has(.card[data-city="川本町"])){display:none}#misato:target ~ * .card:not([data-city="美郷町"]){display:none}#misato:target ~ .block:not(:has(.card[data-city="美郷町"])),#misato:target ~ details.past:not(:has(.card[data-city="美郷町"])){display:none}#yoshika:target ~ * .card:not([data-city="吉賀町"]){display:none}#yoshika:target ~ .block:not(:has(.card[data-city="吉賀町"])),#yoshika:target ~ details.past:not(:has(.card[data-city="吉賀町"])){display:none}
   footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
     font-size:.7rem;color:var(--soft)}
   a:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
@@ -91,17 +103,26 @@
 <body><div class="wrap">
   <header>
     <h1><ruby>石見<span class='r'>暦</span><rp>（</rp><rt>いわみごよみ</rt><rp>）</rp></ruby></h1>
-    <div class="lead">石見の催しと締切を、ひとつの暦に。　2026年08月06日 07:12 更新</div>
+    <div class="lead">石見の催しと締切を、ひとつの暦に。　2026年08月06日 18:20 更新</div>
   </header>
   <div class="counts">
-    <span>催し 116</span><span>募集 11</span><span>制度 1</span><span>ぜんぶで 128</span>
+    <span>催し 123</span><span>募集 13</span><span>制度 1</span><span>ぜんぶで 137</span>
   </div>
+  <nav class='pick' aria-label='市町で絞り込む'><a href="#all" class="all">ぜんぶ<span class='c'>137</span></a><a href="#hamada">浜田市<span class='c'>52</span></a><a href="#gotsu">江津市<span class='c'>10</span></a><a href="#masuda">益田市<span class='c'>9</span></a><a href="#oda">大田市<span class='c'>21</span></a><a href="#tsuwano">津和野町<span class='c'>16</span></a><a href="#ohnan">邑南町<span class='c'>17</span></a><a href="#kawamoto">川本町<span class='c'>8</span></a><a href="#misato">美郷町<span class='c'>3</span></a><a href="#yoshika">吉賀町<span class='c'>1</span></a></nav><span id="all" class="anchor"></span><span id="hamada" class="anchor"></span><span id="gotsu" class="anchor"></span><span id="masuda" class="anchor"></span><span id="oda" class="anchor"></span><span id="tsuwano" class="anchor"></span><span id="ohnan" class="anchor"></span><span id="kawamoto" class="anchor"></span><span id="misato" class="anchor"></span><span id="yoshika" class="anchor"></span>
   <p class="notice">
     自動で集めた情報です。日時・会場・締切・申込方法は、必ず各カードのリンク先（主催者の公式ページ）で
     最終確認してください。中止や変更が反映されていない場合があります。
   </p>
-  <section class='block k-boshu'><h2>募集・締切のあるもの<span class='n'>11</span></h2><p class='lead2'>申し込むもの。締切の近い順。</p><div class='grid'>
-    <article class="card ">
+  <section class='block k-boshu'><h2>募集・締切のあるもの<span class='n'>13</span></h2><p class='lead2'>申し込むもの。締切の近い順。</p><div class='grid'>
+    <article class="card " data-city="川本町">
+      <div class="when" title="見出し「開催日時」"><span class='tbd'>開催 8/8<span class='wd'>土</span>・締切は詳細ページで</span></div>
+      <h3><a href="https://www.kawamoto-kankou.jp/info/2026/post-7306/" target="_blank" rel="noopener">【8/8開催】クラブ選手権パブリックビューイング</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">川本町</span>
+        <span class="src">掲載 2026/08/05</span></div>
+    </article>
+    <article class="card " data-city="江津市">
       <div class="when" title="見出し「応募締め切り」"><span class='soon'>締切 8/14・<b>あと8日</b></span></div>
       <h3><a href="https://www.city.gotsu.lg.jp/soshiki/2/40620.html" target="_blank" rel="noopener">地域おこし協力隊を募集します</a></h3>
       
@@ -109,7 +130,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">移住・地域づくり・掲載 2026/06/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「募集期間」の終わり"><span class='soon'>締切 8/16・<b>あと10日</b></span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/1jibosyu" target="_blank" rel="noopener">大田市こども総合センターの愛称１次募集について（募集期間：令和8年7月13日～8月16日）</a></h3>
       
@@ -117,7 +138,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">子育て・教育・掲載 2026/07/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「◆募集期限」"><span class='soon'>締切 8/28・<b>あと22日</b></span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/11137" target="_blank" rel="noopener">令和９年（令和８年度）「大田市二十歳のつどい」代表者募集！</a></h3>
       
@@ -125,7 +146,15 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">掲載 2026/07/27</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
+      <div class="when" title="本文「…までに/必着」"><span class='soon'>締切 8/31・<b>あと25日</b></span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782884328185/index.html" target="_blank" rel="noopener">クラウドファンディング型ふるさと納税「＃ふるさと納税3.0」事業提案を募集しています</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">掲載 2026/08/05</span></div>
+    </article>
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「募集期間」の終わり"><span class='soon'>締切 9/3・<b>あと28日</b></span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782199555384/index.html" target="_blank" rel="noopener">令和8年度島根県統計グラフコンクール作品募集について</a></h3>
       
@@ -133,7 +162,23 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/07/09</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
+      <div class="when" title="見出し「日時」"><span class='tbd'>開催 10/3<span class='wd'>土</span>・締切は詳細ページで</span></div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36216" target="_blank" rel="noopener">【要申込】田んぼCafe・田んぼBar</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/06/30</span></div>
+    </article>
+    <article class="card " data-city="浜田市">
+      <div class="when" title="見出し「日時」"><span class='tbd'>開催 10/18<span class='wd'>日</span>・締切は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783555518382/index.html" target="_blank" rel="noopener">石央文化ホール「2026　DANCE　CONTEST」出場者大募集！！</a></h3>
+      
+      <div class="tags"><span class='tg'>要申込</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/07/10</span></div>
+    </article>
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「募集期間について」の終わり"><span class='soon'>締切 12/23・<b>あと139日</b></span></div>
       <h3><a href="https://www.town.ohnan.lg.jp/soshiki/7/8905.html" target="_blank" rel="noopener">農業研修生（おーなんアグサポ隊：R９年度活動開始）を募集します</a></h3>
       
@@ -141,7 +186,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">移住・地域づくり・掲載 2026/04/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="川本町">
       <div class="when" title="手入力"><span class='soon'>締切 12/31・<b>あと147日</b></span></div>
       <h3><a href="https://www.town.shimane-kawamoto.lg.jp/gyosei/gyosei_news/community_events/7977" target="_blank" rel="noopener">川本町地域おこし協力隊員（観光協会スタッフ）の募集</a></h3>
       
@@ -149,15 +194,7 @@
       <div class="foot"><span class="muni">川本町</span>
         <span class="src">移住・地域づくり・掲載 2026/07/07</span></div>
     </article>
-    <article class="card ">
-      <div class="when" title="見出し「日時」"><span class='tbd'>締切は詳細ページで</span></div>
-      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783555518382/index.html" target="_blank" rel="noopener">石央文化ホール「2026　DANCE　CONTEST」出場者大募集！！</a></h3>
-      
-      <div class="tags"><span class='tg'>要申込</span></div>
-      <div class="foot"><span class="muni">浜田市</span>
-        <span class="src">文化・アート・クラフト・掲載 2026/07/10</span></div>
-    </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title=""><span class='tbd'>締切は詳細ページで</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/10962" target="_blank" rel="noopener">令和８年度　外来ドック・脳ドックの実施について（二次募集）</a></h3>
       
@@ -165,15 +202,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">掲載 2026/06/12</span></div>
     </article>
-    <article class="card ">
-      <div class="when" title="見出し「日時」"><span class='tbd'>締切は詳細ページで</span></div>
-      <h3><a href="https://kankou-hamada.or.jp/archives/36216" target="_blank" rel="noopener">【要申込】田んぼCafe・田んぼBar</a></h3>
-      
-      <div class="tags"><span class='tg'>要申込</span></div>
-      <div class="foot"><span class="muni">浜田市</span>
-        <span class="src">文化・アート・クラフト・掲載 2026/06/30</span></div>
-    </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title=""><span class='tbd'>締切は詳細ページで</span></div>
       <h3><a href="https://www.town.ohnan.lg.jp/soshiki/7/8474.html" target="_blank" rel="noopener">農業研修生（おーなんアグサポ隊：R８年度活動開始）を募集します</a></h3>
       
@@ -181,15 +210,15 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">移住・地域づくり・掲載 2026/04/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title=""><span class='tbd'>締切は詳細ページで</span></div>
       <h3><a href="https://www.town.ohnan.lg.jp/soshiki/7/7621.html" target="_blank" rel="noopener">（随時募集）令和8年度地域おこし協力隊「観光支援マネージャー」の募集について</a></h3>
       
       <div class="tags"><span class='tg'>要申込</span></div>
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">移住・地域づくり・掲載 2026/03/23</span></div>
-    </article></div></section><section class='block k-moyoshi'><h2>これからの催し<span class='n'>116</span></h2><p class='lead2'>行ってみるもの。開催日の近い順。</p><div class='grid'>
-    <article class="card ">
+    </article></div></section><section class='block k-moyoshi'><h2>これからの催し<span class='n'>123</span></h2><p class='lead2'>行ってみるもの。開催日の近い順。</p><div class='grid'>
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">6月6日<span class='wd'>土</span>〜12月27日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/35779" target="_blank" rel="noopener">企画展「波佐の諸職用具展」</a></h3>
       
@@ -197,7 +226,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/05/23</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">6月6日<span class='wd'>土</span>〜9月27日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/35764" target="_blank" rel="noopener">企画展「北前船と浜田のみなと」</a></h3>
       
@@ -205,7 +234,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/05/23</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">6月6日<span class='wd'>土</span>〜8月23日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/35537" target="_blank" rel="noopener">開館25周年 企画展「彩る世界 画家が描いた空・地・水」</a></h3>
       
@@ -213,7 +242,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/05/06</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「会期」">7月4日<span class='wd'>土</span>〜9月27日</div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782456015383/index.html" target="_blank" rel="noopener">【世界こども美術館】企画展「さわっ手たのしむタッチミュージアムⅡ～森と海～」が開催されます</a></h3>
       
@@ -221,7 +250,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/30</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">7月4日<span class='wd'>土</span>〜8月30日</div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/kaigarashi-gurasuart/" target="_blank" rel="noopener">【7月4日～8月30日まで】渚にほどける 貝殻シーグラスアート作家 井上 麻菜美 個展</a></h3>
       
@@ -229,7 +258,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/12</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「開催時期」">7月4日<span class='wd'>土</span>〜8月30日</div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2653" target="_blank" rel="noopener">7/4～8/30 夏休みトロッコ～旧三江線を思いっきり楽しもう！～</a></h3>
       
@@ -237,7 +266,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">子育て・教育・掲載 2026/06/29</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月4日<span class='wd'>土</span>〜11月15日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/35803" target="_blank" rel="noopener">企画展「浜田藩とその文芸」</a></h3>
       
@@ -245,7 +274,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/25</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月4日<span class='wd'>土</span>〜9月27日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36125" target="_blank" rel="noopener">さわっ手たのしむタッチミュージアムⅡ</a></h3>
       
@@ -253,7 +282,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/06/24</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月15日<span class='wd'>水</span>〜11月30日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36708" target="_blank" rel="noopener">スマホで全国棚田行脚！スタンプラリー</a></h3>
       
@@ -261,7 +290,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/08/04</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月18日<span class='wd'>土</span>〜8月23日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36459" target="_blank" rel="noopener">石見海浜公園 姉ヶ浜海水浴場 海開き</a></h3>
       
@@ -269,7 +298,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">季節・自然・掲載 2026/07/14</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">7月18日<span class='wd'>土</span>〜8月9日</div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/photostand-nima1/" target="_blank" rel="noopener">夏休みイベント☀～貼るだけ簡単！オリジナルフォトフレームを作ろう！！第１弾～</a></h3>
       
@@ -277,7 +306,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">子育て・教育・掲載 2026/06/15</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">7月18日<span class='wd'>土</span>〜8月16日</div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/oceanvilla-vihara-athletic/" target="_blank" rel="noopener">【夏季限定（7/18～8/16）】コテージ宿泊特典！久手海水浴場の「海上アスレチック」が無料で遊び放題！漁師が営む絶景コテージ「オーシャンヴィラ・ヴィハーラ」で最高の夏休みを。</a></h3>
       
@@ -285,7 +314,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">子育て・教育・掲載 2026/07/12</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月18日<span class='wd'>土</span>〜10月21日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/35948" target="_blank" rel="noopener">夏の特別展「烏賊（イカ）vs蛸（タコ）～くらべて分かる！？あなたはどっち派？～」</a></h3>
       
@@ -293,7 +322,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/06/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月22日<span class='wd'>水</span>〜8月21日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36571" target="_blank" rel="noopener">夏のファミリーアートタイム</a></h3>
       
@@ -301,7 +330,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月25日<span class='wd'>土</span>〜8月16日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36156" target="_blank" rel="noopener">三隅発電所ふれあいホール夏まつり</a></h3>
       
@@ -309,7 +338,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/06/25</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月25日<span class='wd'>土</span>〜9月12日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/35961" target="_blank" rel="noopener">ナイトアクアス～夜の水族館へようこそ～</a></h3>
       
@@ -317,7 +346,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/06/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「実施・応募期間」の始まり">8月1日<span class='wd'>土</span>〜12月15日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36411" target="_blank" rel="noopener">どんちっちはまだ!スタンプラリー2026</a></h3>
       
@@ -325,7 +354,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">神楽・伝統芸能・掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">8月1日<span class='wd'>土</span>〜8月29日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36278" target="_blank" rel="noopener">写真展～猫Life～</a></h3>
       
@@ -333,7 +362,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">8月5日<span class='wd'>水</span>〜8月23日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36549" target="_blank" rel="noopener">第13回 小さな世界展</a></h3>
       
@@ -341,7 +370,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「開催時期」">8月5日<span class='wd'>水</span>〜8月9日</div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2667" target="_blank" rel="noopener">8/5～8/9 平和と 美術と 音楽と</a></h3>
       
@@ -349,7 +378,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">8月7日<span class='wd'>金</span></div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/kumagaike-event/" target="_blank" rel="noopener">石見銀山歳時記 熊谷家の八月「藍をたのしむ一日」開催！（8/7）</a></h3>
       
@@ -357,7 +386,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">学び・講座・掲載 2026/07/12</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月8日<span class='wd'>土</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36559" target="_blank" rel="noopener">和紙と灯りの夕べ2026夏</a></h3>
       
@@ -365,7 +394,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月8日<span class='wd'>土</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36544" target="_blank" rel="noopener">【要申込】夏休みこども木工教室</a></h3>
       
@@ -373,7 +402,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">子育て・教育・掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月8日<span class='wd'>土</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36464" target="_blank" rel="noopener">【要申込】『金唐紙』制作体験 大人向けワークショップ</a></h3>
       <div class='dl-note over'>申込は終了しています</div>
@@ -381,7 +410,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">学び・講座・掲載 2026/07/14</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="川本町">
       <div class="when" title="本文「…時〜/開催」">8月8日<span class='wd'>土</span></div>
       <h3><a href="https://www.kawamoto-kankou.jp/info/2026/post-7153/" target="_blank" rel="noopener">【8/8開催】ええなぁまつり かわもと</a></h3>
       
@@ -389,7 +418,7 @@
       <div class="foot"><span class="muni">川本町</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/06/04</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">8月9日<span class='wd'>日</span></div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/sanbe-aizome/" target="_blank" rel="noopener">【8/9（日）】世界にひとつだけの作品を作ろう！三瓶木工館で「藍染（あいぞめ）体験」開催</a></h3>
       
@@ -397,7 +426,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">学び・講座・掲載 2026/07/06</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「【日　時】」">8月9日<span class='wd'>日</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/11113" target="_blank" rel="noopener">写真で知ろう！おおだの自然</a></h3>
       
@@ -405,7 +434,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/22</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月9日<span class='wd'>日</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36341" target="_blank" rel="noopener">手道具作り体験</a></h3>
       
@@ -413,7 +442,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">学び・講座・掲載 2026/07/06</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月9日<span class='wd'>日</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36161" target="_blank" rel="noopener">親子電気教室（三隅発電所ふれあいホール）</a></h3>
       
@@ -421,7 +450,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/25</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「開催時期」">8月9日<span class='wd'>日</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2705" target="_blank" rel="noopener">8/9 鮎小屋</a></h3>
       
@@ -429,7 +458,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">学び・講座・掲載 2026/08/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「開催時期」">8月11日<span class='wd'>火</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/874" target="_blank" rel="noopener">8/11 石見やまんば祭り</a></h3>
       
@@ -437,7 +466,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/08/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月13日<span class='wd'>木</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/35972" target="_blank" rel="noopener">2026唐鐘納涼神楽</a></h3>
       
@@ -445,7 +474,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">神楽・伝統芸能・掲載 2026/06/03</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title="タイトル冒頭">8月15日<span class='wd'>土</span></div>
       <h3><a href="https://tsuwano-kanko.net/ayumatsuri2026/" target="_blank" rel="noopener">【津和野町夏祭り】にちはら鮎まつり花火大会</a></h3>
       
@@ -453,7 +482,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">季節・自然・掲載 2026/07/29</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title="タイトル冒頭">8月15日<span class='wd'>土</span></div>
       <h3><a href="https://tsuwano-kanko.net/tonomachi-bonodori2026/" target="_blank" rel="noopener">【津和野盆踊り】8/15　409回目の夏　殿町盆踊り開催のお知らせ</a></h3>
       
@@ -461,7 +490,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">神楽・伝統芸能・掲載 2026/07/15</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title="見出し「とき」">8月16日<span class='wd'>日</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/3356" target="_blank" rel="noopener">2026 江の川祭 （2026.8.16開催）</a></h3>
       
@@ -469,7 +498,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/06</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月16日<span class='wd'>日</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36143" target="_blank" rel="noopener">【要予約】夏休み子ども向け企画 in 石州和紙会館「WASHI×DECO」に挑戦しよう</a></h3>
       
@@ -477,7 +506,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">子育て・教育・掲載 2026/06/24</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="美郷町">
       <div class="when" title="見出し「日時」">8月16日<span class='wd'>日</span></div>
       <h3><a href="https://www.misato-kankou.com/information/1681" target="_blank" rel="noopener">8/16（日）夏ASOBI 2026</a></h3>
       
@@ -485,7 +514,7 @@
       <div class="foot"><span class="muni">美郷町</span>
         <span class="src">掲載 2026/07/06</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">8月18日<span class='wd'>火</span>〜8月31日</div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/photostand-nima2/" target="_blank" rel="noopener">夏休みイベント☀～貼るだけ簡単！オリジナルフォトフレームを作ろう！！第２弾～</a></h3>
       
@@ -493,7 +522,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">子育て・教育・掲載 2026/06/15</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「日時」">8月21日<span class='wd'>金</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/10648" target="_blank" rel="noopener">令和８年度第２回人権を考える市民のつどい兼おおだふれあい会館第２回人権・同和問題研修会</a></h3>
       
@@ -501,7 +530,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">学び・講座・掲載 2026/07/07</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="表「開催日」の列（全8回・次回）">8月22日<span class='wd'>土</span><span class='sessions'>（全8回）</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1708068769697/index.html" target="_blank" rel="noopener">令和8年度山陰浜田港お魚料理教室の開催日程</a></h3>
       
@@ -509,7 +538,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">学び・講座・掲載 2026/07/22</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title="タイトル冒頭">8月22日<span class='wd'>土</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/3377" target="_blank" rel="noopener">8月22日（土）有福温泉湯の町神楽殿　石見神楽定期公演休演と夏祭り特設ステージでの神楽上演のお知らせ</a></h3>
       
@@ -517,7 +546,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">神楽・伝統芸能・掲載 2026/07/08</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title="タイトル冒頭">8月22日<span class='wd'>土</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/3414" target="_blank" rel="noopener">有福温泉　夏祭り（R8.8.22開催）</a></h3>
       
@@ -525,7 +554,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/08/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title="タイトル冒頭">8月22日<span class='wd'>土</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/3411" target="_blank" rel="noopener">子どもが主役の夏祭り！「はづみ縁日」（R8.8.22開催）</a></h3>
       
@@ -533,7 +562,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/08/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title="見出し「開催日」">8月22日<span class='wd'>土</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/sangyokeizaibu/kankokoryuka/1/12517.html" target="_blank" rel="noopener">第1回高津川花火大会が開催されます！</a></h3>
       
@@ -541,7 +570,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">季節・自然・掲載 2026/08/04</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月23日<span class='wd'>日</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783496689810/index.html" target="_blank" rel="noopener">石央文化ホール「バックステージツアー！！～ホール舞台裏探検隊集合～」が開催されます</a></h3>
       <div class='dl-note '>申込締切 8/19・あと13日</div>
@@ -549,7 +578,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/10</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月23日<span class='wd'>日</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36302" target="_blank" rel="noopener">【要申込】石央文化ホールバックステージツアー！！～ホール裏側探検隊集合～</a></h3>
       <div class='dl-note '>申込締切 8/19・あと13日</div>
@@ -557,7 +586,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">8月29日<span class='wd'>土</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783303687543/index.html" target="_blank" rel="noopener">第57回浜田市美術展写真の部ワークショップ写真教室「プリント大伸ばし体験」参加者募集</a></h3>
       <div class='dl-note '>申込締切 8/25・あと19日</div>
@@ -565,7 +594,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/09</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「開催日」">8月29日<span class='wd'>土</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/11099" target="_blank" rel="noopener">大田市中央図書館　『大人のおはなし会』開催のお知らせ</a></h3>
       
@@ -573,7 +602,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">掲載 2026/07/22</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「開催時期」">8月29日<span class='wd'>土</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2714" target="_blank" rel="noopener">8/29 神楽と刀鍛冶フェス</a></h3>
       
@@ -581,7 +610,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">神楽・伝統芸能・掲載 2026/08/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title="タイトル冒頭">8月29日<span class='wd'>土</span></div>
       <h3><a href="https://tsuwano-kanko.net/koikoikoi2026/" target="_blank" rel="noopener">【津和野町夏祭り】つわの鯉恋来いまつり</a></h3>
       
@@ -589,7 +618,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/29</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title="見出し「開催日時」">8月30日<span class='wd'>日</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/kyoikuiinkai/kyodonohitozukurisuishinka/1/12471.html" target="_blank" rel="noopener">令和8年度益田市文藝講座の開催について</a></h3>
       
@@ -597,7 +626,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">学び・講座・掲載 2026/07/10</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「日時」ほか2件">8月30日<span class='wd'>日</span><span class='sessions'>ほか</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/10971" target="_blank" rel="noopener">第４４回「天領さん」 （２０２６）</a></h3>
       
@@ -605,7 +634,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">掲載 2026/06/17</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title="タイトル冒頭">8月30日<span class='wd'>日</span></div>
       <h3><a href="https://www.town.tsuwano.lg.jp/www/contents/1783488696760/index.html" target="_blank" rel="noopener">令和8年8月30日開催 夏季巡回ラジオ体操・みんなの体操会</a></h3>
       
@@ -613,7 +642,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">掲載 2026/07/09</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="美郷町">
       <div class="when" title="本文「…時〜/開催」">8月30日<span class='wd'>日</span></div>
       <h3><a href="https://www.misato-kankou.com/information/1679" target="_blank" rel="noopener">【みさと・みちくさ日和】やな漁と鮎のつかみどり体験 2026. 8/23 (日)・8/30 (日) 　満員御礼！</a></h3>
       
@@ -621,7 +650,7 @@
       <div class="foot"><span class="muni">美郷町</span>
         <span class="src">学び・講座・掲載 2026/07/09</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「開催日時」">8月31日<span class='wd'>月</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2600" target="_blank" rel="noopener">7/17～8/31 おおなん夏得キャンペーン</a></h3>
       
@@ -629,7 +658,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">掲載 2026/06/16</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">9月1日<span class='wd'>火</span>〜9月30日</div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36725" target="_blank" rel="noopener">廊下の企画展「時を超えた黄金の光り輝く金唐紙」</a></h3>
       
@@ -637,7 +666,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/08/05</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="川本町">
       <div class="when" title="手入力">9月1日<span class='wd'>火</span></div>
       <h3><a href="https://www.town.shimane-kawamoto.lg.jp/gyosei/gyosei_news/announce/7902" target="_blank" rel="noopener">【9/1・9/17開催】スマホ活用講座の受講者募集</a></h3>
       <div class='dl-note '>申込締切 8/24・あと18日</div>
@@ -645,7 +674,15 @@
       <div class="foot"><span class="muni">川本町</span>
         <span class="src">学び・講座・掲載 2026/06/09</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
+      <div class="when" title="見出し「期間」の始まり">9月3日<span class='wd'>木</span>〜9月17日</div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36730" target="_blank" rel="noopener">写真展「～ｗater moment～水の瞬間」</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/08/05</span></div>
+    </article>
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">9月5日<span class='wd'>土</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/22303" target="_blank" rel="noopener">ぶどうまつり</a></h3>
       
@@ -653,7 +690,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/17</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">9月5日<span class='wd'>土</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36672" target="_blank" rel="noopener">【要申込】inclusive × 海 講演会</a></h3>
       
@@ -661,7 +698,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">学び・講座・掲載 2026/07/28</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="川本町">
       <div class="when" title="本文「…時〜/開催」">9月5日<span class='wd'>土</span></div>
       <h3><a href="https://www.kawamoto-kankou.jp/info/2026/post-7284/" target="_blank" rel="noopener">【9/5開催】現役プロボクサーが川本町にやってくる！！　出張ボクシング教室</a></h3>
       
@@ -669,7 +706,7 @@
       <div class="foot"><span class="muni">川本町</span>
         <span class="src">学び・講座・掲載 2026/07/22</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="タイトル冒頭">9月6日<span class='wd'>日</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1785207307020/index.html" target="_blank" rel="noopener">9/6（日）開催　「同世代トーク　お友達からはじめよう」のご案内</a></h3>
       <div class='dl-note '>申込締切 8/27・あと21日</div>
@@ -677,7 +714,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/07/29</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">9月6日<span class='wd'>日</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1784704845282/index.html" target="_blank" rel="noopener">「旭温泉まつり」が開催されます</a></h3>
       
@@ -685,7 +722,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/31</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="川本町">
       <div class="when" title="タイトル冒頭">9月6日<span class='wd'>日</span></div>
       <h3><a href="https://www.kawamoto-kankou.jp/info/2026/post-7232/" target="_blank" rel="noopener">【9/6(日)開催】江の川でアユ釣りをしてみませんか？</a></h3>
       
@@ -693,7 +730,7 @@
       <div class="foot"><span class="muni">川本町</span>
         <span class="src">学び・講座・掲載 2026/07/14</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title="本文「…時〜/開催」">9月9日<span class='wd'>水</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2690" target="_blank" rel="noopener">9/9・9/10 土木リノベーションワークキャンプ2days</a></h3>
       
@@ -701,7 +738,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">掲載 2026/08/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「対面講習の実施日・会場」">9月10日<span class='wd'>木</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1424847308833/index.html" target="_blank" rel="noopener">危険物取扱者保安講習を行います</a></h3>
       <div class='dl-note '>申込締切 10/31・あと86日</div>
@@ -709,7 +746,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">学び・講座・掲載 2026/07/16</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「【開催月日】」">9月11日<span class='wd'>金</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1751509359840/index.html" target="_blank" rel="noopener">一斉相談会（法律相談）のお知らせ</a></h3>
       
@@ -717,7 +754,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">相談会・掲載 2026/07/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="表「講習日時」の列（全6回・次回）">9月12日<span class='wd'>土</span><span class='sessions'>（全6回）</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1751507719522/index.html" target="_blank" rel="noopener">救命講習定期開催のお知らせ</a></h3>
       
@@ -725,7 +762,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">防災・安全・掲載 2026/07/23</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」ほか1件">9月12日<span class='wd'>土</span><span class='sessions'>ほか</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1784159958213/index.html" target="_blank" rel="noopener">浜田市文化祭協賛行事</a></h3>
       
@@ -733,7 +770,15 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/22</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
+      <div class="when" title="見出し「期間」の始まり">9月12日<span class='wd'>土</span>〜11月23日</div>
+      <h3><a href="https://kankou-hamada.or.jp/archives/36721" target="_blank" rel="noopener">第11回 石本正 日本画大賞展</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">文化・アート・クラフト・掲載 2026/08/05</span></div>
+    </article>
+    <article class="card " data-city="川本町">
       <div class="when" title="手入力">9月12日<span class='wd'>土</span></div>
       <h3><a href="https://www.town.shimane-kawamoto.lg.jp/gyosei/gyosei_news/community_events/7934" target="_blank" rel="noopener">宝くじ文化公演「EBIKEN THE ENTERTAINMENT」</a></h3>
       
@@ -741,7 +786,15 @@
       <div class="foot"><span class="muni">川本町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/19</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
+      <div class="when" title="タイトル冒頭">9月13日<span class='wd'>日</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1785720874820/index.html" target="_blank" rel="noopener">9/13（日）開催イベント「恋活FES！2026　in エディオンピースウィング広島」のご案内（広島広域都市圏）</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">掲載 2026/08/01</span></div>
+    </article>
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日にち」">9月16日<span class='wd'>水</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1450675376077/index.html" target="_blank" rel="noopener">「山陰浜田港お魚料理教室」の開催について（受講者募集）</a></h3>
       <div class='dl-note '>申込締切 8/21・あと15日</div>
@@ -749,7 +802,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">学び・講座・掲載 2026/07/22</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title="見出し「日時」">9月20日<span class='wd'>日</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/kyoikuiinkai/bunkazaika/bunnkageijyutu/8722.html" target="_blank" rel="noopener">第4回岩本薫記念益田杯がグラントワで開催されます。</a></h3>
       
@@ -757,7 +810,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">掲載 2026/08/05</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="タイトル冒頭">9月25日<span class='wd'>金</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1785293905616/index.html" target="_blank" rel="noopener">9/25（金）開催イベント「しまねメタバース恋活」のご案内（島根県）</a></h3>
       
@@ -765,7 +818,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/07/30</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title="本文「…時〜/開催」">9月25日<span class='wd'>金</span></div>
       <h3><a href="https://www.town.tsuwano.lg.jp/www/contents/1785384385437/index.html" target="_blank" rel="noopener">しまねメタバース恋活2026（島根県主催）が開催されます</a></h3>
       
@@ -773,7 +826,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">掲載 2026/08/03</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="美郷町">
       <div class="when" title="見出し「日時」">9月26日<span class='wd'>土</span></div>
       <h3><a href="https://www.misato-kankou.com/information/1682" target="_blank" rel="noopener">第36回　江の川釣り大会　7月27日～参加受付開始！</a></h3>
       <div class='dl-note '>申込締切 9/2・あと27日</div>
@@ -781,7 +834,7 @@
       <div class="foot"><span class="muni">美郷町</span>
         <span class="src">掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">9月27日<span class='wd'>日</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782457703557/index.html" target="_blank" rel="noopener">【石央文化ホール】企画展「石央シネマ俱楽部企画上映会『国宝』が開催されます</a></h3>
       
@@ -789,7 +842,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/30</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「日時」">9月27日<span class='wd'>日</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36307" target="_blank" rel="noopener">石央シネマ倶楽部企画映画上映会「国宝」</a></h3>
       
@@ -797,7 +850,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="川本町">
       <div class="when" title="見出し「日時」">9月27日<span class='wd'>日</span></div>
       <h3><a href="https://www.kawamoto-kankou.jp/info/2026/post-7316/" target="_blank" rel="noopener">【9/27開催】悠邑神楽フェスタ2026 inかわもと【チケット販売中】</a></h3>
       
@@ -805,7 +858,7 @@
       <div class="foot"><span class="muni">川本町</span>
         <span class="src">神楽・伝統芸能・掲載 2026/08/05</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「開催日」">10月3日<span class='wd'>土</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/10989" target="_blank" rel="noopener">令和８年度「おおだ教育フェスタ２０２６ｉｎさんべ祭」を開催します！</a></h3>
       
@@ -813,7 +866,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/06/23</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「会期」">10月3日<span class='wd'>土</span>〜10月12日</div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1779347791010/index.html" target="_blank" rel="noopener">第57回浜田市美術展</a></h3>
       
@@ -821,7 +874,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/28</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「日　　時」">10月4日<span class='wd'>日</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/8852" target="_blank" rel="noopener">２０２６三瓶高原クロスカントリー大会について</a></h3>
       <div class='dl-note '>申込締切 9/30・あと55日</div>
@@ -829,7 +882,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">スポーツ・掲載 2026/06/11</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「日 に ち」">10月4日<span class='wd'>日</span></div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/2025-cross-country/" target="_blank" rel="noopener">2026三瓶高原クロスカントリー大会（10/4）開催いたします！</a></h3>
       <div class='dl-note '>申込締切 8/21・あと15日</div>
@@ -837,7 +890,15 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">スポーツ・掲載 2025/06/12</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
+      <div class="when" title="見出し「開催日時」">10月10日<span class='wd'>土</span></div>
+      <h3><a href="https://www.town.tsuwano.lg.jp/www/contents/1785147772946/index.html" target="_blank" rel="noopener">第１３回津和野町駅伝競走大会について</a></h3>
+      <div class='dl-note '>申込締切 9/18・あと43日</div>
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">津和野町</span>
+        <span class="src">スポーツ・掲載 2026/08/03</span></div>
+    </article>
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「日時」">10月17日<span class='wd'>土</span></div>
       <h3><a href="https://www.town.ohnan.lg.jp/soshiki/7/9240.html" target="_blank" rel="noopener">はっしーマルシェ（久万林業まつり）出展者募集のお知らせ</a></h3>
       <div class='dl-note alert'>申込締切 8/10・あと4日</div>
@@ -845,7 +906,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/27</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「・ステージイベント出演日時」">10月31日<span class='wd'>土</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782986394099/index.html" target="_blank" rel="noopener">第37回さざんか祭り　アトラクション参加者募集について</a></h3>
       <div class='dl-note '>申込締切 8/28・あと22日</div>
@@ -853,7 +914,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/03</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="タイトル冒頭">10月31日<span class='wd'>土</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1785224601048/index.html" target="_blank" rel="noopener">10/31（土）開催　「トランプとスイーツで素敵な休日 Vol.2」のご案内</a></h3>
       <div class='dl-note '>申込締切 10/20・あと75日</div>
@@ -861,7 +922,15 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/07/30</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="吉賀町">
+      <div class="when" title="手入力">11月1日<span class='wd'>日</span></div>
+      <h3><a href="https://www.town.yoshika.lg.jp/event-news/kinsaiminsai.html" target="_blank" rel="noopener">令和8年度きん祭みん祭農業文化祭</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">吉賀町</span>
+        <span class="src">祭り・市・マルシェ・掲載 2026/06/25</span></div>
+    </article>
+    <article class="card " data-city="津和野町">
       <div class="when" title="見出し「日時」">11月8日<span class='wd'>日</span></div>
       <h3><a href="https://www.town.tsuwano.lg.jp/www/contents/1754448225931/index.html" target="_blank" rel="noopener">第77回　近県学校音楽大会の開催と参加申込みについて</a></h3>
       <div class='dl-note '>申込締切 9/11・あと36日</div>
@@ -869,7 +938,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title="見出し「実施期間」の始まり">12月26日<span class='wd'>土</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/2919" target="_blank" rel="noopener">お得な「石見旅ドライブパス」で旅を楽しもう！（期間：2026.12.26まで）</a></h3>
       <div class='dl-note '>申込締切 12/26・あと142日</div>
@@ -877,7 +946,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/02/06</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title="見出し「実施期間」の始まり">12月26日<span class='wd'>土</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2399" target="_blank" rel="noopener">7/13～12/26 ドライブパスでお得にあちこち石見旅</a></h3>
       <div class='dl-note '>申込締切 12/26・あと142日</div>
@@ -885,7 +954,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/02/06</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title="見出し「実施期間」の始まり">12月26日<span class='wd'>土</span></div>
       <h3><a href="https://tsuwano-kanko.net/iwamidrivepass2026/" target="_blank" rel="noopener">【お知らせ】高速道路割引プラン「石見旅ドライブパス」のご案内</a></h3>
       <div class='dl-note '>申込締切 12/26・あと142日</div>
@@ -893,7 +962,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/02/08</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title="見出し「開催日時」">1月23日<span class='wd'>土</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/sangyokeizaibu/kankokoryuka/1/8655.html" target="_blank" rel="noopener">しまねふるさとフェア2027（広島市）出展者の募集について</a></h3>
       <div class='dl-note '>申込締切 8/28・あと22日</div>
@@ -901,7 +970,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/03</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title="本文「…時〜/開催」">1月23日<span class='wd'>土</span></div>
       <h3><a href="https://www.town.tsuwano.lg.jp/www/contents/1783488633216/index.html" target="_blank" rel="noopener">イベント出店募集（令和8年8月14日〆切）　しまねふるさとフェア2027</a></h3>
       <div class='dl-note '>申込締切 8/14・あと8日</div>
@@ -909,7 +978,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/13</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1783386403573/index.html" target="_blank" rel="noopener">「自社PRのための効果的な情報発信について学んでみませんか？」を開催します</a></h3>
       
@@ -917,7 +986,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">ビジネス・創業・補助金・掲載 2026/07/10</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="浜田市">
       <div class="when" title="見出し「申込締切」"><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1782715766244/index.html" target="_blank" rel="noopener">しまねふるさとフェア２０２７（広島市）の参加申込の受付を開始します！</a></h3>
       <div class='dl-note '>申込締切 8/18・あと12日</div>
@@ -925,7 +994,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/03</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.gotsu.lg.jp/soshiki/28/6444.html" target="_blank" rel="noopener">令和9年度（2027年度）小学校新1年生に「就学時健康診断」を実施します</a></h3>
       
@@ -933,7 +1002,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">健康・福祉・掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/2970" target="_blank" rel="noopener">令和8年度　江津市石見神楽定期公演（2026.4～2027.3）</a></h3>
       
@@ -941,7 +1010,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">神楽・伝統芸能・掲載 2026/03/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/3347" target="_blank" rel="noopener">江津市内石見神楽定期公演「3会場オリジナルステッカー」配布開始！</a></h3>
       
@@ -949,7 +1018,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">神楽・伝統芸能・掲載 2026/07/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/fukushikankyobu/kankyoeiseika/1_1/12412.html" target="_blank" rel="noopener">「再エネ電力共同調達オークション」実施説明会を開催します！</a></h3>
       
@@ -957,7 +1026,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">掲載 2026/07/21</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/fukushikankyobu/jinkencenter/12335.html" target="_blank" rel="noopener">夢ひきよせる！人権・同和教育2026「ハンセン病問題に向き合って25年のあゆみ」を開催します</a></h3>
       
@@ -965,7 +1034,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">掲載 2026/07/13</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/seisakukikakukyoku/chiikishinkouka/3/12481.html" target="_blank" rel="noopener">しまね移住体感オンラインツアー開催！</a></h3>
       
@@ -973,7 +1042,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">移住・地域づくり・掲載 2026/07/24</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/kyoikuiinkai/kyodonohitozukurisuishinka/1/12484.html" target="_blank" rel="noopener">「ひとが育ち 輝くまち 益田 夏フェス」について</a></h3>
       
@@ -981,7 +1050,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/01</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「募集期間」の終わり"><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/11117" target="_blank" rel="noopener">令和８年度大田市農業体験プログラムの参加者を募集します！</a></h3>
       <div class='dl-note over'>申込は終了しています</div>
@@ -989,7 +1058,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">学び・講座・掲載 2026/07/23</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/10985" target="_blank" rel="noopener">おおだ教育フェスタ２０２６ｉｎさんべ祭「だれでも作品展」作品募集！</a></h3>
       
@@ -997,7 +1066,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/06/23</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title="見出し「提出締め切り」"><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/8729" target="_blank" rel="noopener">しまねふるさとフェア２０２７の出展者を募集します</a></h3>
       <div class='dl-note '>申込締切 8/18・あと12日</div>
@@ -1005,7 +1074,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/03</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="大田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/491" target="_blank" rel="noopener">大田市に地震体験車がやってきます!!（令和８年１０月から）</a></h3>
       
@@ -1013,7 +1082,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">学び・講座・掲載 2026/07/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="益田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/seisakukikakukyoku/chiikishinkouka/2/12502.html" target="_blank" rel="noopener">「益田」学生向け体験プログラムについて</a></h3>
       
@@ -1021,7 +1090,7 @@
       <div class="foot"><span class="muni">益田市</span>
         <span class="src">学び・講座・掲載 2026/07/31</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/872" target="_blank" rel="noopener">みずほ夏祭り</a></h3>
       
@@ -1029,7 +1098,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/06/29</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/870" target="_blank" rel="noopener">鹿子原(かねこばら)の虫送り踊り</a></h3>
       
@@ -1037,7 +1106,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">掲載 2026/06/29</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2172" target="_blank" rel="noopener">10/12 市木市</a></h3>
       
@@ -1045,7 +1114,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">掲載 2025/10/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://tsuwano-kanko.net/tsuwanobonodoritaikenkai/" target="_blank" rel="noopener">【津和野盆踊り】津和野盆踊り公演＆体験会</a></h3>
       
@@ -1053,7 +1122,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">学び・講座・掲載 2026/07/03</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://tsuwano-kanko.net/summer_exeprience/" target="_blank" rel="noopener">夏の津和野をもっと楽しむ！「浴衣で夜飲みプラン」と「津和野盆踊りツアー」の予約受付を開始しました</a></h3>
       
@@ -1061,7 +1130,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">学び・講座・掲載 2026/07/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://tsuwano-kanko.net/yokagura2026/" target="_blank" rel="noopener">【石見神楽】津和野夜神楽公演　次回9/19(土)公演</a></h3>
       
@@ -1069,7 +1138,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">神楽・伝統芸能・掲載 2026/04/02</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://tsuwano-kanko.net/yu-na-gw/" target="_blank" rel="noopener">GWの旅に特別な余白とわくわくを！ いま津和野で参加してほしい2つのアクティビティ</a></h3>
       
@@ -1077,7 +1146,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">学び・講座・掲載 2026/04/29</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://tsuwano-kanko.net/stamprally/" target="_blank" rel="noopener">津和野「重ねおしアナログスタンプラリー」</a></h3>
       
@@ -1085,7 +1154,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">掲載 2026/01/04</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.town.tsuwano.lg.jp/www/contents/1783580873937/index.html" target="_blank" rel="noopener">津和野街道写真展～#津和野街道フォトコンテスト入賞作品巡回展</a></h3>
       
@@ -1093,7 +1162,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/11</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.town.ohnan.lg.jp/soshiki/2/8866.html" target="_blank" rel="noopener">令和8年7月町政運営説明会の開催について</a></h3>
       
@@ -1101,7 +1170,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">掲載 2026/06/17</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="邑南町">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.town.ohnan.lg.jp/soshiki/12/1261.html" target="_blank" rel="noopener">移動献血を実施します</a></h3>
       
@@ -1109,7 +1178,23 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">健康・福祉・掲載 2026/01/13</span></div>
     </article>
-    <article class="card ">
+    <article class="card " data-city="津和野町">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://tsuwano-kanko.net/%e3%80%90%e6%b4%a5%e5%92%8c%e9%87%8e%e3%83%96%e3%83%ab%e3%83%bc%e3%83%99%e3%83%aa%e3%83%bc%e3%83%95%e3%82%a1%e3%83%bc%e3%83%a0%e3%80%91%e3%83%96%e3%83%ab%e3%83%bc%e3%83%99%e3%83%aa%e3%83%bc%e3%81%a4/" target="_blank" rel="noopener">【津和野ブルーベリーファーム】ブルーベリーつみとり園7/20より開園中！</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">津和野町</span>
+        <span class="src">掲載 2026/08/02</span></div>
+    </article>
+    <article class="card " data-city="浜田市">
+      <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
+      <h3><a href="https://www.city.hamada.shimane.jp/www/contents/1750316123618/index.html" target="_blank" rel="noopener">ヤングケアラーオンラインサロン〈島根県委託事業〉に参加してみませんか</a></h3>
+      
+      <div class="tags"><span class='tg'>オンライン可</span></div>
+      <div class="foot"><span class="muni">浜田市</span>
+        <span class="src">掲載 2026/08/03</span></div>
+    </article>
+    <article class="card " data-city="大田市">
       <div class="when" title=""><span class='tbd'>日程は詳細ページで</span></div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/yunotsu_asaichi/" target="_blank" rel="noopener">温泉津あさいち</a></h3>
       
@@ -1117,15 +1202,23 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/08/01</span></div>
     </article></div></section><section class='block k-seido'><h2>いつでも使えるもの<span class='n'>1</span></h2><p class='lead2'>頼めば使える制度。日程はありません。</p><div class='grid'>
-    <article class="card ">
+    <article class="card " data-city="江津市">
       <div class="when" title=""><span class='anytime'>随時</span></div>
       <h3><a href="https://www.city.gotsu.lg.jp/soshiki/29/33362.html" target="_blank" rel="noopener">出前講座をご利用ください</a></h3>
       
       <div class="tags"><span class='tg'>随時</span></div>
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">学び・講座・掲載 2026/07/07</span></div>
-    </article></div></section><details class='past'><summary>終わった催し・締切<span class='n'>27</span></summary><p class='lead2'>記録として残しています。</p><div class='grid'>
-    <article class="card ended">
+    </article></div></section><details class='past'><summary>終わった催し・締切<span class='n'>28</span></summary><p class='lead2'>記録として残しています。</p><div class='grid'>
+    <article class="card ended" data-city="大田市">
+      <div class="when" title="タイトル冒頭">8月4日<span class='wd'>火</span><span class='badge'>終了</span></div>
+      <h3><a href="https://www.ginzan-wm.jp/events_post/natsumatsuri-tenryosan-kute/" target="_blank" rel="noopener">【第44回 天領さん（久手会場）8/4（火）開催のお知らせ】</a></h3>
+      
+      <div class="tags"></div>
+      <div class="foot"><span class="muni">大田市</span>
+        <span class="src">季節・自然・掲載 2026/08/03</span></div>
+    </article>
+    <article class="card ended" data-city="江津市">
       <div class="when" title="見出し「日時」">8月3日<span class='wd'>月</span><span class='badge'>終了</span></div>
       <h3><a href="https://www.city.gotsu.lg.jp/soshiki/14/41504.html" target="_blank" rel="noopener">令和8年度　江津市人権・同和教育講演会を開催します</a></h3>
       
@@ -1133,7 +1226,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">学び・講座・掲載 2026/06/30</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="江津市">
       <div class="when" title="見出し「提出期限」"><span class='over'>締切 8/3・終了</span><span class='badge'>終了</span></div>
       <h3><a href="https://www.city.gotsu.lg.jp/soshiki/3/40974.html" target="_blank" rel="noopener">江津市ビジネスプランコンテスト「Go-Con2026」</a></h3>
       
@@ -1141,7 +1234,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">ビジネス・創業・補助金・掲載 2026/05/18</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="江津市">
       <div class="when" title="見出し「日時・場所」">8月2日<span class='wd'>日</span><span class='badge'>終了</span></div>
       <h3><a href="https://www.city.gotsu.lg.jp/site/comunity/41637.html" target="_blank" rel="noopener">GO▶GOTSU ! フェスを開催します！</a></h3>
       
@@ -1149,7 +1242,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/15</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="浜田市">
       <div class="when" title="見出し「日時」">8月2日<span class='wd'>日</span><span class='badge'>終了</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36122" target="_blank" rel="noopener">朝のビーチヨガ 2026 Iwami Beach Yoga</a></h3>
       
@@ -1157,7 +1250,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">掲載 2026/06/24</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="津和野町">
       <div class="when" title="タイトル冒頭">8月2日<span class='wd'>日</span><span class='badge'>終了</span></div>
       <h3><a href="https://tsuwano-kanko.net/tsuwanobonnodorikikakuten2026/" target="_blank" rel="noopener">【津和野町日本遺産センター】8/2〜9/27「津和野踊り企画展」開催</a></h3>
       
@@ -1165,7 +1258,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/30</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="美郷町">
       <div class="when" title="見出し「日時」">8月2日<span class='wd'>日</span><span class='badge'>終了</span></div>
       <h3><a href="https://www.misato-kankou.com/information/1677" target="_blank" rel="noopener">沢谷シャワークライミング～2026～　満員御礼</a></h3>
       
@@ -1173,7 +1266,7 @@
       <div class="foot"><span class="muni">美郷町</span>
         <span class="src">学び・講座・掲載 2026/06/08</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">8月1日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/sandmyuziam-workshop/" target="_blank" rel="noopener">【8/1（土）】ワークショップ開催！小さな海のアートをつくろう♪</a></h3>
       
@@ -1181,7 +1274,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/15</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="浜田市">
       <div class="when" title="見出し「日時」">8月1日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36283" target="_blank" rel="noopener">2026石州浜っ子夏まつり</a></h3>
       
@@ -1189,7 +1282,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/02</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="邑南町">
       <div class="when" title="見出し「開催時期」">8月1日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2708" target="_blank" rel="noopener">8/1～8月下旬 ブルーベリー摘み取り体験</a></h3>
       
@@ -1197,7 +1290,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">学び・講座・掲載 2026/08/01</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="邑南町">
       <div class="when" title="見出し「開催時期」">8月1日<span class='wd'>土</span>〜8月4日<span class='badge'>終了</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2721" target="_blank" rel="noopener">8/1、8/2・8/4～ 道の駅邑南の里 1周年特別企画</a></h3>
       
@@ -1205,7 +1298,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">掲載 2026/08/01</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="津和野町">
       <div class="when" title="タイトル冒頭">8月1日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://tsuwano-kanko.net/ekiyoichi2026/" target="_blank" rel="noopener">【駅開業記念日】8/1(土)、津和野駅夜市を今年も開催します！</a></h3>
       
@@ -1213,7 +1306,7 @@
       <div class="foot"><span class="muni">津和野町</span>
         <span class="src">掲載 2026/07/01</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="浜田市">
       <div class="when" title="手入力">8月1日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://kankou-hamada.or.jp/lp/hamakko-natsumaturi/" target="_blank" rel="noopener">2026石州浜っ子夏まつり</a></h3>
       
@@ -1221,7 +1314,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/08/01</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="大田市">
       <div class="when" title="見出し「日　　時」">7月24日<span class='wd'>金</span><span class='badge'>終了</span></div>
       <h3><a href="https://www.city.oda.lg.jp/update_info/11052" target="_blank" rel="noopener">大田市中央図書館　『こども夜市』開催のお知らせ</a></h3>
       
@@ -1229,7 +1322,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">子育て・教育・掲載 2026/06/26</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="江津市">
       <div class="when" title="見出し「日　時」">7月20日<span class='wd'>月</span><span class='badge'>終了</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/3080" target="_blank" rel="noopener">江津駅前夜市場「夏祭り」（R8.7.20）</a></h3>
       
@@ -1237,7 +1330,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/06/12</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="浜田市">
       <div class="when" title="見出し「日時」">7月18日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36483" target="_blank" rel="noopener">第3回岡見花火</a></h3>
       
@@ -1245,7 +1338,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">季節・自然・掲載 2026/07/14</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="江津市">
       <div class="when" title="見出し「日時」">7月18日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/3371" target="_blank" rel="noopener">キッズフェス in GOTSU（2026.7.18開催）</a></h3>
       
@@ -1253,7 +1346,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/07/08</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="浜田市">
       <div class="when" title="見出し「期間」の始まり">7月18日<span class='wd'>土</span>〜8月2日<span class='badge'>終了</span></div>
       <h3><a href="https://kankou-hamada.or.jp/archives/36195" target="_blank" rel="noopener">鐘築 等 「の・ような似顔絵店9」</a></h3>
       
@@ -1261,7 +1354,7 @@
       <div class="foot"><span class="muni">浜田市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/30</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="大田市">
       <div class="when" title="タイトル冒頭">7月2日<span class='wd'>木</span><span class='badge'>終了</span></div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/kumanoko-marushe/" target="_blank" rel="noopener">【7月2日開催】世界遺産登録記念！重要文化財・熊谷家住宅で初の「くまのこマルシェ」開催（入館無料）</a></h3>
       
@@ -1269,7 +1362,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">祭り・市・マルシェ・掲載 2026/06/12</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="邑南町">
       <div class="when" title="見出し「開催日時」">7月1日<span class='wd'>水</span><span class='badge'>終了</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2633" target="_blank" rel="noopener">ここから（株）過疎　はじまります　「株式会社過疎」設立記念イベント</a></h3>
       
@@ -1277,7 +1370,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">掲載 2026/06/23</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="江津市">
       <div class="when" title="見出し「会　期」">6月27日<span class='wd'>土</span>〜7月26日<span class='badge'>終了</span></div>
       <h3><a href="https://gotsu-kanko.jp/52/news/3359" target="_blank" rel="noopener">今井美術館「Atelier Sunoiro 作品展ーそのまま。」（開催中～2026.7.26まで）</a></h3>
       
@@ -1285,7 +1378,7 @@
       <div class="foot"><span class="muni">江津市</span>
         <span class="src">文化・アート・クラフト・掲載 2026/07/08</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="邑南町">
       <div class="when" title="見出し「開催日時」">6月13日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2594" target="_blank" rel="noopener">第27回 矢上高校吹奏楽部定期演奏会　Challenge ～新たな舞台へ～</a></h3>
       
@@ -1293,7 +1386,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/06/03</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="邑南町">
       <div class="when" title="手入力（ページ見出し脇の「2026 5/16」。記事は「過去のイベント」）">5月16日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/876" target="_blank" rel="noopener">はすみリゾートまつり</a></h3>
       
@@ -1301,7 +1394,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">祭り・市・マルシェ・掲載 2025/09/25</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="邑南町">
       <div class="when" title="見出し「開催日時」">4月29日<span class='wd'>水</span><span class='badge'>終了</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2511" target="_blank" rel="noopener">4/29～5/6 三江線の記憶を辿る</a></h3>
       
@@ -1309,7 +1402,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">文化・アート・クラフト・掲載 2026/04/11</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="邑南町">
       <div class="when" title="見出し「開催日時」">4月25日<span class='wd'>土</span><span class='badge'>終了</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2499" target="_blank" rel="noopener">4/25 組子とコーヒーとクレープと</a></h3>
       
@@ -1317,7 +1410,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">学び・講座・掲載 2026/04/05</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="邑南町">
       <div class="when" title="見出し「開催日時」">4月5日<span class='wd'>日</span><span class='badge'>終了</span></div>
       <h3><a href="https://ohnan-kanko.com/ohnanpost/2482" target="_blank" rel="noopener">4/5 神楽とグルメ大集合！in道の駅邑南の里</a></h3>
       
@@ -1325,7 +1418,7 @@
       <div class="foot"><span class="muni">邑南町</span>
         <span class="src">神楽・伝統芸能・掲載 2026/03/28</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">4月1日<span class='wd'>水</span>〜6月30日<span class='badge'>終了</span></div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/sanbesan-hanmokku/" target="_blank" rel="noopener">この春、ハンモックデビューしませんか？三瓶山の絶景を特等席で楽しもう！</a></h3>
       
@@ -1333,7 +1426,7 @@
       <div class="foot"><span class="muni">大田市</span>
         <span class="src">学び・講座・掲載 2026/04/10</span></div>
     </article>
-    <article class="card ended">
+    <article class="card ended" data-city="大田市">
       <div class="when" title="構造化された期間欄「イベント期間」">2月28日<span class='wd'>土</span>〜6月28日<span class='badge'>終了</span></div>
       <h3><a href="https://www.ginzan-wm.jp/events_post/event-kumonoou-koten/" target="_blank" rel="noopener">ビーズ刺繍作家・くものおう個展「くもれび」開催！</a></h3>
       
