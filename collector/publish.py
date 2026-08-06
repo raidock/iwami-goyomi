@@ -47,7 +47,11 @@ def is_past(ev: Event, today: date) -> bool:
     if ev.kind == "制度":
         return False
     if ev.kind == "募集":
-        return ev.deadline is not None and ev.deadline < today
+        # 締切が主役だが、締切が取れなくても開催日は取れていることがある
+        # （表示側と同じ「持っている情報で判断する」方針。2026-08-06、
+        # 締切不明の募集が開催日を過ぎても「これから」に居座っていた）
+        end = ev.deadline or ev.date_start
+        return end is not None and end < today
     end = ev.date_end or ev.date_start
     return end is not None and end < today
 

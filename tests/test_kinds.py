@@ -212,6 +212,24 @@ def test_expired_deadline_is_past():
     assert not is_past(_ev("まだ間に合う", "募集", deadline=date(2026, 8, 3)), TODAY)
 
 
+def test_boshu_without_deadline_becomes_past_after_date_start():
+    """締切が取れない募集も、開催日を過ぎればいずれ終了とみなす（表示側と揃える）。
+
+    かつては募集の終了判定が deadline しか見ておらず、締切不明（＝開催日だけ）の
+    募集は開催日を過ぎても「これから」に居座り続けた。8/8開催のクラブ選手権
+    パブリックビューイングが、8/9になっても畳んだ節に移らない問題があった
+    （2026-08-06、【69】で表示を直した直後に発覚）。
+    """
+    e = _ev("パブリックビューイング", "募集", start=date(2026, 8, 8))
+    assert not is_past(e, date(2026, 8, 8))   # 当日はまだ終了ではない
+    assert is_past(e, date(2026, 8, 9))       # 翌日から終了
+
+
+def test_boshu_with_neither_date_never_past():
+    """締切も開催日も分からない募集は、従来どおり終了扱いにしない。"""
+    assert not is_past(_ev("日程未定の募集", "募集"), TODAY)
+
+
 def test_seido_never_expires():
     assert not is_past(_ev("出前講座", "制度"), TODAY)
 
