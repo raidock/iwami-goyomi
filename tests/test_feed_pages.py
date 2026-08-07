@@ -110,6 +110,66 @@ def test_stops_on_empty_page():
     assert len(s.fetched) == 2
 
 
+# --- フィード取得の1回リトライ ----------------------------------------------
+# 2026-08-08、川本町観光協会が一時的な不調で0件になった。詳細ページの取得には
+# 1回のリトライがあったが、フィード（石見暦の入口）には無かった。
+
+class _FlakyRSS(MunicipalRSS):
+    """指定した回数だけ失敗してから成功する。ネットには出ない。"""
+
+    def __init__(self, fail_times, feed_text=None, **kw):
+        super().__init__(key="flaky", site="https://example.com",
+                         municipality="浜田市", feed_url="https://example.com/feed/",
+                         **kw)
+        self.fail_times = fail_times
+        self.feed_text = feed_text if feed_text is not None else _feed("a")
+        self.calls = 0
+
+    def get(self, url):
+        self.calls += 1
+        if self.calls <= self.fail_times:
+            raise Exception("Connection aborted")
+        return self.feed_text
+
+
+def test_transient_failure_is_retried_once():
+    """1回目が失敗しても、2回目で拾えれば0件にならない。"""
+    s = _FlakyRSS(fail_times=1)
+    got = [e.title for e in s.collect()]
+    assert got == ["a"], got
+    assert s.calls == 2, f"取り直していない（{s.calls}回）"
+
+
+def test_retry_gives_up_after_the_second_failure():
+    """2回に増やさない。2回とも失敗したら諦める（設計判断12）。"""
+    s = _FlakyRSS(fail_times=99)   # 何度呼ばれても失敗する
+    got = s.collect()
+    assert got == [], got
+    assert s.calls == 2, f"2回を超えて叩いた（{s.calls}回）"
+
+
+def test_end_of_inventory_404_on_later_page_is_not_retried():
+    """在庫を読み切った404は取り直さない。相手を無駄打ちしない（設計判断12）。"""
+    class _EndOf404(MunicipalRSS):
+        def __init__(self):
+            super().__init__(key="fake", site="https://example.com",
+                             municipality="浜田市",
+                             feed_url="https://example.com/feed/", feed_pages=3)
+            self.calls = []
+
+        def get(self, url):
+            self.calls.append(url)
+            if "paged=" in url:
+                raise Exception("404 Client Error: Not Found")
+            return _feed("a")
+
+    s = _EndOf404()
+    got = [e.title for e in s.collect()]
+    assert got == ["a"], got
+    # 1ページ目1回 + 2ページ目1回（取り直しなし）＝ 2回
+    assert len(s.calls) == 2, f"404なのに取り直している（{len(s.calls)}回）"
+
+
 # --- 情報源ごとの掲載日の足切り --------------------------------------------
 # **繰り返しの催しは記事を作り直さない。** 毎週の天体観察会（2024-05 投稿）や
 # 毎月の朝市は掲載日が何年も前のままで、既定の400日だと落ちる。

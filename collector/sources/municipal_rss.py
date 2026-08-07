@@ -189,16 +189,35 @@ class MunicipalRSS(Source):
         seen: set[str] = set()
         for page in range(1, self.feed_pages + 1):
             url = feed if page == 1 else self.paged_url(feed, page)
-            try:
-                got = self.parse_feed(self.get(url))
-            except Exception as e:
+            text, err = None, None
+            # 詳細ページの取得と同じく1回だけ取り直す（設計判断12。2回に増やさない）。
+            # フィードは石見暦の入口なので、ここが落ちるとその情報源がまるごと
+            # 0件になる（2026-08-08、川本町観光協会が一時的な不調で0件になった）。
+            #
+            # **ただし「在庫を読み切った404」は取り直さない。** 相手は正しく
+            # 404を返しているだけで（大田市観光協会の events_post は全15件で
+            # 3ページ目が404）、取り直しても同じ404が返るだけの無駄打ちになる。
+            for attempt in (1, 2):
+                try:
+                    text = self.get(url)
+                    break
+                except Exception as e:
+                    err = e
+                    if page > 1 and "404" in str(e):
+                        break
+            if text is None:
                 # 在庫を読み切ると 404 を返すサイトがある（大田市観光協会の
                 # events_post は全15件で、3ページ目が404）。**これは異常ではない。**
                 # 警告にすると毎日鳴り、本物の異常が埋もれる
-                if page > 1 and "404" in str(e):
+                if page > 1 and "404" in str(err):
                     print(f"[info] {self.name}: {page}ページ目は無し（在庫を読み切りました）")
                 else:
-                    print(f"[warn] {self.name}: 取得失敗（{page}ページ目）: {e}")
+                    print(f"[warn] {self.name}: 取得失敗（{page}ページ目・取り直しても失敗）: {err}")
+                break
+            try:
+                got = self.parse_feed(text)
+            except Exception as e:
+                print(f"[warn] {self.name}: 解析に失敗（{page}ページ目）: {e}")
                 break
             fresh = [ev for ev in got if ev.uid not in seen]
             # **`paged` を解さないCMSは、同じ内容をそのまま返す。**
