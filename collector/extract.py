@@ -31,6 +31,11 @@ from .models import _to_date, today_jst, wareki_to_seireki
 DEADLINE_HEADS = [
     "提出期限", "応募期限", "申込期限", "申し込み期限", "申込締切", "応募締切",
     "締切", "締め切り", "受付期限", "募集期限", "エントリー期限",
+    # 大田市「だれでも作品展」〇応募期日 令和8年10月3日(土）。「期限」の言い換え。
+    # 公開165件で測って、当たったのはこの1件のみ・既存の締切への誤爆は0件
+    # （2026-08-07）。マークつき平文（`_marked_sections`）は完全一致でしか
+    # 見出しを認めないので、HELD_HEADS の裸の「期日」には元から当たらない。
+    "応募期日",
 ]
 PERIOD_HEADS = [                      # 期間の見出しは「終わり」が締切
     "公募期間", "募集期間", "申込期間", "申し込み期間", "受付期間", "応募期間",
@@ -609,7 +614,11 @@ def extract_dates(html: str, ref: Optional[date] = None,
         firsts = []
         for label, body in sections:
             name = _norm_label(label)
-            if not any(k in name for k in HELD_HEADS) or _is_event_period(name):
+            # HELD_HEADS の裸の「期日」は「応募期日」のような締切ラベルの部分文字列にも
+            # 当たる。締切ラベルを開催日の候補に混ぜてはいけない
+            # （tests/test_extract.py の test_oubo_kijitsu_is_a_deadline_not_an_event_date）。
+            if (not any(k in name for k in HELD_HEADS) or _is_event_period(name)
+                    or any(k in name for k in DEADLINE_HEADS)):
                 continue
             if dates := _find_dates(body, ref):
                 firsts.append((label, dates[0][0]))
@@ -636,7 +645,12 @@ def extract_dates(html: str, ref: Optional[date] = None,
         # 締切を取ったかどうかとは独立に開催日を見る。ここを elif にしていたため、
         # 「実施・応募期間 8月1日〜12月15日」が締切に消費され、
         # スタンプラリーの開始日8/1が捨てられていた
-        if not got.date_start and any(k in name for k in HELD_HEADS):
+        #
+        # **ただし DEADLINE_HEADS に一致した節は別。** 「応募期日」は HELD_HEADS の
+        # 裸の「期日」に部分一致するため、ガードしないと締切と同じ日を開催日にも
+        # してしまう（大田市「だれでも作品展」で発生）。
+        if (not got.date_start and any(k in name for k in HELD_HEADS)
+                and not any(k in name for k in DEADLINE_HEADS)):
             got.date_start = dates[0][0]
             got.date_source = f"見出し「{label}」"
             if _is_event_period(name) and len(dates) > 1:

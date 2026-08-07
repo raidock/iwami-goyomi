@@ -516,6 +516,19 @@ def test_deadline_note_is_hidden_when_it_equals_the_period_end():
     assert "8/20" in _deadline_note(ev, date(2026, 7, 28))
 
 
+def test_oubo_kijitsu_is_a_deadline_not_an_event_date():
+    """「応募期日」は締切。「期限」の言い換えで、大田市「だれでも作品展」の実例。
+
+    HELD_HEADS には裸の「期日」があるが、`_marked_sections` は見出し語との
+    完全一致でしか節を認めないので、「応募期日」はそちらには当たらない
+    （当たるなら date_start に化けてしまう）。
+    """
+    html = "<p>〇応募期日 令和8年10月3日(土）（フェスタ当日10：00）まで</p>"
+    got = extract_dates(html, ref=date(2026, 7, 20))
+    assert got.deadline == date(2026, 10, 3), f"締切が取れていない: {got.deadline}"
+    assert got.date_start is None, f"締切を開催日にした: {got.date_start}"
+
+
 def test_deadline_is_told_by_the_note_not_by_a_tag():
     """締切は注記で具体的に伝える。タグでは伝えない（「締切あり」は廃止した）。
 
