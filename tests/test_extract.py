@@ -1028,6 +1028,39 @@ def test_range_tail_crossing_the_month():
     assert got == [date(2026, 1, 28), date(2026, 2, 3)], got
 
 
+def test_missing_hi_before_a_weekday_paren_is_still_a_date():
+    """「10月12（日）」のように「日」が抜けても、直後が（曜日）なら日付として読む。
+
+    邑南町観光協会「市木市」の実例。4-a。
+    """
+    html = "<p>開催 日時 10月12（日）10：00～15：00</p>"
+    got = extract_dates(html, ref=date(2025, 10, 2))
+    assert got.date_start == date(2025, 10, 12), f"取れていない: {got.date_start}"
+
+
+def test_missing_hi_only_at_the_start_of_a_range():
+    """「7月17（金）～8月31日（月）」— 始まりだけ「日」が抜けている実例。
+
+    邑南町観光協会「おおなん夏得キャンペーン」。修正前は「日」が無い7/17を
+    読み飛ばし、後ろの8/31日を開催日にしていた（開始と終わりが入れ替わる）。
+    """
+    html = ("<table><tr><th>開催日時</th>"
+            "<td>2026年7月17（金）～8月31日（月）</td></tr></table>")
+    got = extract_dates(html, ref=date(2026, 7, 1))
+    assert got.date_start == date(2026, 7, 17), f"開始日が違う: {got.date_start}"
+
+
+def test_weekday_paren_needs_a_single_weekday_character():
+    """開き括弧の中身が曜日1文字でなければ、「日」の省略を認めない。
+
+    素朴に開き括弧だけを条件にすると、日付と無関係な括弧書きまで拾う
+    （例:「10月12（市木地区）」のような注記）。
+    """
+    from collector.extract import _find_dates
+    got = _find_dates("10月12（市木地区）で開催", date(2025, 10, 2))
+    assert got == [], f"曜日でない括弧まで日付にした: {got}"
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
