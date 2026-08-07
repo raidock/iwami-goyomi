@@ -485,6 +485,27 @@ def test_boshu_kikan_on_an_event_is_not_the_event_date():
     assert got.deadline == date(2026, 8, 28)
 
 
+def test_annotation_date_is_not_the_deadline():
+    """役所が付け足す「（◯月◯日追記）」は締切の一部に数えない。
+
+    大田市「農業体験プログラム」の実例（2026-08-07 に発見）:
+      募集期間：８月２６日まで！（７月３０日追記）
+    PERIOD_HEADS は「終わり」を締切に採る作りのため、あとから書き足された
+    注記の日付（追記日＝7/30）を拾い、本当の締切（8/26）を取りこぼしていた。
+    """
+    html = ("<p>募集期間：８月２６日まで！（７月３０日追記） "
+            "（面談や面接の状況により募集を早期に締め切り、中止する可能性があります）</p>")
+    got = extract_dates(html, ref=date(2026, 7, 30))
+    assert got.deadline == date(2026, 8, 26), f"注記の日付を締切にした: {got.deadline}"
+
+
+def test_annotation_after_a_shikaku_mark_is_also_excluded():
+    """「※◯月◯日更新」も同じ言い回しとして注記から外す。"""
+    html = "<p>開催期間：7月1日～7月31日 ※8月5日更新</p>"
+    got = extract_dates(html, ref=date(2026, 6, 20))
+    assert got.date_end == date(2026, 7, 31), f"注記の日付を期間の終わりにした: {got.date_end}"
+
+
 def test_deadline_note_is_hidden_when_it_equals_the_period_end():
     """期間の終わりと締切が同じ日なら、締切の注記を二重に出さない。"""
     from collector.publish import _deadline_note

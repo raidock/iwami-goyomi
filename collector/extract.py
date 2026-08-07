@@ -80,6 +80,18 @@ _DATE_SLASH = re.compile(r"(?:(\d{4})\s*/\s*)?(\d{1,2})\s*/\s*(\d{1,2})")
 # はまナビなどが使う【日時】【場所】形式のラベル。見出しタグではないので別で拾う
 _BRACKET_LABEL = re.compile(r"[【〔\[]\s*([^】〕\]]{1,12})\s*[】〕\]]")
 
+# 役所のページでよく使う「あとから書き足した」注記。
+#   募集期間：８月２６日まで！（７月３０日追記）
+# 「（◯月◯日追記）」「※◯月◯日更新」の日付は、その節が書かれた時期の注記であって
+# 期間の一部ではない。PERIOD_HEADS が「終わり」として dates[-1] を採る作りのため、
+# ここを混ぜると本当の終わり（8/26）ではなく注記の日付（7/30）を締切にしてしまう
+# （大田市「農業体験プログラム」で実際に発生。measurements/2026-08-07-28-undated-events.md）。
+# 実ページ165件で測って、この形が出たのはこの1件だけだった。
+_ANNOTATION_WORDS = ("追記", "更新", "修正", "訂正", "加筆")
+_ANNOTATION_SPAN = re.compile(
+    r"[（(]\s*\d{1,2}\s*月\s*\d{1,2}\s*日\s*(?:" + "|".join(_ANNOTATION_WORDS) + r")\s*[）)]"
+    r"|※\s*\d{1,2}\s*月\s*\d{1,2}\s*日\s*(?:" + "|".join(_ANNOTATION_WORDS) + r")")
+
 # 流し込み文中の手がかり。日付の「後ろ」に来る語
 # 時刻は「午後5時」だけでなく「午後５時１５分まで」と分まで書かれることがある。
 # 分を許していなかったため、浜田市お魚料理教室の申込締切
@@ -153,9 +165,15 @@ def _range_tail_day(text: str, pos: int, start: date) -> Optional[date]:
 
 
 def _find_dates(text: str, ref: Optional[date]) -> list[tuple[date, int]]:
-    """テキスト中の日付を (日付, 出現位置) で返す。"""
+    """テキスト中の日付を (日付, 出現位置) で返す。
+
+    「（７月３０日追記）」のような後書きの注記日付は含めない。
+    """
+    annotated = [(m.start(), m.end()) for m in _ANNOTATION_SPAN.finditer(text)]
     out = []
     for m in _DATE.finditer(text):
+        if any(a <= m.start() < b for a, b in annotated):
+            continue
         y, mo, d = m.group(1), int(m.group(2)), int(m.group(3))
         dt = date(int(y), mo, d) if y else _to_date(mo, d, ref)
         if dt:
