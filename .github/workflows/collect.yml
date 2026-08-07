@@ -43,10 +43,6 @@ jobs:
           git pull --rebase origin main || true
           git push
 
-      - name: 情報源の健康診断
-        if: github.event_name != 'push'
-        run: python main.py health
-
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: { path: out }
@@ -60,3 +56,22 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # 情報源が静かに壊れたことを知らせるだけのジョブ。collect / deploy とは
+  # 別ジョブに分けている。かつては collect の中の1ステップで、失敗すると
+  # `deploy` が `needs: collect` で待つ作りのせいで公開ごと止まっていた
+  # （2026-08-08、川本町観光協会が一時的に0件になり公開が止まった）。
+  # 「知らせる」ためのものが「止める」ものになっていたのを分離した。
+  # health が落ちても collect・deploy の合否には影響しない。
+  # ワークフロー全体としては失敗表示になり、通知は届く（知らせる側は保つ）。
+  health:
+    needs: collect
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - name: 情報源の健康診断
+        run: python main.py health

@@ -48,6 +48,35 @@ def test_deploy_needs_collect():
     assert "collect" in needs, f"deploy が collect を needs していない: {needs}"
 
 
+def test_deploy_does_not_need_health():
+    """健康診断の失敗で公開が止まってはいけない。
+
+    2026-08-08、川本町観光協会が一時的に0件になっただけで `deploy` が
+    スキップされ、公開が止まった（`deploy` が `needs: collect` で待つ作りで、
+    健康診断はその `collect` の中の1ステップだったため）。
+    `health` を切り離した以上、`deploy` の `needs` に `health` が
+    紛れ込んでいないことを守る。
+    """
+    needs = _load()["jobs"]["deploy"].get("needs")
+    needs = [needs] if isinstance(needs, str) else (needs or [])
+    assert "health" not in needs, f"deploy が health を待つ形に戻っている: {needs}"
+
+
+def test_health_is_its_own_job():
+    """健康診断は collect とは別ジョブ。collect が赤くなっても関係ない形。"""
+    jobs = _load()["jobs"]
+    assert "health" in jobs, f"health ジョブが無い: {list(jobs)}"
+    steps = jobs["health"]["steps"]
+    runs = "\n".join(s.get("run", "") for s in steps if isinstance(s, dict))
+    assert "main.py health" in runs, "health ジョブに健康診断の run が無い"
+
+
+def test_collect_job_no_longer_runs_health():
+    """健康診断は collect の外に出ている（collect 内に残っていると二重に走る）。"""
+    assert "main.py health" not in _collect_runs(), \
+        "健康診断が collect ジョブにまだ残っている"
+
+
 def _collect_runs() -> str:
     steps = _load()["jobs"]["collect"]["steps"]
     return "\n".join(s.get("run", "") for s in steps if isinstance(s, dict))
