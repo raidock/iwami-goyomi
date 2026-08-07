@@ -7,6 +7,7 @@
   python main.py build     # 承認済みだけで公開サイトを作る
   python main.py dedupe    # 重複をまとめる
   python main.py audit     # 情報源の在庫と突き合わせ、見ていない記事を出す（月1回）
+  python main.py audit --check-links  # 公開中・手動掲載のリンク切れも確かめる（重いのでオプトイン）
   python main.py health    # 情報源が生きているか確かめる
   python main.py status    # いまの状況を見る
 
@@ -340,7 +341,8 @@ def _rough_when(ev) -> "object | None":
             or extract_deadline(text, ev.published_at))
 
 
-def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10) -> None:
+def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10,
+             check_links: bool = False) -> None:
     """情報源の在庫と突き合わせ、**一度も見ていない記事**を出す。
 
     「拾ったものが正しいか」は何度も測ってきたが、
@@ -353,6 +355,10 @@ def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10) -> None:
 
     詳細ページは見にいかない（設計判断12）。日付はタイトルとRSS要約から
     分かるぶんだけなので、「終了？」は目安であって判定ではない。
+
+    `check_links=True`（`--check-links`）のときだけ、逆方向（公開中・手動掲載の
+    URLが情報源からまだ生きているか）も確かめる。**既定では実行しない。**
+    166件を毎回叩くのは重いので、`audit` を回すときに明示的に選ぶオプトイン。
     """
     known = queue.known_uids()
     today = today_jst()
@@ -393,7 +399,90 @@ def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10) -> None:
           f"（終わっていそうなものは別に {total_over}件）")
     print("載せたいものがあれば data/manual.json に足すか、"
           "config.yaml の feed_pages を広げてください。")
+
+    if check_links:
+        targets = len(queue.approved) + len(queue.manual)
+        print(f"\nリンクの生存確認: 公開中・手動掲載 {targets}件を確認します"
+              "（間隔は情報源ごとに守ります。しばらくかかります）…")
+        broken = find_broken_links(cfg, queue)
+        if not broken:
+            print("すべてのリンクが生きています。")
+        else:
+            print(f"\nリンク切れの可能性があるもの: {len(broken)}件"
+                  "（**自動では却下しません。** 一時的な障害かもしれないので、"
+                  "時間を空けてもう一度確かめてから判断してください）")
+            for ev, err in broken:
+                print(f"   [{ev.city}] 掲載{ev.published_at or '—'} "
+                      f"{ev.title[:38]}\n     {ev.url}\n     ({err})")
+
     print("**このコマンドはデータを1バイトも変更していません。**")
+
+
+def host_delays(cfg: dict) -> dict[str, float]:
+    """情報源の site から (ホスト名 → 取得間隔) を作る。
+
+    公開中・手動掲載のURLは `source` が config の key と一致するとは限らない
+    （手動掲載は `source: 手動` に固定される。設計判断3の延長）。
+    ホスト名で引けば、config に無い情報源のURLも既定間隔にフォールバックできる。
+    """
+    from urllib.parse import urlparse
+    out = {}
+    for m in cfg.get("municipalities", []) + cfg.get("tourism", []):
+        out[urlparse(m["site"]).netloc] = fetch_delay_for(m, cfg)
+    return out
+
+
+def find_broken_links(cfg: dict, queue: ReviewQueue, session=None) -> list[tuple[object, str]]:
+    """公開中・手動掲載のURLが生きているか確かめる。**読むだけ。却下はしない。**
+
+    在庫の取りこぼし（`cmd_audit` の既定の仕事）とは逆方向 — 「情報源にあるのに
+    手元に無いもの」ではなく「手元にあるのに情報源から消えたもの」を見る。
+
+    2026-08-07、益田市の記事と、江津市・津和野町観光協会の記事あわせて7件が
+    404だった。手動掲載（吉賀町）も1件404だった。**手動掲載は自動収集の対象外
+    なので、これまで気づく手段が一つも無かった。** approved.json と
+    manual.json の両方を対象にするのはそのため。
+
+    **自動では却下しない。** 一時的な障害の可能性があるため（今回も却下する前に
+    数時間空けて複数回確認した）。呼び出し側（`cmd_audit`）が一覧に出すだけ。
+
+    pending / rejected は対象外。pending はまだ公開していないので緊急性が無く、
+    rejected は既に判断済みで二度と見ない（設計判断3）。
+    """
+    import requests
+    from urllib.parse import urlparse
+
+    session = session or requests.Session()
+    if not hasattr(session, "headers"):
+        session.headers = {}
+    else:
+        session.headers.update({"User-Agent": USER_AGENT})
+
+    delays = host_delays(cfg)
+    default_delay = cfg.get("fetch_delay_sec", DEFAULT_FETCH_DELAY_SEC)
+    pacers: dict[str, Pacer] = {}
+
+    targets = [e for e in queue.approved if e.url] + [e for e in queue.manual if e.url]
+    broken: list[tuple[object, str]] = []
+    for ev in targets:
+        host = urlparse(ev.url).netloc
+        pacer = pacers.setdefault(host, Pacer(delays.get(host, default_delay)))
+        err = None
+        # 詳細ページの取得と同じく1回だけ取り直す（設計判断12。2回に増やさない）
+        for attempt in (1, 2):
+            pacer.wait()
+            try:
+                r = session.get(ev.url, timeout=20)
+                r.raise_for_status()
+                err = None
+                break
+            except Exception as e:
+                err = str(e)
+            finally:
+                pacer.mark()
+        if err:
+            broken.append((ev, err))
+    return broken
 
 
 def cmd_health(cfg: dict) -> int:
@@ -445,6 +534,10 @@ def main(argv=None) -> int:
                     help="フィードを何ページさかのぼるか。"
                          "audit は既定10 / collect は既定 config.yaml の feed_pages。"
                          "**取りこぼしを一度だけ拾い直すとき**に collect で指定する")
+    ap.add_argument("--check-links", action="store_true",
+                    help="audit専用。公開中・手動掲載のURLが情報源から"
+                         "まだ生きているか確かめる（既定では実行しない。"
+                         "166件前後を毎回叩くのは重いため明示的に選ぶ）")
     args = ap.parse_args(argv)
 
     # どのコードを動かしているのか毎回はっきりさせる。
@@ -492,7 +585,8 @@ def main(argv=None) -> int:
      "review": queue.review_cli,
      "build": lambda: cmd_build(cfg, queue),
      "dedupe": lambda: cmd_dedupe(cfg, queue),
-     "audit": lambda: cmd_audit(cfg, queue, pages=args.pages or 10),
+     "audit": lambda: cmd_audit(cfg, queue, pages=args.pages or 10,
+                               check_links=args.check_links),
      "health": lambda: sys.exit(cmd_health(cfg)),
      "status": lambda: cmd_status(queue)}[args.command]()
     return 0
