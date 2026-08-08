@@ -1,5 +1,10 @@
 # 「一生救済されない経路」の測定（2026-08-08）
 
+**追記（同日）**: 「本物の継続催し2件を拾う専用の救済ルール」は見送ったが、
+副産物の「無駄な再取得」は実装した。`data/skipped.json`に除外uidを記録し、
+次回の収集で詳細ページの再取得を避ける。却下（`rejected.json`）とは別枠。
+詳しくは末尾の「実装した」節。回帰テストは`tests/test_skipped.py`。
+
 - **測ったもの**: 本番と同じ設定（`config.yaml`どおりの`feed_pages`）で
   収集を模擬し、`is_finished()`が「初めて見る記事だが分かっている日付が
   全部過去」として黙って除外する件数、そのうち反復表現を含む件数、
@@ -136,3 +141,42 @@ approved側に入ったあとの見せ方の話であって、**is_finished()で
 - 天体観察会2件は、**【106】と同じく`data/manual.json`での個別対応が
   いまできる現実的な一手**（温泉津あさいちの前例と同型）
 - **実装はしていない。** 数字を見た判断は預ける
+
+---
+
+## 実装した（同日、【114】）
+
+「専用の救済ルール」は上記のとおり見送ったが、「無駄な再取得」は
+案Aの一部（除外の記録＋次回スキップ）だけを軽く実装した。
+
+- `ReviewQueue.skipped` / `skipped_uids()` / `prune_skipped()` を追加
+  （`collector/review.py`）。`ingest()`が`is_finished()`で除外するとき、
+  `data/skipped.json`にも記録するようにした
+- **`known_uids()`には混ぜていない。** 却下は人の判断で二度と聞かないが、
+  こちらは機械の判定で、`data/skipped.json`から該当行を消せば次回また
+  評価される。この違いを保つため別のセットにした
+- `cmd_collect`で、`kept`から`skipped_uids`を除いてから
+  `enrich_with_detail_pages`を呼ぶよう変更（`main.py`）。除外記録に
+  あるものは詳細ページを取得しない
+- `prune_skipped`を`cmd_collect`の先頭で毎回呼び、情報源ごとの
+  `max_age_days`を超えた記録を消す（際限なく増えない）
+- 人が気づける道: `status`に件数を表示、`audit`に一覧を表示（判定はしない）
+
+### 検証（測定の条件）
+
+- **既存の動作に影響が無いこと**: `tests/test_review_refresh.py`
+  （承認済み・却下済みのフィールド更新規則）は無変更のまま全件緑
+- **重複して増えないこと**: 同じ記事を複数回`ingest`しても
+  `skipped.json`は1件のまま最新の抽出結果で上書きされる
+  （`test_repeated_ingest_does_not_duplicate_skipped_entries`）
+- **際限なく増えないこと**: `max_age_days`を超えた記録は
+  `prune_skipped`で消える。情報源ごとの上書き値・既定値のどちらも
+  正しく効く（`test_prune_skipped_removes_entries_past_max_age`・
+  `test_prune_skipped_uses_default_when_source_has_no_override`）
+- **取得が何件減るか**: 本番と同じ条件で実測した今回の62件中61件が、
+  次回以降は詳細ページを取得しなくなる見込み。**確定した実測値は
+  次の定時収集（GitHub Actionsのログ）で確認できる**
+  （`data/skipped.json`は今回の測定では書き込んでおらず、次の本番
+  収集で自然に埋まる）
+
+回帰テストは`tests/test_skipped.py`（5件、全件緑）。

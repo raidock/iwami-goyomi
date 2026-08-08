@@ -78,6 +78,10 @@ class ReviewQueue:
         self.rejected_path = self.dir / "rejected.json"
         # 人が書く。**このクラスは絶対に書き込まない**（_save に渡さないこと）
         self.manual_path = self.dir / "manual.json"
+        # 機械が is_finished() で黙って除外したものの記録。**却下（rejected）とは別。**
+        # 却下は人の判断で二度と聞かない。こちらは機械の判定で、消せば次回また評価される
+        # （詳しくは ingest() と main.py の説明）
+        self.skipped_path = self.dir / "skipped.json"
 
     # ---- 入出力 --------------------------------------------------------
     def _load(self, path: pathlib.Path) -> list[Event]:
@@ -107,10 +111,45 @@ class ReviewQueue:
         """手で書いた掲載。書き間違いは警告して飛ばす（公開は止めない）。"""
         return load_manual(self.manual_path)
 
+    @property
+    def skipped(self) -> list[Event]:
+        """is_finished() で黙って除外したものの記録。人が audit で見られる。"""
+        return self._load(self.skipped_path)
+
     def known_uids(self) -> set[str]:
         """一度でも判断したものは二度と聞かない。"""
         return {e.uid for e in
                 self.pending + self.approved + self.rejected + self.manual}
+
+    def skipped_uids(self) -> set[str]:
+        """除外記録にあるもの。**known_uids() には混ぜない**（人の判断ではないため、
+        `ingest()` の「既知」扱いにはしない）。collect 側で詳細ページの再取得だけを
+        避けるのに使う。
+        """
+        return {e.uid for e in self.skipped}
+
+    def prune_skipped(self, max_age_by_source: dict, default_max_age: int,
+                      today: date) -> int:
+        """除外記録から、情報源側の max_age_days を超えたものを消す。
+
+        情報源のフィード自体がその年齢を超えた記事を返さなくなる
+        （`build_sources` の max_age_days）ので、記録だけが残ると
+        際限なく増える。消えた分は戻り値で報告する。
+        """
+        items = self.skipped
+        if not items:
+            return 0
+        kept, removed = [], 0
+        for e in items:
+            max_age = max_age_by_source.get(e.source, default_max_age)
+            ref = e.date_end or e.date_start or e.deadline or e.published_at
+            if ref and (today - ref).days > max_age:
+                removed += 1
+                continue
+            kept.append(e)
+        if removed:
+            self._save(self.skipped_path, kept)
+        return removed
 
     # ---- 市またぎ重複の気づき ------------------------------------------
     def similarity_warnings(
@@ -230,6 +269,7 @@ class ReviewQueue:
         stats = {"new_auto": 0, "new_pending": 0, "skipped": 0, "updated": 0,
                  "manual": 0, "finished": 0}
         touched = False
+        newly_finished: list[Event] = []
 
         for ev in events:
             if ev.uid in manual_uids:
@@ -268,11 +308,18 @@ class ReviewQueue:
                 continue
             if self.is_finished(ev, today):
                 # **静かに捨てない。** 取りこぼしは画面を見ても気づけないので、
-                # ログだけが手がかりになる（GitHub Actions の実行ログに残る）
+                # ログだけが手がかりになる（GitHub Actions の実行ログに残る）。
+                # あわせて data/skipped.json に記録する。次の収集では
+                # skipped_uids() を見て詳細ページを再取得しない（無駄な
+                # 再取得の防止。2026-08-08 measurements/is-finished-permanent-drop）。
+                # **却下（rejected）とは別。** こちらは機械の判定で、記録を消せば
+                # 次回また評価される
                 when = ev.date_end or ev.date_start or ev.deadline
                 stats["finished"] += 1
                 print(f"[info] 既に終わっているため取り込みません: "
                       f"{ev.title[:34]}（{when}）")
+                ev.review_state = "skipped"
+                newly_finished.append(ev)
                 continue
             if auto_approve and ev.review_state == "auto":
                 ev.review_state = "approved"
@@ -287,6 +334,11 @@ class ReviewQueue:
         self._save(self.pending_path, pending)
         if touched:
             self._save(self.rejected_path, rejected)
+        if newly_finished:
+            existing = {e.uid: e for e in self.skipped}
+            for e in newly_finished:
+                existing[e.uid] = e          # 上書き（最新の抽出結果を反映）
+            self._save(self.skipped_path, list(existing.values()))
         return stats
 
     # ---- 承認作業 ------------------------------------------------------

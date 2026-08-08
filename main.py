@@ -53,6 +53,18 @@ def fetch_delay_for(m: dict, cfg: dict) -> float:
                                                   DEFAULT_FETCH_DELAY_SEC)))
 
 
+def max_age_by_source(cfg: dict) -> dict[str, int]:
+    """情報源ごとの max_age_days（`build_sources` と同じ既定値の見方）。
+
+    `ReviewQueue.prune_skipped` が、除外記録（`data/skipped.json`）の
+    年齢を情報源ごとの基準と比べるのに使う。フィード側がその年齢を
+    超えた記事を返さなくなるのと同じ基準に揃えるため。
+    """
+    default = cfg.get("max_age_days", 400)
+    return {m["key"]: m.get("max_age_days", default)
+            for m in cfg.get("municipalities", []) + cfg.get("tourism", [])}
+
+
 # 汎用RSSアダプターで足りない情報源だけ、ここで差し替える。
 # config.yaml の key と対応する（config 側にもその旨のコメントを書いてある）。
 # **増やすのは最後の手段。** まず config で足りないかを確かめること。
@@ -210,6 +222,23 @@ def cmd_collect(cfg: dict, queue: ReviewQueue, fetch_detail: bool = True,
     if kinds:
         print("[info] 種別: " + " / ".join(f"{k} {n}件" for k, n in kinds.items()))
 
+    # 除外記録（data/skipped.json）の手入れ。情報源側が max_age_days を
+    # 超えた記事を返さなくなるのに合わせて記録も消す（消さないと際限なく増える）
+    if pruned := queue.prune_skipped(max_age_by_source(cfg),
+                                     cfg.get("max_age_days", 400), today_jst()):
+        print(f"[info] 除外記録から {pruned}件を削除しました（max_age_days を超えたため）")
+
+    # is_finished() で一度除外したものは、記録が残っているかぎり詳細ページを
+    # 再取得しない（無駄な再取得の防止。設計判断12。2026-08-08
+    # measurements/is-finished-permanent-drop）。**却下（rejected）とは別枠**
+    # — 却下は人の判断で二度と聞かないが、こちらは機械の判定で、
+    # `data/skipped.json` から該当行を消せば次回また評価される
+    skipped_uids = queue.skipped_uids()
+    if held_back := [e for e in kept if e.uid in skipped_uids]:
+        kept = [e for e in kept if e.uid not in skipped_uids]
+        print(f"[info] 除外記録により詳細ページを取りに行きません: {len(held_back)}件"
+              "（`python main.py audit` で中身を見られます）")
+
     if fetch_detail and kept:
         print(f"[info] 詳細ページを確認中（{len(kept)}件）…")
         failed = enrich_with_detail_pages(kept, cfg)
@@ -361,6 +390,7 @@ def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10,
     166件を毎回叩くのは重いので、`audit` を回すときに明示的に選ぶオプトイン。
     """
     known = queue.known_uids()
+    skipped_uids = queue.skipped_uids()  # 除外記録は下で別に一覧するので、ここでは除く
     today = today_jst()
     print(f"手元にあるもの: {len(known)}件（公開中・承認待ち・却下済み・手動）")
     print(f"フィードを {pages} ページまでさかのぼって突き合わせます。\n")
@@ -383,7 +413,7 @@ def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10,
             if bucket == "drop":
                 continue
             keep += 1
-            if ev.uid in known:
+            if ev.uid in known or ev.uid in skipped_uids:
                 continue
             when = _rough_when(ev)
             (over if when and when < today else unseen).append((ev, v, bucket))
@@ -399,6 +429,16 @@ def cmd_audit(cfg: dict, queue: ReviewQueue, pages: int = 10,
           f"（終わっていそうなものは別に {total_over}件）")
     print("載せたいものがあれば data/manual.json に足すか、"
           "config.yaml の feed_pages を広げてください。")
+
+    # 除外記録（is_finished() が黙って除外したもの）を見せるだけ。判定はしない。
+    # ここに出さないと、天体観察会のような本物が消えたまま誰にも気づかれない
+    skipped = queue.skipped
+    if skipped:
+        print(f"\n除外記録（is_finished() で黙って除外したもの）: {len(skipped)}件")
+        print("`data/skipped.json` から該当行を消せば、次の収集でまた評価します。")
+        for e in skipped:
+            when = e.date_end or e.date_start or e.deadline or "—"
+            print(f"   [{e.city}] {when} {e.title[:38]}\n     {e.url}")
 
     if check_links:
         targets = len(queue.approved) + len(queue.manual)
@@ -518,6 +558,9 @@ def cmd_status(queue: ReviewQueue) -> None:
     # 手動分は build のときだけ合流するので、ここに出さないと存在を忘れる
     # （書き間違いで載っていないことにも、この行で気づける）
     print(f"  手動掲載 : {len(manual)}件  ({queue.manual_path})")
+    # is_finished() で黙って除外したものの記録。ここに出さないと
+    # 何が起きているか誰にも見えない（設計判断12関連、2026-08-08）
+    print(f"  除外記録 : {len(queue.skipped)}件  ({queue.skipped_path})")
 
 
 def main(argv=None) -> int:

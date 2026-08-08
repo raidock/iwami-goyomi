@@ -428,6 +428,7 @@ python tests/test_good_antiques.py  # 蚤の市パーサ
 python tests/test_workflow.py       # ワークフローのYAML（CIは手元で動かないので形を守る）
 python tests/test_fetch_delay.py    # 取得間隔が情報源ごとに効くか（Crawl-delay 対応）
 python tests/test_oda_city.py       # 大田市の掲載日補完（フィードに日付が無い）
+python tests/test_skipped.py        # 除外記録（is_finished の永久除外・無駄な再取得の防止）
 ```
 
 ### 分類器を変えたら必ず測り直す
