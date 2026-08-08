@@ -754,6 +754,48 @@ def test_nakaguro_is_not_a_label_mark():
     assert got.date_start is None, f"中黒を節の印にした: {got.date_source}"
 
 
+# 大田市「しまねふるさとフェア２０２７の出展者を募集します」の実ページ構造。
+# 見出しタグは <h2>開催要項</h2> だけで、書き手が手で振った全角数字の番号付き
+# 平文段落（<p>１．イベント名</p><p>…</p>）が続く。「開催日時」自体は既に
+# 登録済みの見出し語だが、番号の記号（「１．」）が _MARK_RE に無く、
+# 層1に届かず「日程は詳細ページで」のまま公開されていた（2026-08-08）。
+ODA_FURUSATO_FAIR = """
+<div class="contentBody">
+  <h2>開催要項</h2>
+  <p>１．イベント名</p>
+  <p>しまねふるさとフェア２０２７</p>
+  <p>２．主催</p>
+  <p>広島地区観光・物産情報発信事業実行委員会</p>
+  <p>３．開催日時</p>
+  <p>2027年1月23日（土）10時～17時、1月24日（日）10時～16時30分</p>
+  <p>４．会場</p>
+  <p>ひろしまゲートパークプラザ（広島市中区基町5-25）（屋外のみ）</p>
+  <h2>提出締め切り</h2>
+  <p>特産品販売ブース・飲食ブース出展申込（事業者→市）：令和８年８月１８日（火）</p>
+</div>
+"""
+
+
+def test_zenkaku_numbered_label_is_read_as_a_section():
+    """全角数字＋「．」（「３．開催日時」）も記号つきラベルと同じに扱う。
+
+    大田市「しまねふるさとフェア２０２７」の実例。「開催日時」は既に
+    登録済みの見出し語で、番号の記号だけが _MARK_RE に無かった。
+    """
+    got = extract_dates(ODA_FURUSATO_FAIR, ref=date(2026, 6, 30), today=date(2026, 6, 30))
+    assert got.date_start == date(2027, 1, 23), f"開始日が取れていない: {got.date_start}"
+    assert got.deadline == date(2026, 8, 18), f"締切が違う: {got.deadline}"
+
+
+def test_hankaku_numbered_label_is_not_a_mark():
+    """半角の「1.」は記号に含めない。公開162件で測って効果0・本文の
+    箇条書きに広く出るため危険度が高いと判断した（2026-08-08）。
+    """
+    html = "<div><p>1. 開催日時</p><p>2026年8月1日</p></div>"
+    got = extract_dates(html, ref=date(2026, 6, 17), today=date(2026, 6, 17))
+    assert got.date_start is None, f"半角の番号を節の印にした: {got.date_source}"
+
+
 def test_deadline_label_does_not_become_the_held_date():
     """◆申込締切の日付を開催日にしない。
 
