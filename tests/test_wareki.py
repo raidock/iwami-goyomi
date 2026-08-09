@@ -162,6 +162,48 @@ def test_bracket_without_a_date_is_untouched():
         assert extract_held_date(t, date(2026, 7, 1)) is None, t
 
 
+# --- 【】の中にスラッシュ日付がある型（2026-08 / 川本町観光協会）-----------
+# 10通り目の日付表記。承認者がタイトルの月日だけを見て2025年の記事を
+# 今年の催しと誤認した事故（【12/20開催】島根フィルティーズ ファン感謝祭・
+# 【11/14,15開催】弓ヶ峯八幡宮「秋の例大祭」）を受けて対応した。
+# 8つ目（【】の後ろ）とは逆で、日付が【】の中にある。
+# 実データ（approved/rejected/manual/skipped 全件）で測って34件ヒット、
+# 他の情報源には無い（川本町観光協会のみ）。既に date_start があるもの
+# （本文・見出しから取得ずみ）との食い違いは0件。
+
+def test_bracket_inner_slash_date():
+    from datetime import date
+    from collector.models import extract_held_date
+    cases = [
+        ("【12/20開催】島根フィルティーズ　ファン感謝祭！！",
+         date(2025, 12, 12), date(2025, 12, 20)),
+        # カンマ区切りの複数日（初日だけを開催日にする）
+        ("【11/14,15開催】弓ヶ峯八幡宮「秋の例大祭」",
+         date(2025, 10, 21), date(2025, 11, 14)),
+        # 「開催」の直後に他の語が続いても止まらない
+        ("【1/12開催・町民向け】第4回川本町新春ふるさとカルタ大会",
+         date(2025, 12, 4), date(2026, 1, 12)),
+        # 曜日カッコが挟まっても取れる（天領さんと同型）
+        ("【第44回 天領さん（久手会場）8/4（火）開催のお知らせ】",
+         date(2026, 7, 1), date(2026, 8, 4)),
+    ]
+    for title, ref, want in cases:
+        assert extract_held_date(title, ref) == want, title
+
+
+def test_bracket_inner_date_needs_kaisai():
+    """「開催」以外の語（更新日など）には当たらない。
+
+    「イズモコバイモQ&A（よくある質問）【2/9更新】」で実際に確認した実例。
+    「開催」を必須にしないと、更新日が開催日として拾われる。
+    """
+    from datetime import date
+    from collector.models import extract_held_date
+    for t in ("イズモコバイモQ&A（よくある質問）【2/9更新】",
+              "【見頃終了】長江寺のイチョウ色づき情報【12/5更新終了】"):
+        assert extract_held_date(t, date(2026, 2, 9)) is None, t
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
