@@ -368,7 +368,8 @@ class ReviewQueue:
         for i, ev in enumerate(queue, 1):
             print(f"--- {i}/{len(queue)} ---")
             print(f"  {ev.title}")
-            print(f"  {ev.city} / {ev.category or 'カテゴリ未判定'} / score={ev.score}")
+            pub = f" / 掲載 {ev.published_at}" if ev.published_at else ""
+            print(f"  {ev.city} / {ev.category or 'カテゴリ未判定'} / score={ev.score}{pub}")
             print(f"  判定理由: {ev.reason}")
             print(f"  {ev.url}")
             for _, label, other in warnings.get(ev.uid, []):

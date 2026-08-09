@@ -304,7 +304,8 @@ def cmd_pending(queue: ReviewQueue) -> None:
         # （同じ催しが4回投稿されていることがある。はまナビの朝のビーチヨガ）
         mark = "⚠ " if e.uid in warnings else "  "
         print(f"{i}. {mark}[{e.city}] {e.title}")
-        print(f"   〈{e.kind}〉{e.category or 'カテゴリ未判定'} / score={e.score} / {e.reason}")
+        pub = f" / 掲載 {e.published_at}" if e.published_at else ""
+        print(f"   〈{e.kind}〉{e.category or 'カテゴリ未判定'} / score={e.score} / {e.reason}{pub}")
         if e.date_start:
             print(f"   開催 {e.date_start}  ({e.date_source or '—'})")
         if e.deadline:
