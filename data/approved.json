@@ -5231,5 +5231,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "0d0ea1b24a3b8ac8ca4b64c8c50c9959"
+  },
+  {
+    "title": "【8月15日募集開始】令和8年度　広島広域都市圏ふるさとの魅力体験ツアーの参加者募集！（りんご狩り・自然博物館）",
+    "prefecture": "島根県",
+    "date_start": "2026-09-27",
+    "date_end": null,
+    "url": "https://www.city.hamada.shimane.jp/www/contents/1701764098964/index.html",
+    "source": "hamada_city",
+    "raw_date_text": "",
+    "city": "浜田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "",
+    "published_at": "2026-08-12",
+    "deadline": null,
+    "category": "学び・講座",
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "approved",
+    "score": 7,
+    "reason": "開催・募集の明示 / イベント語: 体験/ツアー / 弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "見出し「・日時」",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "2d3eb90ff0ead4b9e6228df1287b81a0"
   }
 ]
