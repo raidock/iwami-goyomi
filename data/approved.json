@@ -5263,5 +5263,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "2d3eb90ff0ead4b9e6228df1287b81a0"
+  },
+  {
+    "title": "津摩児童館 お盆神楽",
+    "prefecture": "島根県",
+    "date_start": "2026-08-13",
+    "date_end": null,
+    "url": "https://kankou-hamada.or.jp/archives/36816",
+    "source": "hamanavi",
+    "raw_date_text": "",
+    "city": "浜田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "浜田市津摩（つま）町で石見神楽鑑賞はいかがですか。石見神楽上内田保存会さんの上演です。ビンゴ大会や出店とあわせてお楽しみください。 【日時】 2026年8月13日（木）　18：30～ 【場所】 津摩児童館（浜田市津摩町2... <a class=\"view-article\" href=\"https://kankou-hamada.or.jp/archives/36816\">View Article</a>",
+    "published_at": "2026-08-12",
+    "deadline": null,
+    "category": "神楽・伝統芸能",
+    "tags": [
+      "子ども向け"
+    ],
+    "organizer": null,
+    "organizer_type": "観光協会",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "approved",
+    "score": 2,
+    "reason": "イベント語: 大会/上演",
+    "source_trust": "high",
+    "date_source": "見出し「日時」",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "35c0dd3d7b145cd935572795f065de0f"
   }
 ]
