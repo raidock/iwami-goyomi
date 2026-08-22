@@ -429,5 +429,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "33125f5335a63efc7b99eadd40162796"
+  },
+  {
+    "title": "レストラン「おとぎ」リニューアルオープンのお知らせ",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.kawamoto-kankou.jp/info/2026/post-7357/",
+    "source": "kawamoto_kanko",
+    "raw_date_text": "",
+    "city": "川本町",
+    "venue": null,
+    "distance_tier": null,
+    "description": "かわもとおとぎ館内のレストランが、指定管理事業者の変更にともない、2026年8月17日にリニューアルオープンい...",
+    "published_at": "2026-08-21",
+    "deadline": null,
+    "category": "ビジネス・創業・補助金",
+    "tags": [
+      "事業者向け"
+    ],
+    "organizer": null,
+    "organizer_type": "観光協会",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "pending",
+    "score": 0,
+    "reason": "手がかりなし",
+    "source_trust": "high",
+    "date_source": "",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "d7c598320617d3fb28237476e160f687"
   }
 ]
