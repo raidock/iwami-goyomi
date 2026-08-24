@@ -275,8 +275,9 @@ def to_public_site(events: list[Event], region: str = "石見",
     tagline = site.get("tagline") or "市町のお知らせから、催し・募集・使える制度を拾って並べています。"
     # 「載っていない」が「対象外」なのか区別つかない、という反応を受けて追加。
     # CITY_SLUG（絞り込みナビと同じ一覧）から生成し、市町名を2箇所に書かない
-    scope_line = ("・".join(c[:-1] for c in CITY_SLUG)
-                 + f"の{len(CITY_SLUG)}市町を集めています。")
+    city_names = "・".join(c[:-1] for c in CITY_SLUG)
+    scope_line = f"{city_names}の{len(CITY_SLUG)}市町を集めています。"
+    search_empty = f"見つかりませんでした。石見{len(CITY_SLUG)}市町（{city_names}）の催しを集めています。"
     url = site.get("url") or ""
     contact = site.get("contact") or ""
     operator = site.get("operator") or ""
@@ -305,6 +306,7 @@ def to_public_site(events: list[Event], region: str = "石見",
                        n_m=len(moyoshi), n_b=len(boshu), n_s=len(seido),
                        title=_html.escape(title), tagline=_html.escape(tagline),
                        scope_line=_html.escape(scope_line),
+                       search_empty=_html.escape(search_empty),
                        h1_html=h1_html,
                        contact_html=contact_html, operator_html=operator_html,
                        canonical=canonical, og_url=og_url,
@@ -314,6 +316,7 @@ def to_public_site(events: list[Event], region: str = "石見",
 _TPL = """<!doctype html>
 <html lang="ja"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.classList.add('js')</script>
 <title>{title}</title>
 <meta name="description" content="{tagline}">
 {canonical}
@@ -408,6 +411,12 @@ _TPL = """<!doctype html>
   .anchor{{display:block}}
   .empty-city{{display:none;color:var(--soft);font-size:.8rem;text-align:center;
     padding:2.2rem 1rem;margin:1rem 0;border:1px dashed var(--line);border-radius:4px}}
+  .search{{display:none;margin:0 0 1.1rem}}
+  .js .search{{display:block}}
+  .search input{{width:100%;box-sizing:border-box;font:inherit;font-size:.85rem;
+    padding:.6rem .9rem;border:1px solid var(--line);border-radius:4px;
+    background:var(--card);color:var(--ink)}}
+  .card.search-hide{{display:none}}
   {filter_css}
   footer{{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
     font-size:.7rem;color:var(--soft)}}
@@ -421,6 +430,11 @@ _TPL = """<!doctype html>
   <div class="counts">
     <span>催し {n_m}</span><span>募集 {n_b}</span><span>制度 {n_s}</span><span>ぜんぶで {total}</span>
   </div>
+  <div class="search">
+    <input type="search" id="q" autocomplete="off"
+           placeholder="キーワードで絞り込む">
+  </div>
+  <p class="empty-city search-empty" id="search-empty">{search_empty}</p>
   {filter_nav}
   <p class="notice">
     自動で集めた情報です。日時・会場・締切・申込方法は、必ず各カードのリンク先（主催者の公式ページ）で
@@ -433,4 +447,21 @@ _TPL = """<!doctype html>
     各情報の権利は発信元に帰属します。掲載内容は各リンク先の公式ページでご確認ください。<br>
     {contact_html}
   </footer>
-</div></body></html>"""
+</div>
+<script>
+(function(){{
+  var q = document.getElementById('q'), empty = document.getElementById('search-empty');
+  if (!q || !empty) return;
+  var cards = document.querySelectorAll('.card');
+  q.addEventListener('input', function(){{
+    var needle = q.value.trim(), visible = false;
+    cards.forEach(function(c){{
+      var hide = needle && !c.textContent.includes(needle);
+      c.classList.toggle('search-hide', hide);
+      if (!hide && c.offsetParent !== null) visible = true;
+    }});
+    empty.style.display = (needle && !visible) ? 'block' : 'none';
+  }});
+}})();
+</script>
+</body></html>"""

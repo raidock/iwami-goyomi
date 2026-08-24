@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ja"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.classList.add('js')</script>
 <title>石見暦</title>
 <meta name="description" content="石見の催しと締切を、ひとつの暦に。">
 <link rel="canonical" href="https://raidock.github.io/iwami-goyomi/">
@@ -95,6 +96,12 @@
   .anchor{display:block}
   .empty-city{display:none;color:var(--soft);font-size:.8rem;text-align:center;
     padding:2.2rem 1rem;margin:1rem 0;border:1px dashed var(--line);border-radius:4px}
+  .search{display:none;margin:0 0 1.1rem}
+  .js .search{display:block}
+  .search input{width:100%;box-sizing:border-box;font:inherit;font-size:.85rem;
+    padding:.6rem .9rem;border:1px solid var(--line);border-radius:4px;
+    background:var(--card);color:var(--ink)}
+  .card.search-hide{display:none}
   #hamada:target ~ * .card:not([data-city="浜田市"]){display:none}#hamada:target ~ .block:not(:has(.card[data-city="浜田市"])),#hamada:target ~ details.past:not(:has(.card[data-city="浜田市"])){display:none}#gotsu:target ~ * .card:not([data-city="江津市"]){display:none}#gotsu:target ~ .block:not(:has(.card[data-city="江津市"])),#gotsu:target ~ details.past:not(:has(.card[data-city="江津市"])){display:none}#masuda:target ~ * .card:not([data-city="益田市"]){display:none}#masuda:target ~ .block:not(:has(.card[data-city="益田市"])),#masuda:target ~ details.past:not(:has(.card[data-city="益田市"])){display:none}#oda:target ~ * .card:not([data-city="大田市"]){display:none}#oda:target ~ .block:not(:has(.card[data-city="大田市"])),#oda:target ~ details.past:not(:has(.card[data-city="大田市"])){display:none}#tsuwano:target ~ * .card:not([data-city="津和野町"]){display:none}#tsuwano:target ~ .block:not(:has(.card[data-city="津和野町"])),#tsuwano:target ~ details.past:not(:has(.card[data-city="津和野町"])){display:none}#ohnan:target ~ * .card:not([data-city="邑南町"]){display:none}#ohnan:target ~ .block:not(:has(.card[data-city="邑南町"])),#ohnan:target ~ details.past:not(:has(.card[data-city="邑南町"])){display:none}#kawamoto:target ~ * .card:not([data-city="川本町"]){display:none}#kawamoto:target ~ .block:not(:has(.card[data-city="川本町"])),#kawamoto:target ~ details.past:not(:has(.card[data-city="川本町"])){display:none}#misato:target ~ * .card:not([data-city="美郷町"]){display:none}#misato:target ~ .block:not(:has(.card[data-city="美郷町"])),#misato:target ~ details.past:not(:has(.card[data-city="美郷町"])){display:none}#yoshika:target ~ * .card:not([data-city="吉賀町"]){display:none}#yoshika:target ~ .block:not(:has(.card[data-city="吉賀町"])),#yoshika:target ~ details.past:not(:has(.card[data-city="吉賀町"])){display:none}#yoshika:target ~ .empty-city#empty-yoshika{display:block}
   footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
     font-size:.7rem;color:var(--soft)}
@@ -103,11 +110,16 @@
 <body><div class="wrap">
   <header>
     <h1><ruby>石見<span class='r'>暦</span><rp>（</rp><rt>いわみごよみ</rt><rp>）</rp></ruby></h1>
-    <div class="lead">石見の催しと締切を、ひとつの暦に。<br>浜田・江津・益田・大田・津和野・邑南・川本・美郷・吉賀の9市町を集めています。　2026年08月24日 12:27 更新</div>
+    <div class="lead">石見の催しと締切を、ひとつの暦に。<br>浜田・江津・益田・大田・津和野・邑南・川本・美郷・吉賀の9市町を集めています。　2026年08月24日 12:44 更新</div>
   </header>
   <div class="counts">
     <span>催し 121</span><span>募集 11</span><span>制度 1</span><span>ぜんぶで 133</span>
   </div>
+  <div class="search">
+    <input type="search" id="q" autocomplete="off"
+           placeholder="キーワードで絞り込む">
+  </div>
+  <p class="empty-city search-empty" id="search-empty">見つかりませんでした。石見9市町（浜田・江津・益田・大田・津和野・邑南・川本・美郷・吉賀）の催しを集めています。</p>
   <nav class='pick' aria-label='市町で絞り込む'><a href="#all" class="all">ぜんぶ<span class='c'>133</span></a><a href="#hamada">浜田市<span class='c'>48</span></a><a href="#gotsu">江津市<span class='c'>8</span></a><a href="#masuda">益田市<span class='c'>8</span></a><a href="#oda">大田市<span class='c'>19</span></a><a href="#tsuwano">津和野町<span class='c'>16</span></a><a href="#ohnan">邑南町<span class='c'>18</span></a><a href="#kawamoto">川本町<span class='c'>12</span></a><a href="#misato">美郷町<span class='c'>4</span></a><a href="#yoshika">吉賀町<span class='c'>0</span></a></nav><span id="all" class="anchor"></span><span id="hamada" class="anchor"></span><span id="gotsu" class="anchor"></span><span id="masuda" class="anchor"></span><span id="oda" class="anchor"></span><span id="tsuwano" class="anchor"></span><span id="ohnan" class="anchor"></span><span id="kawamoto" class="anchor"></span><span id="misato" class="anchor"></span><span id="yoshika" class="anchor"></span><p class='empty-city' id='empty-yoshika'>いま 吉賀町 に載っている催し・募集はありません。下の畳んだ節（終わった分）には残っているかもしれません。</p>
   <p class="notice">
     自動で集めた情報です。日時・会場・締切・申込方法は、必ず各カードのリンク先（主催者の公式ページ）で
@@ -1752,4 +1764,21 @@
     各情報の権利は発信元に帰属します。掲載内容は各リンク先の公式ページでご確認ください。<br>
     掲載の追加・修正、掲載を望まれない場合は <a href="https://forms.gle/5ayQ1xFfUFX9kva69" target="_blank" rel="noopener">お問い合わせフォーム</a> からご連絡ください。
   </footer>
-</div></body></html>
+</div>
+<script>
+(function(){
+  var q = document.getElementById('q'), empty = document.getElementById('search-empty');
+  if (!q || !empty) return;
+  var cards = document.querySelectorAll('.card');
+  q.addEventListener('input', function(){
+    var needle = q.value.trim(), visible = false;
+    cards.forEach(function(c){
+      var hide = needle && !c.textContent.includes(needle);
+      c.classList.toggle('search-hide', hide);
+      if (!hide && c.offsetParent !== null) visible = true;
+    });
+    empty.style.display = (needle && !visible) ? 'block' : 'none';
+  });
+})();
+</script>
+</body></html>
