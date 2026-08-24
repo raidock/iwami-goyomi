@@ -413,7 +413,7 @@ _TPL = """<!doctype html>
     padding:2.2rem 1rem;margin:1rem 0;border:1px dashed var(--line);border-radius:4px}}
   .search{{display:none;margin:0 0 1.1rem}}
   .js .search{{display:block}}
-  .search input{{width:100%;box-sizing:border-box;font:inherit;font-size:.85rem;
+  .search input{{width:100%;box-sizing:border-box;font:inherit;font-size:16px;
     padding:.6rem .9rem;border:1px solid var(--line);border-radius:4px;
     background:var(--card);color:var(--ink)}}
   .card.search-hide{{display:none}}
