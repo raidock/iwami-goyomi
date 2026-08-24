@@ -273,6 +273,10 @@ def to_public_site(events: list[Event], region: str = "石見",
     else:
         h1_html = shown
     tagline = site.get("tagline") or "市町のお知らせから、催し・募集・使える制度を拾って並べています。"
+    # 「載っていない」が「対象外」なのか区別つかない、という反応を受けて追加。
+    # CITY_SLUG（絞り込みナビと同じ一覧）から生成し、市町名を2箇所に書かない
+    scope_line = ("・".join(c[:-1] for c in CITY_SLUG)
+                 + f"の{len(CITY_SLUG)}市町を集めています。")
     url = site.get("url") or ""
     contact = site.get("contact") or ""
     operator = site.get("operator") or ""
@@ -300,6 +304,7 @@ def to_public_site(events: list[Event], region: str = "石見",
                        total=len(moyoshi) + len(boshu) + len(seido), body=body,
                        n_m=len(moyoshi), n_b=len(boshu), n_s=len(seido),
                        title=_html.escape(title), tagline=_html.escape(tagline),
+                       scope_line=_html.escape(scope_line),
                        h1_html=h1_html,
                        contact_html=contact_html, operator_html=operator_html,
                        canonical=canonical, og_url=og_url,
@@ -411,7 +416,7 @@ _TPL = """<!doctype html>
 <body><div class="wrap">
   <header>
     <h1>{h1_html}</h1>
-    <div class="lead">{tagline}　{generated} 更新</div>
+    <div class="lead">{tagline}<br>{scope_line}　{generated} 更新</div>
   </header>
   <div class="counts">
     <span>催し {n_m}</span><span>募集 {n_b}</span><span>制度 {n_s}</span><span>ぜんぶで {total}</span>
