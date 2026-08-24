@@ -136,11 +136,12 @@ def test_title_derived_date_is_also_refreshable():
     """
     q, d = _queue()
     try:
+        pinned_today = date(2026, 8, 1)  # 固定しないと日付が過ぎるたびに is_finished() で弾かれる
         first = _ev(date_start=date(2026, 8, 22)); first.review_state = "auto"
         assert first.date_source == "", "前提が変わっている"
-        q.ingest([first])
+        q.ingest([first], today=pinned_today)
         later = _ev(date_start=date(2026, 8, 23)); later.review_state = "auto"
-        q.ingest([later])
+        q.ingest([later], today=pinned_today)
         assert q.approved[0].date_start == date(2026, 8, 23)
     finally:
         shutil.rmtree(d)
