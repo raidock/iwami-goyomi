@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "title": "令和9年度コミュニティ助成事業を募集します",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.city.gotsu.lg.jp/soshiki/2/38076.html",
+    "source": "gotsu_city",
+    "raw_date_text": "",
+    "city": "江津市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "島根県江津市では令和9年度コミュニティ助成事業を募集します",
+    "published_at": "2026-09-01",
+    "deadline": "2026-09-30",
+    "category": "ビジネス・創業・補助金",
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "募集",
+    "status": "開催予定",
+    "review_state": "pending",
+    "score": 1,
+    "reason": "弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "",
+    "deadline_source": "見出し「申請書の提出期限」",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "a535173053c30e1ee17b8419f95f884e"
+  }
+]
