@@ -21,6 +21,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime
 
 from .models import Event, now_jst, today_jst
+from .site_meta import MARK_PATH, brand_meta
 
 _WD = ["月", "火", "水", "木", "金", "土", "日"]
 URGENT_DAYS = 14          # これ以内の締切があれば募集を最上段へ
@@ -298,8 +299,7 @@ def to_public_site(events: list[Event], region: str = "石見",
                         "site.contact に連絡先を入れてください。"
                         "連絡先のない公開はおすすめしません。</span>")
     operator_html = f"運営: {_html.escape(operator)}<br>" if operator else ""
-    canonical = f'<link rel="canonical" href="{_html.escape(url)}">' if url else ""
-    og_url = f'<meta property="og:url" content="{_html.escape(url)}">' if url else ""
+    meta_html = brand_meta(site, title, tagline)
 
     return _TPL.format(region=_html.escape(region), generated=generated,
                        total=len(moyoshi) + len(boshu) + len(seido), body=body,
@@ -309,7 +309,7 @@ def to_public_site(events: list[Event], region: str = "石見",
                        search_empty=_html.escape(search_empty),
                        h1_html=h1_html,
                        contact_html=contact_html, operator_html=operator_html,
-                       canonical=canonical, og_url=og_url,
+                       meta_html=meta_html, mark_path=MARK_PATH,
                        filter_nav=filter_nav, filter_css=filter_css)
 
 
@@ -319,13 +319,7 @@ _TPL = """<!doctype html>
 <script>document.documentElement.classList.add('js')</script>
 <title>{title}</title>
 <meta name="description" content="{tagline}">
-{canonical}
-<meta property="og:type" content="website">
-<meta property="og:title" content="{title}">
-<meta property="og:description" content="{tagline}">
-<meta property="og:locale" content="ja_JP">
-{og_url}
-<meta name="twitter:card" content="summary_large_image">
+{meta_html}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -338,6 +332,9 @@ _TPL = """<!doctype html>
     font-family:"Zen Kaku Gothic New",system-ui,sans-serif;line-height:1.65}}
   .wrap{{max-width:1040px;margin:0 auto;padding:clamp(1.2rem,4vw,3rem) 1.1rem 4rem}}
   header{{border-bottom:2px solid var(--ink);padding-bottom:.9rem}}
+  .brand-lockup{{display:flex;align-items:flex-start;gap:.78rem}}
+  .brand-mark{{width:clamp(2.45rem,6vw,3.2rem);height:clamp(2.45rem,6vw,3.2rem);
+    flex:0 0 auto;margin-top:.18rem}}
   h1{{font-family:"Zen Old Mincho",serif;font-weight:900;margin:0;
     font-size:clamp(1.8rem,5.5vw,3rem);letter-spacing:.05em}}
   h1 .r{{color:var(--sekishu)}}
@@ -424,8 +421,11 @@ _TPL = """<!doctype html>
 </style></head>
 <body><div class="wrap">
   <header>
-    <h1>{h1_html}</h1>
-    <div class="lead">{tagline}<br>{scope_line}　{generated} 更新</div>
+    <div class="brand-lockup">
+      <img class="brand-mark" src="{mark_path}" width="64" height="64" alt="">
+      <div><h1>{h1_html}</h1>
+      <div class="lead">{tagline}<br>{scope_line}　{generated} 更新</div></div>
+    </div>
   </header>
   <div class="counts">
     <span>催し {n_m}</span><span>募集 {n_b}</span><span>制度 {n_s}</span><span>ぜんぶで {total}</span>

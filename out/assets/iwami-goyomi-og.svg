@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">石見暦 — 石見の催しと締切を、ひとつの暦に。</title>
+  <desc id="desc">9市町の情報をまとめる地域の催し暦</desc>
+  <rect width="1200" height="630" fill="#eae6dc"/>
+  <path d="M80 96H1120M80 534H1120" stroke="#d2ccbd" stroke-width="2"/>
+  <g transform="translate(84 126)">
+    <path d="M8 8h104a8 8 0 0 1 8 8v104a8 8 0 0 1-8 8H8a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8Z" fill="#f6f3ec" stroke="#23211c" stroke-width="6"/>
+    <path d="M0 39h120M31 0v22M89 0v22" fill="none" stroke="#23211c" stroke-linecap="round" stroke-width="6"/>
+    <g fill="#33595c">
+      <circle cx="30" cy="68" r="7" fill="#8a3a2b"/><circle cx="60" cy="68" r="7"/><circle cx="90" cy="68" r="7"/>
+      <circle cx="30" cy="98" r="7"/><circle cx="60" cy="98" r="7"/><circle cx="90" cy="98" r="7"/>
+    </g>
+  </g>
+  <text x="242" y="172" fill="#23211c" font-family="Hiragino Sans, Noto Sans JP, sans-serif" font-size="56" font-weight="700" letter-spacing="1">石見暦</text>
+  <text x="246" y="216" fill="#5f5a4f" font-family="Hiragino Sans, Noto Sans JP, sans-serif" font-size="21" font-weight="500" letter-spacing="3">いわみごよみ</text>
+  <text x="84" y="338" fill="#23211c" font-family="Hiragino Sans, Noto Sans JP, sans-serif" font-size="54" font-weight="700" letter-spacing="0">石見の催しと締切を、</text>
+  <text x="84" y="408" fill="#23211c" font-family="Hiragino Sans, Noto Sans JP, sans-serif" font-size="54" font-weight="700" letter-spacing="0">ひとつの暦に。</text>
+  <path d="M84 450h80" stroke="#8a3a2b" stroke-width="8"/>
+  <text x="84" y="495" fill="#5f5a4f" font-family="Hiragino Sans, Noto Sans JP, sans-serif" font-size="23" font-weight="500">石見地域 9市町の催し・募集・制度を集めています</text>
+  <g transform="translate(878 270)" fill="none" stroke="#33595c" stroke-width="2" opacity=".74">
+    <rect x="0" y="0" width="210" height="210"/>
+    <path d="M70 0v210M140 0v210M0 70h210M0 140h210"/>
+    <circle cx="35" cy="35" r="9" fill="#8a3a2b" stroke="none"/>
+    <circle cx="105" cy="35" r="9" fill="#33595c" stroke="none"/>
+    <circle cx="175" cy="35" r="9" fill="#33595c" stroke="none"/>
+    <circle cx="35" cy="105" r="9" fill="#33595c" stroke="none"/>
+    <circle cx="105" cy="105" r="9" fill="#33595c" stroke="none"/>
+    <circle cx="175" cy="105" r="9" fill="#33595c" stroke="none"/>
+    <circle cx="35" cy="175" r="9" fill="#33595c" stroke="none"/>
+    <circle cx="105" cy="175" r="9" fill="#33595c" stroke="none"/>
+    <circle cx="175" cy="175" r="9" fill="#33595c" stroke="none"/>
+  </g>
+</svg>

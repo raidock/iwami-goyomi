@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import html as _html
 from .models import now_jst
+from .site_meta import MARK_PATH, brand_meta
 
 from . import __version__
 
@@ -51,8 +52,12 @@ def to_about_page(site: dict, sources: list[dict]) -> str:
     reading = site.get("reading") or ""
     name_html = (f"{_html.escape(title)}（{_html.escape(reading)}）"
                  if reading else _html.escape(title))
+    page_title = f"このサイトについて｜{title}"
+    description = f"{title} の掲載方針、情報源、修正・削除のご依頼について。"
     return _TPL.format(
-        title=_html.escape(title),
+        title=_html.escape(title), page_title=_html.escape(page_title),
+        description=_html.escape(description), meta_html=brand_meta(site, page_title, description, "about.html"),
+        mark_path=MARK_PATH,
         name_html=name_html,
         operator=(f"<p>運営: {_html.escape(operator)}</p>" if operator else ""),
         contact_block=contact_block,
@@ -65,8 +70,9 @@ def to_about_page(site: dict, sources: list[dict]) -> str:
 _TPL = """<!doctype html>
 <html lang="ja"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>このサイトについて｜{title}</title>
-<meta name="description" content="{title} の掲載方針、情報源、修正・削除のご依頼について。">
+<title>{page_title}</title>
+<meta name="description" content="{description}">
+{meta_html}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -77,7 +83,9 @@ _TPL = """<!doctype html>
     font-family:"Zen Kaku Gothic New",system-ui,sans-serif}}
   .wrap{{max-width:720px;margin:0 auto;padding:clamp(1.2rem,4vw,3rem) 1.1rem 4rem}}
   h1{{font-family:"Zen Old Mincho",serif;font-weight:900;font-size:clamp(1.5rem,4.5vw,2.2rem);
-    border-bottom:2px solid var(--ink);padding-bottom:.6rem;margin:0 0 1.6rem}}
+    border-bottom:2px solid var(--ink);padding-bottom:.6rem;margin:0 0 1.6rem;
+    display:flex;align-items:center;gap:.55rem}}
+  .brand-mark{{width:2rem;height:2rem;flex:0 0 auto}}
   h2{{font-family:"Zen Old Mincho",serif;font-size:1.1rem;margin:2.4rem 0 .7rem;
     border-left:4px solid var(--sekishu);padding-left:.6rem}}
   p,li{{font-size:.92rem}}
@@ -100,7 +108,7 @@ _TPL = """<!doctype html>
 </style></head>
 <body><div class="wrap">
   <a class="back" href="./">← 催し一覧にもどる</a>
-  <h1>{name_html} について</h1>
+  <h1><img class="brand-mark" src="{mark_path}" width="64" height="64" alt="">{name_html} について</h1>
 
   <p>浜田・江津をはじめとする石見地域の催しを、市町や観光協会の公式サイトから
   自動で集めてまとめています。市のお知らせは大半が行政内部の情報で、住民向けの
