@@ -584,3 +584,11 @@ chore: 主催者の依頼により掲載を取り下げ
 自動収集のコミットは `chore: 収集 YYYY-MM-DD`（作者 `iwami-goyomi-bot`）。
 
 **作業前に必ず `git pull`。** 毎朝ボットがコミットするので、手元は毎日古くなります。
+
+**`cannot pull with rebase: You have unstaged changes` で止まったら、消して pull し直さない。**
+このリポジトリは `pull.rebase = true`（ローカル設定）なので、作業ツリーに未コミットの変更が
+残っていると pull が必ず止まります。`git checkout -- .` や `git reset --hard` で変更を
+消してから pull するのは事故のもと（進行中の作業を消します）。
+
+- 変更が完成していれば、意味単位でコミットしてから `git pull`（上のコミット規約で分ける）
+- 作業途中なら `git stash -u && git pull && git stash pop`
