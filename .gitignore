@@ -16,3 +16,19 @@ REPORT.md
 
 .codex/
 AGENTS.md
+
+# 他AIツール向けスキル複製。ui-ux-pro-max スキル導入時に副次的に生成された
+# もので、このプロジェクトの収集・分類・公開ロジックとは無関係
+.agent/
+.codebuddy/
+.continue/
+.cursor/
+.gemini/
+.github/prompts/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.windsurf/
+.claude/skills/ui-ux-pro-max/
