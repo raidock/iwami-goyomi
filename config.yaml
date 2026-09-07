@@ -14,7 +14,7 @@ site:
   # 例: メールアドレス、問い合わせフォームのURL、SNSアカウント
   contact: 'https://forms.gle/5ayQ1xFfUFX9kva69'
   # 運営者の名乗り。公開するなら誰がやっているか示したほうが信頼されます
-  operator: 'TandN Design'
+  operator: 'T&N design'
 region_name: 石見
 out_dir: out
 data_dir: data # git が保持するのでコードと一緒に動く。GitHub Actions と同じ置き場
