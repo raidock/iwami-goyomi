@@ -235,9 +235,14 @@ def test_seido_never_expires():
 
 
 def test_past_events_move_to_collapsed_section():
-    """終わったものは消さず、畳んだ節に残す。"""
+    """終わったものは消さず、畳んだ節に残す。
+
+    開始日は「まもなく始まる催し」の窓（TODAY〜+6日）の外にすること。
+    窓の中だとそちらの節に分かれ、「これからの催し」自体が0件になって
+    この検証の意図（これから→終わった、の順序）と噛み合わなくなる。
+    """
     evs = [_ev("終わった花火", "催し", start=date(2026, 7, 18)),
-           _ev("これからのフェス", "催し", start=date(2026, 8, 2))]
+           _ev("これからのフェス", "催し", start=date(2026, 8, 10))]
     html = to_public_site(evs, "石見", TODAY)
     assert "終わった催し" in html, "終了節が出ていない"
     assert "終わった花火" in html, "終わったものが消えてしまっている"

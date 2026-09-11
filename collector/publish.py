@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import html as _html
 from collections import Counter, defaultdict
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from .models import Event, now_jst, today_jst
 from .site_meta import MARK_PATH, brand_meta
@@ -26,6 +26,7 @@ from .site_meta import MARK_PATH, brand_meta
 _WD = ["月", "火", "水", "木", "金", "土", "日"]
 URGENT_DAYS = 14          # これ以内の締切があれば募集を最上段へ
 ALERT_DAYS = 7            # これ以内は赤く出す
+SOON_DAYS = 6             # 「まもなく始まる催し」の窓（今日を含めて7日間）
 
 STATUS_BADGE = {"中止": "中止", "終了": "終了", "最後の開催": "最後の開催"}
 
@@ -233,10 +234,24 @@ def to_public_site(events: list[Event], region: str = "石見",
             e.status = "終了"
     past.sort(key=lambda e: (e.date_start or e.deadline or date.min), reverse=True)
 
+    # 「まもなく始まる催し」— 今日から7日以内に**開始する**ものだけを抜き出す。
+    # 会期中のものは含めない。含めると、何か月も前に始まった企画展が先頭に
+    # 並ぶ問題（この節を作った動機そのもの）がそのままこの節に移ってしまう
+    # ことを実データで確かめた（measurements/2026-09-11-weekly-section.md）。
+    # 「これから」と同じカードが2枚出ないよう、抜き出した分は下の節から外す
+    soon_cutoff = today + timedelta(days=SOON_DAYS)
+    soon = [e for e in moyoshi if e.date_start and today <= e.date_start <= soon_cutoff]
+    soon_uids = {e.uid for e in soon}
+    moyoshi = [e for e in moyoshi if e.uid not in soon_uids]
+
     # 締切が迫っているものがあるときだけ、募集を先頭に繰り上げる
     urgent = any(e.deadline and 0 <= _days_left(e.deadline, today) <= URGENT_DAYS
                  for e in boshu)
 
+    # 「まもなく」は締切の切迫より下、通常の「これから」より上に置く。
+    # 締切優先の順序（設計判断1）を崩さないため、繰り上がった募集の下に入れる
+    b_soon = _block("まもなく始まる催し", "今日から7日以内に始まるもの。",
+                    soon, today, "k-soon")
     b_m = _block("これからの催し", "行ってみるもの。開催日の近い順。",
                  moyoshi, today, "k-moyoshi")
     b_b = _block("募集・締切のあるもの", "申し込むもの。締切の近い順。",
@@ -252,11 +267,11 @@ def to_public_site(events: list[Event], region: str = "石見",
                f"<p class='lead2'>記録として残しています。</p>"
                f"<div class='grid'>{cards}</div></details>")
 
-    body = (b_b + b_m if urgent else b_m + b_b) + b_s + b_p
+    body = (b_b + b_soon + b_m if urgent else b_soon + b_m + b_b) + b_s + b_p
     if not body:
         body = "<p class='empty'>いまのところ掲載できるものがありません。</p>"
 
-    filter_nav, filter_css = _filter_nav(moyoshi + boshu + seido)
+    filter_nav, filter_css = _filter_nav(moyoshi + soon + boshu + seido)
 
     site = site or {}
     title = site.get("title") or f"{region}の催し"
@@ -302,8 +317,8 @@ def to_public_site(events: list[Event], region: str = "石見",
     meta_html = brand_meta(site, title, tagline)
 
     return _TPL.format(region=_html.escape(region), generated=generated,
-                       total=len(moyoshi) + len(boshu) + len(seido), body=body,
-                       n_m=len(moyoshi), n_b=len(boshu), n_s=len(seido),
+                       total=len(moyoshi) + len(soon) + len(boshu) + len(seido), body=body,
+                       n_m=len(moyoshi) + len(soon), n_b=len(boshu), n_s=len(seido),
                        title=_html.escape(title), tagline=_html.escape(tagline),
                        scope_line=_html.escape(scope_line),
                        search_empty=_html.escape(search_empty),

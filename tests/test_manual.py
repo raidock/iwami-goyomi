@@ -63,7 +63,10 @@ def test_manual_entry_reaches_the_public_page():
         assert len(events) == 1, f"{len(events)}件（1件のはず）"
         html = to_public_site(events, today=date(2026, 8, 1))
         assert "2026石州浜っ子夏まつり" in html, "画面に出ていない"
-        assert "これからの催し" in html, "終わった扱いになっている"
+        # date_start が today と同日なので「まもなく始まる催し」に入る
+        # （7日以内に開始するものの節。「これから」とは表示が分かれる）
+        assert "まもなく始まる催し" in html, "終わった扱いになっている"
+        assert "終わった催し" not in html, "終わった扱いになっている"
         assert URL in html, "一次情報リンクが出ていない"
     finally:
         shutil.rmtree(d)
