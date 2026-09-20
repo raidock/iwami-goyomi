@@ -2926,7 +2926,9 @@
     "published_at": "2026-09-12",
     "deadline": null,
     "category": null,
-    "tags": [],
+    "tags": [
+      "要申込"
+    ],
     "organizer": null,
     "organizer_type": "観光協会",
     "kind": "催し",
