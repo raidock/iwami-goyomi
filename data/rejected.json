@@ -3064,5 +3064,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "3f807d8f9668db51f78f2180ad0211ea"
+  },
+  {
+    "title": "はっしーマルシェ（～たぶせの秋　岸辺のステージ）出展者募集のお知らせ",
+    "prefecture": "島根県",
+    "date_start": "2026-11-28",
+    "date_end": null,
+    "url": "https://www.town.ohnan.lg.jp/soshiki/7/9550.html",
+    "source": "ohnan_town",
+    "raw_date_text": "",
+    "city": "邑南町",
+    "venue": null,
+    "distance_tier": null,
+    "description": "",
+    "published_at": "2026-09-19",
+    "deadline": "2026-09-28",
+    "category": "祭り・市・マルシェ",
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "rejected",
+    "score": 3,
+    "reason": "イベント語: マルシェ / 弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "見出し「日時」",
+    "deadline_source": "見出し「■申込締切」",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "1034ba5f2bd6db1af89a7a9694e2a3a4"
   }
 ]
