@@ -90,5 +90,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "b438ddaa8b957d3f5d33f7c575c83837"
+  },
+  {
+    "title": "市民からの写真を募集します",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.city.gotsu.lg.jp/soshiki/4/41979.html",
+    "source": "gotsu_city",
+    "raw_date_text": "",
+    "city": "江津市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "",
+    "published_at": "2026-09-25",
+    "deadline": "2026-11-10",
+    "category": "文化・アート・クラフト",
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "募集",
+    "status": "開催予定",
+    "review_state": "pending",
+    "score": 1,
+    "reason": "弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "",
+    "deadline_source": "見出し「募集期間」の終わり",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "05bd2327a62f6009aa267c3de459a904"
   }
 ]
