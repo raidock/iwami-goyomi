@@ -8804,5 +8804,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "aef5312f38ba2a87e0928ef6f2f06071"
+  },
+  {
+    "title": "【ウォーキングイベント】Vitality江津ウォークの参加者を募集します！",
+    "prefecture": "島根県",
+    "date_start": "2026-10-26",
+    "date_end": null,
+    "url": "https://www.city.gotsu.lg.jp/soshiki/10/42296.html",
+    "source": "gotsu_city",
+    "raw_date_text": "",
+    "city": "江津市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "",
+    "published_at": "2026-09-30",
+    "deadline": "2026-11-01",
+    "category": "スポーツ",
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "approved",
+    "score": 5,
+    "reason": "開催・募集の明示 / 弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "見出し「日時」ほか1件",
+    "deadline_source": "見出し「申し込み期間」の終わり",
+    "session_count": null,
+    "other_dates": 1,
+    "uid": "4d63e9b4afe07cf30a40463acf4164ba"
   }
 ]
