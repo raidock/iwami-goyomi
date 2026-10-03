@@ -863,7 +863,7 @@
   {
     "title": "「山陰浜田港お魚料理教室」の開催について（受講者募集）",
     "prefecture": "島根県",
-    "date_start": "2026-09-16",
+    "date_start": "2026-11-19",
     "date_end": null,
     "url": "https://www.city.hamada.shimane.jp/www/contents/1450675376077/index.html",
     "source": "hamada_city",
@@ -873,7 +873,7 @@
     "distance_tier": null,
     "description": "",
     "published_at": "2026-07-22",
-    "deadline": "2026-08-21",
+    "deadline": "2026-10-23",
     "category": "学び・講座",
     "tags": [
       "要申込"
@@ -8956,5 +8956,35 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "b00003127e1bc8dddaa80ddfc13472e4"
+  },
+  {
+    "title": "レールバイク再開！ ビタ止め選手権と乗車体験。6か月ぶりに走ります〜",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.kawamoto-kankou.jp/info/2026/post-7479/",
+    "source": "kawamoto_kanko",
+    "raw_date_text": "",
+    "city": "川本町",
+    "venue": null,
+    "distance_tier": null,
+    "description": "令和8年11月1日（日）　石見川本駅&#160; レールバイクイベント おかえり、レールバイク。 6か月ぶりに...",
+    "published_at": "2026-10-02",
+    "deadline": "2026-10-29",
+    "category": "学び・講座",
+    "tags": [],
+    "organizer": null,
+    "organizer_type": "観光協会",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "approved",
+    "score": 2,
+    "reason": "イベント語: 体験",
+    "source_trust": "high",
+    "date_source": "",
+    "deadline_source": "見出し「申込締切」",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "3e2f3a94822dcc2c2b3d3d6743414f3f"
   }
 ]
