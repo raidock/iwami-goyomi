@@ -468,6 +468,12 @@ python tests/test_oda_city.py       # 大田市の掲載日補完（フィード
 python tests/test_skipped.py        # 除外記録（is_finished の永久除外・無駄な再取得の防止）
 ```
 
+### テストの「今日」は固定する
+
+テストに固定した未来の日付を書くと、その日が過ぎてから落ちる。`ingest()`・`to_public_site()`・
+アダプター（`MunicipalRSS`）に `today=` を渡して時間を固定すること。
+2026-08-24 と 2026-10-07（どちらも `test_dedup`）で踏んだ。
+
 ### 分類器を変えたら必ず測り直す
 
 `tests/test_classify.py` が再現率と適合率を出します。
