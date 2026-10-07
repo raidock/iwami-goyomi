@@ -96,6 +96,11 @@ def test_human_decision_is_never_overwritten():
 # 瞬間に古い日付が残り、残りの回があるのに is_past() で永久に畳まれていた。
 # 抽出由来の値は毎回の抽出結果で上書きする。
 
+# **今日を固定する。** 渡さないと実際の今日で is_finished() が判定され、
+# 2026-09-13 以降は 9/12 の催しが取り込まれずにテストが落ちた（2026-10-07）
+TODAY = date(2026, 9, 1)
+
+
 def test_known_item_date_is_refreshed_not_frozen():
     """次回が過ぎたら、次の回に進む。古い日付が凍りつかない。"""
     q, d = _queue()
@@ -103,11 +108,11 @@ def test_known_item_date_is_refreshed_not_frozen():
         first = _ev(date_start=date(2026, 9, 12)); first.review_state = "auto"
         first.date_source = "表「講習日時」の列（全6回・次回）"
         first.session_count = 6
-        q.ingest([first])
+        q.ingest([first], today=TODAY)
         later = _ev(date_start=date(2026, 11, 18)); later.review_state = "auto"
         later.date_source = "表「講習日時」の列（全6回・次回）"
         later.session_count = 6
-        stats = q.ingest([later])
+        stats = q.ingest([later], today=TODAY)
         assert q.approved[0].date_start == date(2026, 11, 18), \
             f"古い日付が残っている: {q.approved[0].date_start}"
         assert stats["updated"] == 1
@@ -120,9 +125,9 @@ def test_missing_new_date_does_not_erase_the_old_one():
     q, d = _queue()
     try:
         first = _ev(date_start=date(2026, 9, 12)); first.review_state = "auto"
-        q.ingest([first])
+        q.ingest([first], today=TODAY)
         blank = _ev(); blank.review_state = "auto"      # 今回は取れなかった
-        q.ingest([blank])
+        q.ingest([blank], today=TODAY)
         assert q.approved[0].date_start == date(2026, 9, 12), "既存の日付が消えた"
     finally:
         shutil.rmtree(d)
