@@ -58,6 +58,10 @@ class _FakeRSS(MunicipalRSS):
     """取得だけ差し替える。ネットには出ない。"""
 
     def __init__(self, pages, **kw):
+        # **今日を固定する。** 渡さないと掲載日の足切りが実際の今日で動き、
+        # フィードの掲載日（2026-07-21 / 2024-05-02）から max_age_days が過ぎた
+        # 2027-08-16 以降にテストだけが落ちる（2026-10-07 に今日を進めて実測）
+        kw.setdefault("today", TODAY)
         super().__init__(key="fake", site="https://example.com",
                          municipality="浜田市", feed_url="https://example.com/feed/",
                          **kw)
@@ -118,6 +122,7 @@ class _FlakyRSS(MunicipalRSS):
     """指定した回数だけ失敗してから成功する。ネットには出ない。"""
 
     def __init__(self, fail_times, feed_text=None, **kw):
+        kw.setdefault("today", TODAY)          # 今日を固定する（_FakeRSS と同じ理由）
         super().__init__(key="flaky", site="https://example.com",
                          municipality="浜田市", feed_url="https://example.com/feed/",
                          **kw)
@@ -154,7 +159,8 @@ def test_end_of_inventory_404_on_later_page_is_not_retried():
         def __init__(self):
             super().__init__(key="fake", site="https://example.com",
                              municipality="浜田市",
-                             feed_url="https://example.com/feed/", feed_pages=3)
+                             feed_url="https://example.com/feed/", feed_pages=3,
+                             today=TODAY)       # 今日を固定する（_FakeRSS と同じ理由）
             self.calls = []
 
         def get(self, url):

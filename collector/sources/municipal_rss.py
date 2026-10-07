@@ -33,7 +33,7 @@ class MunicipalRSS(Source):
                  feed_url: str | None = None, max_age_days: int = 400,
                  url_include: str | None = None,
                  fetch_delay_sec: float = DEFAULT_FETCH_DELAY_SEC,
-                 feed_pages: int = 1, **kw):
+                 feed_pages: int = 1, today: date | None = None, **kw):
         super().__init__(fetch_delay_sec=fetch_delay_sec,
                          **{k: v for k, v in kw.items() if k == "timeout"})
         self.name = key
@@ -47,6 +47,11 @@ class MunicipalRSS(Source):
         # サイト全体のRSSしかない場合に、記事URLで絞り込む
         # （江津市観光協会は /feed に観光スポット紹介まで流れてくる）
         self.url_include = re.compile(url_include) if url_include else None
+        # 掲載日の足切りの基準日。**テストで時間を固定するためだけの口**で、
+        # 本番では渡さない（渡さなければ実際の今日）。`ReviewQueue.ingest()` の
+        # `today=` と同じ考え方。固定しないと、テストの掲載日から max_age_days が
+        # 過ぎた日に、テストだけが落ちる
+        self.today = today
 
     # ---- フィードの発見 ------------------------------------------------
     def _abs(self, href: str) -> str:
@@ -124,7 +129,7 @@ class MunicipalRSS(Source):
 
     def parse_feed(self, xml: str) -> list[Event]:
         soup = BeautifulSoup(xml, "xml")
-        cutoff = today_jst() - timedelta(days=self.max_age_days)
+        cutoff = (self.today or today_jst()) - timedelta(days=self.max_age_days)
         events: list[Event] = []
 
         for item in soup.find_all(["item", "entry"]):
