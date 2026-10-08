@@ -3192,5 +3192,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "f7feedaac9926cb4a39e24852a3da76d"
+  },
+  {
+    "title": "公立保育所の調理員等を募集します",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.city.gotsu.lg.jp/soshiki/11/42494.html",
+    "source": "gotsu_city",
+    "raw_date_text": "",
+    "city": "江津市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "",
+    "published_at": "2026-10-07",
+    "deadline": null,
+    "category": null,
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "募集",
+    "status": "開催予定",
+    "review_state": "rejected",
+    "score": 1,
+    "reason": "弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "be355a7db43bbf30d8309188f7bed200"
   }
 ]
