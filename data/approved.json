@@ -9897,5 +9897,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "6945346d2df104b9a119fe1b59ecf43e"
+  },
+  {
+    "title": "【11/1開催】かわもとまげなフェスタ（産業祭から名称変更になりました！）",
+    "prefecture": "島根県",
+    "date_start": "2026-11-01",
+    "date_end": null,
+    "url": "https://www.kawamoto-kankou.jp/info/2026/post-7547/",
+    "source": "kawamoto_kanko",
+    "raw_date_text": "",
+    "city": "川本町",
+    "venue": null,
+    "distance_tier": null,
+    "description": "11月2日(日)中央大通りにて「第47回川本町産業祭」を開催します。 会場では、町内外の事業者・団体によるテン...",
+    "published_at": "2026-10-13",
+    "deadline": null,
+    "category": "祭り・市・マルシェ",
+    "tags": [
+      "事業者向け"
+    ],
+    "organizer": null,
+    "organizer_type": "観光協会",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "approved",
+    "score": 7,
+    "reason": "開催・募集の明示 / イベント語: フェスタ/フェス / 弱い手がかり: 開催",
+    "source_trust": "high",
+    "date_source": "タイトル冒頭",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "e114587e608104c390af1feb11e999ec"
   }
 ]
