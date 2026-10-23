@@ -24,7 +24,7 @@ https://raidock.github.io/iwami-goyomi/
 ### ② ボットは動いているか
 
 ```bash
-cd ~/App/iwami-goyomi
+cd ~/projects/active/iwami-goyomi
 git pull
 git log -1 --format='%ad  %an  %s' --date=short --author=iwami-goyomi-bot
 ```
@@ -77,7 +77,7 @@ https://github.com/raidock/iwami-goyomi/actions
 環境では作り直しが要ります。**
 
 ```bash
-cd ~/App/iwami-goyomi
+cd ~/projects/active/iwami-goyomi
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -103,7 +103,7 @@ python main.py status
 日常の運用は**承認だけ**です。これだけ覚えていれば回ります。
 
 ```bash
-cd ~/App/iwami-goyomi
+cd ~/projects/active/iwami-goyomi
 source .venv/bin/activate
 git pull
 python main.py review
