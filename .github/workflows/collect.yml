@@ -69,7 +69,12 @@ jobs:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
     steps:
+      # 既定の checkout は「起動時点の SHA」を取る。collect が push した
+      # 今朝の out/health.json を読むには、ブランチの現在の先頭を取る必要がある。
+      # 既定のままだと前日の結果を読み、通知が常に1日遅れになる（2026-10-23）。
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt
