@@ -71,6 +71,21 @@ def test_health_is_its_own_job():
     assert "main.py health" in runs, "health ジョブに健康診断の run が無い"
 
 
+def test_health_checks_out_branch_head_not_trigger_sha():
+    """health は collect が push した後の health.json を読む。
+
+    2026-10-23: 既定の checkout は起動時点の SHA を取るため、前日の
+    out/health.json を読み、通知が常に1日遅れた（今朝の失敗は前日の不調への
+    誤報だった）。ref を明示してブランチの現在の先頭を取ること。
+    """
+    steps = _load()["jobs"]["health"]["steps"]
+    co = next(s for s in steps
+              if isinstance(s, dict) and str(s.get("uses", "")).startswith("actions/checkout"))
+    ref = (co.get("with") or {}).get("ref")
+    assert ref, "health の checkout に ref が無い（起動時点の SHA = 前日の health.json を読む）"
+    assert "github.ref" in str(ref), f"ref がブランチの現在の先頭を指していない: {ref!r}"
+
+
 def test_collect_job_no_longer_runs_health():
     """健康診断は collect の外に出ている（collect 内に残っていると二重に走る）。"""
     assert "main.py health" not in _collect_runs(), \
