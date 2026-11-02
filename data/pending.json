@@ -88,5 +88,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "3901878096e75e7082cf4876e0ea56cd"
+  },
+  {
+    "title": "令和9年度浜田市坂根正弘奨学金奨学生を募集します",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.city.hamada.shimane.jp/www/contents/1790216659249/index.html",
+    "source": "hamada_city",
+    "raw_date_text": "",
+    "city": "浜田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "",
+    "published_at": "2026-11-02",
+    "deadline": "2027-03-31",
+    "category": null,
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "募集",
+    "status": "開催予定",
+    "review_state": "pending",
+    "score": 1,
+    "reason": "弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "",
+    "deadline_source": "見出し「2 　受付期間」の終わり",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "7f6f0df36d0b2ff3847a63c68597d948"
   }
 ]
