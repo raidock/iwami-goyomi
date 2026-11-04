@@ -3533,5 +3533,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "3fc46acd97709147caafe7450c2e9e3f"
+  },
+  {
+    "title": "「津和野町リサイクルカレンダー」有料広告を募集します",
+    "prefecture": "島根県",
+    "date_start": null,
+    "date_end": null,
+    "url": "https://www.town.tsuwano.lg.jp/www/contents/1606204853978/index.html",
+    "source": "tsuwano_town",
+    "raw_date_text": "",
+    "city": "津和野町",
+    "venue": null,
+    "distance_tier": null,
+    "description": "",
+    "published_at": "2026-11-01",
+    "deadline": "2026-12-11",
+    "category": null,
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "自治体",
+    "kind": "募集",
+    "status": "開催予定",
+    "review_state": "rejected",
+    "score": 1,
+    "reason": "弱い手がかり: 募集",
+    "source_trust": "normal",
+    "date_source": "",
+    "deadline_source": "本文「…までに/必着」",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "30da1d686e767b8979e0c6ce9cfb8d51"
   }
 ]
