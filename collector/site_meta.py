@@ -19,8 +19,12 @@ def public_url(site: dict, path: str = "") -> str:
     return urljoin(base if base.endswith("/") else base + "/", path)
 
 
-def brand_meta(site: dict, title: str, description: str, path: str = "") -> str:
-    """favicon と OGP を全公開ページで同じ定義から出す。"""
+def brand_meta(site: dict, title: str, description: str, path: str = "",
+               theme_color: str = "#eae6dc") -> str:
+    """favicon と OGP を全公開ページで同じ定義から出す。
+
+    theme_color は地の色が違うページ（読みもの story.html は宵の藍）だけが渡す。
+    """
     canonical_url = public_url(site, path)
     image_url = public_url(site, OG_IMAGE_PATH)
     site_name = site.get("title") or "石見暦"
@@ -28,7 +32,7 @@ def brand_meta(site: dict, title: str, description: str, path: str = "") -> str:
     tags = [
         f'<link rel="icon" href="{MARK_PATH}" type="image/svg+xml">',
         f'<link rel="apple-touch-icon" href="{APPLE_TOUCH_ICON_PATH}">',
-        '<meta name="theme-color" content="#eae6dc">',
+        f'<meta name="theme-color" content="{_html.escape(theme_color)}">',
         '<meta property="og:type" content="website">',
         f'<meta property="og:title" content="{_html.escape(title)}">',
         f'<meta property="og:description" content="{_html.escape(description)}">',

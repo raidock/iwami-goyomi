@@ -29,6 +29,7 @@ from collector.about import to_about_page
 from collector.manual import merge_for_build
 from collector.publish import to_public_site
 from collector.renderers import to_ics, to_json
+from collector.story import STORY_PATH, to_story_page
 from collector.review import ReviewQueue
 from collector.sources.base import DEFAULT_FETCH_DELAY_SEC, Pacer
 from collector.sources.municipal_rss import MunicipalRSS
@@ -284,6 +285,8 @@ def cmd_build(cfg: dict, queue: ReviewQueue) -> None:
     srcs = cfg.get("municipalities", []) + cfg.get("tourism", [])
     (out / "about.html").write_text(
         to_about_page(cfg.get("site", {}), srcs), encoding="utf-8")
+    (out / STORY_PATH).write_text(
+        to_story_page(cfg.get("site", {}), srcs, events), encoding="utf-8")
     hand = f"（うち手動 {len(manual)}件）" if manual else ""
     print(f"[done] {len(events)}件{hand}で公開サイトを生成 → {out}/index.html")
 
