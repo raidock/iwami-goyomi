@@ -27,7 +27,7 @@ from .site_meta import MARK_PATH, STORY_PATH, STORY_TITLE, brand_meta
 NIGHT = "#111A2E"
 
 # 第4章の本文「祭り、市、神楽、講座、展示」の並びに合わせて、題名を1件ずつ見せる。
-# 左が Event.category、右は並び順のためだけのもので画面には出さない
+# 値は Event.category。選ぶためだけに使い、画面には出さない
 _SAMPLE_CATEGORIES = [
     "祭り・市・マルシェ",
     "神楽・伝統芸能",
@@ -61,9 +61,11 @@ def sample_events(events: list[Event], today: date) -> list[Event]:
         e for e in events
         if (e.kind or "催し") == "催し" and e.status == "開催予定"
         and e.date_start and not is_past(e, today)
-        and e.url and e.title and len(e.title) <= _SAMPLE_TITLE_MAX
+        and e.url.startswith(("http://", "https://"))
+        and e.title and len(e.title) <= _SAMPLE_TITLE_MAX
     ]
-    upcoming.sort(key=lambda e: (e.date_start, e.url))
+    # まだ始まっていないものを先に。何か月も前に始まった会期ものが先頭に並ばないように
+    upcoming.sort(key=lambda e: (e.date_start < today, e.date_start, e.url))
     picked: list[Event] = []
     for cat in _SAMPLE_CATEGORIES:
         pool = [e for e in upcoming if e.category == cat and e not in picked]
@@ -392,7 +394,7 @@ _TPL = """<!doctype html>
       .ch6{timeline-scope:--cta}
       .ch6 .btn{view-timeline-name:--cta}
       .is-lit .last,.is-lit .halo{animation:appear cubic-bezier(.2,.6,.3,1) both;
-        animation-timeline:--cta;animation-range:cover 0% cover 32%}
+        animation-timeline:--cta;animation-range:cover 0% cover 26%}
       .is-lit .halo{animation-name:bloom;transform-box:fill-box;transform-origin:center}
     }
   }

@@ -141,6 +141,24 @@ def test_samples_skip_cancelled_and_long_titles():
     assert [e.title for e in sample_events(events, TODAY)] == ["君谷マーケット"]
 
 
+def test_samples_prefer_events_that_have_not_started_yet():
+    """会期中の催しより、これから始まる催しを先に選ぶ。"""
+    events = [
+        _ev("石見神楽定期公演", "浜田市", date(2026, 4, 1), date(2027, 3, 31),
+            category="神楽・伝統芸能"),
+        _ev("第３０回　江津市石見神楽大会（2026.11.22開催）", "江津市", date(2026, 11, 22),
+            category="神楽・伝統芸能"),
+    ]
+    assert sample_events(events, TODAY)[0].city == "江津市"
+
+
+def test_samples_only_link_to_web_pages():
+    events = [_ev("あやしいリンクの祭り", "浜田市", date(2026, 11, 20),
+                  url="javascript:alert(1)")]
+    assert sample_events(events, TODAY) == []
+    assert "javascript:" not in _page(events=events)
+
+
 def test_titles_are_escaped():
     html = _page(events=[_ev("<script>alert(1)</script>祭り", "浜田市", date(2026, 11, 20))])
     assert "<script>" not in html
