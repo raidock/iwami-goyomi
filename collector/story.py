@@ -21,10 +21,7 @@ from datetime import date
 
 from .models import Event, today_jst
 from .publish import is_past
-from .site_meta import MARK_PATH, brand_meta
-
-STORY_PATH = "story.html"
-STORY_TITLE = "隣の町の灯り"
+from .site_meta import MARK_PATH, STORY_PATH, STORY_TITLE, brand_meta
 
 # 宵の藍。色はここ1か所（theme-color にも同じ値を渡す）
 NIGHT = "#111A2E"

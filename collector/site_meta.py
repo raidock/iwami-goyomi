@@ -10,6 +10,11 @@ MARK_PATH = "assets/iwami-goyomi-mark.svg"
 APPLE_TOUCH_ICON_PATH = "assets/apple-touch-icon.png"
 OG_IMAGE_PATH = "assets/iwami-goyomi-og.png"
 
+# 読みもの（collector/story.py）。トップのフッターからも1行だけ案内するので、
+# 名前と置き場はここ1か所に置く
+STORY_PATH = "story.html"
+STORY_TITLE = "隣の町の灯り"
+
 
 def public_url(site: dict, path: str = "") -> str:
     """config.yaml の公開URLを基点に、共有用の絶対URLを組み立てる。"""

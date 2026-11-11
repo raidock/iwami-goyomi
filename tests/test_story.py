@@ -171,6 +171,13 @@ def test_shared_brand_and_page_url():
     assert '<meta name="theme-color" content="#eae6dc">' in to_public_site([], site=SITE)
 
 
+def test_top_page_links_to_the_story_once():
+    """既存ページからの導線は、トップのフッターに1行だけ。"""
+    top = to_public_site([], site=SITE)
+    assert top.count('href="story.html"') == 1
+    assert '<a href="story.html">読みもの「隣の町の灯り」</a>' in top
+
+
 def test_six_oclock_matches_the_workflow():
     """「毎朝6時」は、収集が実際に動く時刻（ワークフローの cron・UTC）と同じ。"""
     wf = yaml.safe_load(next((ROOT / ".github" / "workflows").glob("*.yml")).read_text("utf-8"))

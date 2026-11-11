@@ -29,7 +29,8 @@ from collector.about import to_about_page
 from collector.manual import merge_for_build
 from collector.publish import to_public_site
 from collector.renderers import to_ics, to_json
-from collector.story import STORY_PATH, to_story_page
+from collector.site_meta import STORY_PATH
+from collector.story import to_story_page
 from collector.review import ReviewQueue
 from collector.sources.base import DEFAULT_FETCH_DELAY_SEC, Pacer
 from collector.sources.municipal_rss import MunicipalRSS
