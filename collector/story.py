@@ -78,8 +78,9 @@ def sample_events(events: list[Event], today: date) -> list[Event]:
 # ---- 絵（インライン SVG）------------------------------------------------
 # どの絵も飾りで、伝えることは本文に全部書いてある（aria-hidden）。
 
-def _svg(view: str, body: str, cls: str) -> str:
-    return (f'<svg class="scene {cls}" viewBox="{view}" aria-hidden="true" '
+def _svg(view: str, body: str, cls: str, style: str = "") -> str:
+    style = f' style="{style}"' if style else ""
+    return (f'<svg class="scene {cls}"{style} viewBox="{view}" aria-hidden="true" '
             f'focusable="false" xmlns="http://www.w3.org/2000/svg">{body}</svg>')
 
 
@@ -126,6 +127,9 @@ def scene_notices() -> str:
     return _svg("0 0 400 292", "".join(rows), "scene-notices")
 
 
+_WINDOW_SLICE = 5.25   # 窓1つが灯るのに使う区間。全体35%のおよそ15%ぶん
+
+
 def scene_windows(n_sources: int) -> str:
     """第3章。情報源の数だけ窓があり、灯りが入っている。"""
     w, h, pitch = 34, 44, 56
@@ -144,7 +148,9 @@ def scene_windows(n_sources: int) -> str:
                 f'<rect class="frame" x="{x:g}" y="{y}" width="{w}" height="{h}" rx="1"/>'
                 f'</g>')
             i += 1
-    return _svg("0 0 400 126", "".join(parts), "scene-windows")
+    # 窓が順に灯る間隔。全体の区間（35%）を窓の数で割り振る（動きの CSS が使う）
+    step = (35 - _WINDOW_SLICE) / max(n_sources - 1, 1)
+    return _svg("0 0 400 126", "".join(parts), "scene-windows", f"--step:{step:.3f}%")
 
 
 def _grid_xy(row: int, col: int) -> tuple[int, int]:
@@ -175,7 +181,10 @@ def scene_calendar(missing: str) -> str:
                 continue
             # 上の2段は過ぎた週。暗くはなるが、消えない
             cls = "lit gone" if r in (1, 2) else "lit"
-            dots.append(f'<circle class="{cls}" style="--i:{i}" cx="{x}" cy="{y}" r="5"/>')
+            # 集まる前に散らばっている位置（格子からのずれ）。乱数ではなく番号から決める
+            dx, dy = (i * 37) % 81 - 40, (i * 53 + 17) % 61 - 30
+            dots.append(f'<circle class="{cls}" style="--dx:{dx}px;--dy:{dy}px" '
+                        f'cx="{x}" cy="{y}" r="5"/>')
             i += 1
     return _svg("0 0 400 244", "".join(dots) + hole, f"scene-calendar is-{missing}")
 
@@ -319,10 +328,11 @@ _TPL = """<!doctype html>
 
   .titles{list-style:none;padding:0;margin-top:0;margin-bottom:1.8em;
     border-top:1px solid var(--rule)}
-  .titles li{display:flex;gap:1em;align-items:baseline;padding:.75em 0;
+  .titles li{display:flex;gap:1em;align-items:baseline;
     border-bottom:1px solid var(--rule);line-height:1.7}
   .where{flex:0 0 4.2em;color:var(--soft);font-size:.875rem}
-  .titles a{min-width:0;overflow-wrap:anywhere}
+  /* 余白はリンクの側に持たせる（1行の題名でも押せる高さが44pxを下回らないように） */
+  .titles a{flex:1;min-width:0;padding:.75em 0;overflow-wrap:anywhere}
 
   .act{margin-top:clamp(2rem,6vh,3.5rem)}
   .btn{display:inline-flex;align-items:center;justify-content:center;
@@ -341,6 +351,50 @@ _TPL = """<!doctype html>
 
   @media (max-width:420px){
     .btn{display:flex;width:100%;padding-left:1rem;padding-right:1rem}
+  }
+
+  /* ---- 動き --------------------------------------------------------
+     文字は動かさない。動くのは灯りだけで、1場面に1つ、1回きり。
+     上の静止表示が完成形で、ここはその手前の状態（from）だけを書く。
+     「動きを減らす」設定と印刷では、この節がまるごと効かない。 */
+  @media screen and (prefers-reduced-motion:no-preference){
+    @keyframes appear{from{opacity:0}}
+    @keyframes gather{from{opacity:var(--from,.5);transform:translate(var(--dx),var(--dy))}}
+    @keyframes bloom{from{opacity:0;transform:scale(.6)}}
+
+    /* 第1章だけは時間で進む。ほかの町の灯りが、遠くに1つずつ現れる */
+    .scene-towns .far{animation:appear 1200ms cubic-bezier(.2,.6,.3,1) both;
+      animation-delay:calc(800ms + var(--i) * 600ms)}
+
+    /* 第2〜6章は読者のスクロールに連動する。対応していないブラウザでは静止表示のまま */
+    @supports (animation-timeline:view()){
+      .scene{view-timeline-name:--scene;overflow:visible}
+
+      /* 第2章: お知らせの行が上から順に現れる。灯りは暗いまま埋もれていく */
+      .scene-notices .row{animation:appear linear both;animation-timeline:--scene;
+        animation-range:cover calc(15% + var(--i) * 1.5%) cover calc(21% + var(--i) * 1.5%)}
+
+      /* 第3章: 窓に左から順に灯りが入る */
+      .scene-windows .glow{animation:appear linear both;animation-timeline:--scene;
+        animation-range:cover calc(15% + var(--i) * var(--step))
+                        cover calc(20.25% + var(--i) * var(--step))}
+
+      /* 第4章: 散らばっていた灯りが、暦の形に集まる */
+      .is-absent .lit{animation:gather cubic-bezier(.35,.1,.25,1) both;
+        animation-timeline:--scene;animation-range:cover 0% cover 50%}
+      .is-absent .gone{--from:.25}
+
+      /* 第5章: 輪郭だけの円が1つ、ゆっくり見えてくる。ほかは何も動かさない */
+      .is-unlit .unlit{animation:appear linear both;animation-timeline:--scene;
+        animation-range:cover 30% cover 58%}
+
+      /* 第6章: 行動のボタンが画面に入ると、輪郭だけだった円に灯りが入る */
+      .ch6{timeline-scope:--cta}
+      .ch6 .btn{view-timeline-name:--cta}
+      .is-lit .last,.is-lit .halo{animation:appear cubic-bezier(.2,.6,.3,1) both;
+        animation-timeline:--cta;animation-range:cover 0% cover 32%}
+      .is-lit .halo{animation-name:bloom;transform-box:fill-box;transform-origin:center}
+    }
   }
 </style></head>
 <body>

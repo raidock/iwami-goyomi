@@ -197,6 +197,42 @@ def test_reads_without_script_and_without_avoided_styles():
         assert avoided not in html, avoided
 
 
+def test_motion_is_an_optional_layer_on_top_of_the_still_page():
+    """動きは「減らす」設定で全部止まり、非対応のブラウザでは静止表示になる。
+
+    静止表示が完成形で、動きの CSS はその後ろに1か所だけ。animation の宣言が
+    その外に出ると、設定で止められない動きができてしまう。
+    """
+    html = _page()
+    gate = "@media screen and (prefers-reduced-motion:no-preference){"
+    assert html.count(gate) == 1
+    still, motion = html.split(gate)
+    motion = motion.split("</style>")[0]
+    assert "animation" not in still
+    assert "@keyframes" not in still
+    # スクロール連動は、対応を確かめた中にだけ書く
+    supported = "@supports (animation-timeline:view()){"
+    assert motion.count(supported) == 1
+    before_supports = motion.split(supported)[0]
+    assert "animation-timeline" not in before_supports
+    assert "view-timeline" not in before_supports
+    # くり返し・点滅はしない。どの動きも1回きり
+    assert "infinite" not in html
+    assert "alternate" not in html
+
+
+def test_text_never_moves():
+    """動くのは灯り（SVG の中）だけ。見出し・本文・ボタンに animation を当てない。"""
+    html = _page()
+    motion = html.split("@media screen and (prefers-reduced-motion:no-preference){")[1]
+    motion = re.sub(r"/\*.*?\*/", "", motion.split("</style>")[0], flags=re.S)
+    targets = re.findall(r"([^{}]+)\{[^{}]*animation(?:-name)?:", motion)
+    assert targets, "動きの宣言が1つも見つからない"
+    for selector in targets:
+        for one in selector.split(","):
+            assert one.strip().startswith((".scene-", ".is-")), one
+
+
 if __name__ == "__main__":
     import traceback
 
