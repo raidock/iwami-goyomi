@@ -239,6 +239,52 @@ def test_motion_is_an_optional_layer_on_top_of_the_still_page():
     assert "alternate" not in html
 
 
+def _scenes(html: str) -> list[str]:
+    return re.findall(r'<svg class="scene .*?</svg>', html, flags=re.S)
+
+
+def test_pictures_are_decoration_and_carry_no_outside_files():
+    """絵は6枚とも飾り（読み上げない）。写真や外のファイルを読み込まない。"""
+    html = _page()
+    scenes = _scenes(html)
+    assert len(scenes) == 6
+    for svg in scenes:
+        assert 'aria-hidden="true"' in svg.split(">")[0]
+        assert "<image" not in svg
+        assert "http" not in svg.replace('xmlns="http://www.w3.org/2000/svg"', "")
+        assert "<text" not in svg      # 絵の中に文字を置かない（伝えることは本文に書く）
+
+
+def test_ids_do_not_collide_between_the_six_pictures():
+    """塗り（グラデーション）の id が絵どうしで重なると、別の絵の塗りを拾ってしまう。"""
+    ids = re.findall(r'\bid="([^"]+)"', _page())
+    assert ids
+    assert len(ids) == len(set(ids)), sorted(i for i in set(ids) if ids.count(i) > 1)
+    # 参照している id は、全部どこかで定義されている
+    refs = set(re.findall(r'url\(#([^)]+)\)', _page())) | set(re.findall(r'href="#([^"]+)"', _page()))
+    assert refs <= set(ids), refs - set(ids)
+
+
+def test_other_towns_lights_follow_the_town_count():
+    """第1章の「ほかの町の灯り」は、市町の数から自分の町を引いた数。"""
+    first = _scenes(_page())[0]
+    assert first.count('class="far"') == 5 - 1     # EVENTS は5市町
+
+
+def test_calendar_is_the_same_picture_three_times():
+    """第4〜6章は同じ暦。違うのは「載らなかった日」の提灯だけ。
+
+    2026年8月は31日。1日を除いた30個が、3枚とも灯っている。
+    """
+    ch4, ch5, ch6 = _scenes(_page())[3:]
+    for svg in (ch4, ch5, ch6):
+        assert len(re.findall(r'<g class="lit( gone)?"', svg)) == 30
+        assert len(re.findall(r'<g class="lit gone"', svg)) == 14   # 過ぎた2週も消さない
+    assert 'class="unlit"' not in ch4 and 'class="last"' not in ch4   # 第4章では描かない
+    assert ch5.count('class="unlit"') == 1 and 'class="last"' not in ch5
+    assert ch6.count('class="unlit"') == 1 and ch6.count('class="last"') == 1
+
+
 def test_text_never_moves():
     """動くのは灯り（SVG の中）だけ。見出し・本文・ボタンに animation を当てない。"""
     html = _page()
