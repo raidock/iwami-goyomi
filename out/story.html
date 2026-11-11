@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>隣の町の灯り｜石見暦</title>
+<meta name="description" content="石見暦がなぜ生まれ、何を載せ、何が載らなかったか。石見に住むあなたへの、短い読みものです。">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="assets/iwami-goyomi-mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#111A2E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="隣の町の灯り｜石見暦">
+<meta property="og:description" content="石見暦がなぜ生まれ、何を載せ、何が載らなかったか。石見に住むあなたへの、短い読みものです。">
+<meta property="og:site_name" content="石見暦">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="隣の町の灯り｜石見暦">
+<meta name="twitter:description" content="石見暦がなぜ生まれ、何を載せ、何が載らなかったか。石見に住むあなたへの、短い読みものです。">
+<link rel="canonical" href="https://raidock.github.io/iwami-goyomi/story.html">
+<meta property="og:url" content="https://raidock.github.io/iwami-goyomi/story.html">
+<meta property="og:image" content="https://raidock.github.io/iwami-goyomi/assets/iwami-goyomi-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:image" content="https://raidock.github.io/iwami-goyomi/assets/iwami-goyomi-og.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--night:#111A2E;--light:#F0A63A;--ink:#E9E6DC;--soft:#B4B9C8;
+    --rule:#2B3A5C;--unlit:#5A6A8C;
+    --col:34rem;--wide:44rem;--gutter:1.25rem}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--night);color:var(--ink);
+    font-family:"Zen Kaku Gothic New",system-ui,sans-serif;
+    font-size:1.0625rem;line-height:2.05;letter-spacing:.04em;
+    line-break:strict;word-break:auto-phrase;overflow-wrap:anywhere;
+    -webkit-font-smoothing:antialiased}
+  a{color:inherit;text-underline-offset:.3em;text-decoration-thickness:1px;
+    transition:color .15s}
+  a:hover{color:var(--light)}
+  a:focus-visible{outline:2px solid var(--light);outline-offset:4px;border-radius:2px}
+
+  .top{max-width:var(--wide);margin:0 auto;padding:1.5rem var(--gutter) 0}
+  .top a{display:inline-flex;align-items:center;gap:.55rem;min-height:44px;
+    font-family:"Zen Old Mincho",serif;font-weight:700;font-size:1rem;
+    letter-spacing:.12em;text-decoration:none}
+  .top img{width:1.6rem;height:1.6rem}
+
+  .ch{padding:clamp(5rem,15vh,9rem) var(--gutter)}
+  .ch > *{max-width:var(--col);margin-left:auto;margin-right:auto}
+  .ch > .scene{display:block;width:100%;height:auto}
+  .ch1 > .scene{max-width:var(--wide)}
+  .ch1{min-height:calc(100svh - 5rem);display:flex;flex-direction:column;
+    justify-content:center;padding-top:2rem;padding-bottom:clamp(4rem,12vh,7rem)}
+  .ch1 > *{width:100%}
+  /* 第5章は前後の余白で一拍を置く。動きではなく、何もない画面で間を作る */
+  .ch5{padding-top:clamp(10rem,30vh,18rem);padding-bottom:clamp(10rem,30vh,18rem)}
+
+  h1,h2{font-family:"Zen Old Mincho",serif;font-weight:700;
+    font-size:clamp(1.55rem,1.1rem + 2.2vw,2.35rem);line-height:1.6;
+    letter-spacing:.06em;margin-top:0;margin-bottom:2.2rem}
+  .ph{display:inline-block}
+  p{margin-top:0;margin-bottom:1.5em}
+  .ch > .scene + p,.ch > .scene + h1{margin-top:clamp(2.5rem,7vh,4rem)}
+  h2 + .scene{margin-bottom:clamp(2.5rem,7vh,4rem)}
+
+  /* 灯り。ここが完成形で、動きはこの上に重ねる */
+  .lit{fill:var(--light)}
+  .gone{opacity:.5}
+  .far{fill:var(--light);opacity:.6}
+  .buried{fill:var(--light);opacity:.45}
+  .rule{stroke:var(--rule);stroke-width:2;stroke-linecap:round;fill:none}
+  .unlit{fill:none;stroke:var(--unlit);stroke-width:1.5}
+  .frame{fill:none;stroke:var(--unlit);stroke-width:1.5}
+  .glow{fill:var(--light)}
+  .pane{stroke:var(--night);stroke-width:2;fill:none}
+
+  .titles{list-style:none;padding:0;margin-top:0;margin-bottom:1.8em;
+    border-top:1px solid var(--rule)}
+  .titles li{display:flex;gap:1em;align-items:baseline;
+    border-bottom:1px solid var(--rule);line-height:1.7}
+  .where{flex:0 0 4.2em;color:var(--soft);font-size:.875rem}
+  /* 余白はリンクの側に持たせる（1行の題名でも押せる高さが44pxを下回らないように） */
+  .titles a{flex:1;min-width:0;padding:.75em 0;overflow-wrap:anywhere}
+
+  .act{margin-top:clamp(2rem,6vh,3.5rem)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;
+    min-height:56px;padding:.8rem 2rem;background:var(--light);color:var(--night);
+    font-weight:700;font-size:1.0625rem;letter-spacing:.08em;text-decoration:none;
+    border-radius:2px;transition:background-color .15s}
+  .btn:hover{background:#F6BC62;color:var(--night)}
+  .hint{color:var(--soft);font-size:.875rem;line-height:1.9;margin-top:1.2rem}
+  .more{display:flex;flex-wrap:wrap;gap:.4rem 2rem;margin-top:2.6rem;font-size:.9375rem}
+  .more a{display:inline-flex;align-items:center;min-height:44px}
+  .warn{color:var(--light);font-weight:700}
+
+  footer{max-width:var(--wide);margin:0 auto;padding:2.5rem var(--gutter) 4rem;
+    border-top:1px solid var(--rule);color:var(--soft);font-size:.875rem}
+  .sign{margin:0;letter-spacing:.12em}
+
+  @media (max-width:420px){
+    .btn{display:flex;width:100%;padding-left:1rem;padding-right:1rem}
+  }
+
+  /* ---- 動き --------------------------------------------------------
+     文字は動かさない。動くのは灯りだけで、1場面に1つ、1回きり。
+     上の静止表示が完成形で、ここはその手前の状態（from）だけを書く。
+     「動きを減らす」設定と印刷では、この節がまるごと効かない。 */
+  @media screen and (prefers-reduced-motion:no-preference){
+    @keyframes appear{from{opacity:0}}
+    @keyframes gather{from{opacity:var(--from,.5);transform:translate(var(--dx),var(--dy))}}
+    @keyframes bloom{from{opacity:0;transform:scale(.6)}}
+
+    /* 第1章だけは時間で進む。ほかの町の灯りが、遠くに1つずつ現れる */
+    .scene-towns .far{animation:appear 1200ms cubic-bezier(.2,.6,.3,1) both;
+      animation-delay:calc(800ms + var(--i) * 600ms)}
+
+    /* 第2〜6章は読者のスクロールに連動する。対応していないブラウザでは静止表示のまま */
+    @supports (animation-timeline:view()){
+      .scene{view-timeline-name:--scene;overflow:visible}
+
+      /* 第2章: お知らせの行が上から順に現れる。灯りは暗いまま埋もれていく */
+      .scene-notices .row{animation:appear linear both;animation-timeline:--scene;
+        animation-range:cover calc(15% + var(--i) * 1.5%) cover calc(21% + var(--i) * 1.5%)}
+
+      /* 第3章: 窓に左から順に灯りが入る */
+      .scene-windows .glow{animation:appear linear both;animation-timeline:--scene;
+        animation-range:cover calc(15% + var(--i) * var(--step))
+                        cover calc(20.25% + var(--i) * var(--step))}
+
+      /* 第4章: 散らばっていた灯りが、暦の形に集まる */
+      .is-absent .lit{animation:gather cubic-bezier(.35,.1,.25,1) both;
+        animation-timeline:--scene;animation-range:cover 0% cover 50%}
+      .is-absent .gone{--from:.25}
+
+      /* 第5章: 輪郭だけの円が1つ、ゆっくり見えてくる。ほかは何も動かさない */
+      .is-unlit .unlit{animation:appear linear both;animation-timeline:--scene;
+        animation-range:cover 30% cover 58%}
+
+      /* 第6章: 行動のボタンが画面に入ると、輪郭だけだった円に灯りが入る */
+      .ch6{timeline-scope:--cta}
+      .ch6 .btn{view-timeline-name:--cta}
+      .is-lit .last,.is-lit .halo{animation:appear cubic-bezier(.2,.6,.3,1) both;
+        animation-timeline:--cta;animation-range:cover 0% cover 26%}
+      .is-lit .halo{animation-name:bloom;transform-box:fill-box;transform-origin:center}
+    }
+  }
+</style></head>
+<body>
+<header class="top">
+  <a href="./"><img src="assets/iwami-goyomi-mark.svg" width="64" height="64" alt="">石見暦</a>
+</header>
+<main>
+  <section class="ch ch1">
+    <svg class="scene scene-towns" viewBox="0 0 400 164" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="halo-home"><stop offset="0" stop-color="#F0A63A" stop-opacity=".55"/><stop offset="1" stop-color="#F0A63A" stop-opacity="0"/></radialGradient></defs><path class="rule" d="M0 150 H400"/><circle class="far" style="--i:0" cx="164" cy="94" r="2.2"/><circle class="far" style="--i:1" cx="220" cy="72" r="2.0"/><circle class="far" style="--i:2" cx="279" cy="88" r="2.1"/><circle class="far" style="--i:3" cx="331" cy="61" r="1.8"/><circle class="far" style="--i:4" cx="374" cy="82" r="2.0"/><circle class="far" style="--i:5" cx="249" cy="42" r="1.6"/><circle class="far" style="--i:6" cx="304" cy="31" r="1.5"/><circle class="far" style="--i:7" cx="188" cy="52" r="1.7"/><circle cx="64" cy="136" r="24" fill="url(#halo-home)"/><circle class="lit" cx="64" cy="136" r="4.2"/></svg>
+    <h1><span class="ph">隣の町で今夜</span><span class="ph">なにがあるか、</span><span class="ph">知っていますか。</span></h1>
+    <p>同じ石見に住んでいても、隣の町の催しは、案外届いてきません。</p>
+    <p>知らなかったのは、関心が無かったからではないはずです。</p>
+  </section>
+
+  <section class="ch ch2">
+    <h2><span class="ph">知るには、</span><span class="ph">その町のサイトまで</span><span class="ph">行くしかなかった。</span></h2>
+    <svg class="scene scene-notices" viewBox="0 0 400 292" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><g class="row" style="--i:0"><path class="rule" d="M24 8 h272"/></g><g class="row" style="--i:1"><path class="rule" d="M24 22.5 h210"/></g><g class="row" style="--i:2"><path class="rule" d="M24 37 h334"/></g><g class="row" style="--i:3"><circle class="buried" cx="10" cy="51.5" r="3.2"/><path class="rule" d="M24 51.5 h174"/></g><g class="row" style="--i:4"><path class="rule" d="M24 66 h251"/></g><g class="row" style="--i:5"><path class="rule" d="M24 80.5 h309"/></g><g class="row" style="--i:6"><path class="rule" d="M24 95 h195"/></g><g class="row" style="--i:7"><path class="rule" d="M24 109.5 h356"/></g><g class="row" style="--i:8"><path class="rule" d="M24 124 h232"/></g><g class="row" style="--i:9"><path class="rule" d="M24 138.5 h150"/></g><g class="row" style="--i:10"><circle class="buried" cx="10" cy="153" r="3.2"/><path class="rule" d="M24 153 h284"/></g><g class="row" style="--i:11"><path class="rule" d="M24 167.5 h205"/></g><g class="row" style="--i:12"><path class="rule" d="M24 182 h326"/></g><g class="row" style="--i:13"><path class="rule" d="M24 196.5 h182"/></g><g class="row" style="--i:14"><path class="rule" d="M24 211 h263"/></g><g class="row" style="--i:15"><path class="rule" d="M24 225.5 h345"/></g><g class="row" style="--i:16"><circle class="buried" cx="10" cy="240" r="3.2"/><path class="rule" d="M24 240 h223"/></g><g class="row" style="--i:17"><path class="rule" d="M24 254.5 h165"/></g><g class="row" style="--i:18"><path class="rule" d="M24 269 h298"/></g><g class="row" style="--i:19"><path class="rule" d="M24 283.5 h242"/></g></svg>
+    <p>各地に面白い取り組みやコミュニティがあるのに、それを知るには、その地域のウェブサイトを見に行くしかない。まとめたサイトがあればいいのに。</p>
+    <p>石見暦は、作り手自身のその実感から始まりました。</p>
+    <p>市町のお知らせの多くは、入札や人事、計画案といった行政の内側の情報です。催しは、その中に埋もれています。</p>
+  </section>
+
+  <section class="ch ch3">
+    <h2><span class="ph">毎朝6時、</span><span class="ph">13の窓をのぞく。</span></h2>
+    <svg class="scene scene-windows" style="--step:2.479%" viewBox="0 0 400 126" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><g class="window" style="--i:0"><rect class="glow" x="19" y="10" width="26" height="36"/><path class="pane" d="M32 10 v36 M19 28 h26"/><rect class="frame" x="15" y="6" width="34" height="44" rx="1"/></g><g class="window" style="--i:1"><rect class="glow" x="75" y="10" width="26" height="36"/><path class="pane" d="M88 10 v36 M75 28 h26"/><rect class="frame" x="71" y="6" width="34" height="44" rx="1"/></g><g class="window" style="--i:2"><rect class="glow" x="131" y="10" width="26" height="36"/><path class="pane" d="M144 10 v36 M131 28 h26"/><rect class="frame" x="127" y="6" width="34" height="44" rx="1"/></g><g class="window" style="--i:3"><rect class="glow" x="187" y="10" width="26" height="36"/><path class="pane" d="M200 10 v36 M187 28 h26"/><rect class="frame" x="183" y="6" width="34" height="44" rx="1"/></g><g class="window" style="--i:4"><rect class="glow" x="243" y="10" width="26" height="36"/><path class="pane" d="M256 10 v36 M243 28 h26"/><rect class="frame" x="239" y="6" width="34" height="44" rx="1"/></g><g class="window" style="--i:5"><rect class="glow" x="299" y="10" width="26" height="36"/><path class="pane" d="M312 10 v36 M299 28 h26"/><rect class="frame" x="295" y="6" width="34" height="44" rx="1"/></g><g class="window" style="--i:6"><rect class="glow" x="355" y="10" width="26" height="36"/><path class="pane" d="M368 10 v36 M355 28 h26"/><rect class="frame" x="351" y="6" width="34" height="44" rx="1"/></g><g class="window" style="--i:7"><rect class="glow" x="47" y="80" width="26" height="36"/><path class="pane" d="M60 80 v36 M47 98 h26"/><rect class="frame" x="43" y="76" width="34" height="44" rx="1"/></g><g class="window" style="--i:8"><rect class="glow" x="103" y="80" width="26" height="36"/><path class="pane" d="M116 80 v36 M103 98 h26"/><rect class="frame" x="99" y="76" width="34" height="44" rx="1"/></g><g class="window" style="--i:9"><rect class="glow" x="159" y="80" width="26" height="36"/><path class="pane" d="M172 80 v36 M159 98 h26"/><rect class="frame" x="155" y="76" width="34" height="44" rx="1"/></g><g class="window" style="--i:10"><rect class="glow" x="215" y="80" width="26" height="36"/><path class="pane" d="M228 80 v36 M215 98 h26"/><rect class="frame" x="211" y="76" width="34" height="44" rx="1"/></g><g class="window" style="--i:11"><rect class="glow" x="271" y="80" width="26" height="36"/><path class="pane" d="M284 80 v36 M271 98 h26"/><rect class="frame" x="267" y="76" width="34" height="44" rx="1"/></g><g class="window" style="--i:12"><rect class="glow" x="327" y="80" width="26" height="36"/><path class="pane" d="M340 80 v36 M327 98 h26"/><rect class="frame" x="323" y="76" width="34" height="44" rx="1"/></g></svg>
+    <p>毎朝6時、石見暦は市町と観光協会の13のサイトを見に行きます。</p>
+    <p>催しらしいものを拾い、迷うものは人が目で確かめてから載せます。全部を機械に任せることはしていません。</p>
+    <p>載せるのは、題名と日付と、元のページへのリンクだけです。</p>
+  </section>
+
+  <section class="ch ch4">
+    <h2><span class="ph">並べてみたら、</span><span class="ph">石見は</span><span class="ph">にぎやかだった。</span></h2>
+    <svg class="scene scene-calendar is-absent" viewBox="0 0 400 244" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><circle class="lit gone" style="--dx:-40px;--dy:-13px" cx="44" cy="62" r="5"/><circle class="lit gone" style="--dx:-3px;--dy:-21px" cx="96" cy="62" r="5"/><circle class="lit gone" style="--dx:34px;--dy:-29px" cx="148" cy="62" r="5"/><circle class="lit gone" style="--dx:-10px;--dy:24px" cx="200" cy="62" r="5"/><circle class="lit gone" style="--dx:27px;--dy:16px" cx="252" cy="62" r="5"/><circle class="lit gone" style="--dx:-17px;--dy:8px" cx="304" cy="62" r="5"/><circle class="lit gone" style="--dx:20px;--dy:0px" cx="356" cy="62" r="5"/><circle class="lit gone" style="--dx:-24px;--dy:-8px" cx="44" cy="102" r="5"/><circle class="lit gone" style="--dx:13px;--dy:-16px" cx="96" cy="102" r="5"/><circle class="lit gone" style="--dx:-31px;--dy:-24px" cx="148" cy="102" r="5"/><circle class="lit gone" style="--dx:6px;--dy:29px" cx="200" cy="102" r="5"/><circle class="lit gone" style="--dx:-38px;--dy:21px" cx="252" cy="102" r="5"/><circle class="lit gone" style="--dx:-1px;--dy:13px" cx="304" cy="102" r="5"/><circle class="lit gone" style="--dx:36px;--dy:5px" cx="356" cy="102" r="5"/><circle class="lit" style="--dx:-8px;--dy:-3px" cx="44" cy="142" r="5"/><circle class="lit" style="--dx:29px;--dy:-11px" cx="96" cy="142" r="5"/><circle class="lit" style="--dx:-15px;--dy:-19px" cx="148" cy="142" r="5"/><circle class="lit" style="--dx:22px;--dy:-27px" cx="200" cy="142" r="5"/><circle class="lit" style="--dx:-22px;--dy:26px" cx="252" cy="142" r="5"/><circle class="lit" style="--dx:15px;--dy:18px" cx="304" cy="142" r="5"/><circle class="lit" style="--dx:-29px;--dy:10px" cx="356" cy="142" r="5"/><circle class="lit" style="--dx:8px;--dy:2px" cx="44" cy="182" r="5"/><circle class="lit" style="--dx:-36px;--dy:-6px" cx="96" cy="182" r="5"/><circle class="lit" style="--dx:1px;--dy:-14px" cx="148" cy="182" r="5"/><circle class="lit" style="--dx:38px;--dy:-22px" cx="200" cy="182" r="5"/><circle class="lit" style="--dx:-6px;--dy:-30px" cx="252" cy="182" r="5"/><circle class="lit" style="--dx:31px;--dy:23px" cx="304" cy="182" r="5"/><circle class="lit" style="--dx:-13px;--dy:15px" cx="356" cy="182" r="5"/><circle class="lit" style="--dx:24px;--dy:7px" cx="44" cy="222" r="5"/><circle class="lit" style="--dx:-20px;--dy:-1px" cx="96" cy="222" r="5"/></svg>
+    <p>祭り、市、神楽、講座、展示。9つの市町の催しを1枚に並べると、暦は思っていたよりずっと埋まっていました。</p>
+    <ul class="titles"><li><span class="where">浜田市</span><a href="https://kankou-hamada.or.jp/archives/37815" target="_blank" rel="noopener">こどもまんなかマルシェ</a></li><li><span class="where">江津市</span><a href="https://gotsu-kanko.jp/52/news/3460" target="_blank" rel="noopener">第３０回　江津市石見神楽大会（2026.11.22開催）</a></li><li><span class="where">津和野町</span><a href="https://tsuwano-kanko.net/slclass5th/" target="_blank" rel="noopener">【鉄道イベント】11/14,21(土) 第５回つわのＳＬ教室開講！</a></li><li><span class="where">益田市</span><a href="https://www.city.masuda.lg.jp/soshikikarasagasu/somubu/somukanzaika/11568.html" target="_blank" rel="noopener">こどもたちによる”平和なまち”絵画コンテスト入賞作品展示</a></li></ul>
+    <p>いま暦に載っているのは413件。そのうち257件は、もう過ぎた催しです。</p>
+    <p>終わった催しも消していません。過ぎた日も、この土地の記録だからです。</p>
+  </section>
+
+  <section class="ch ch5">
+    <h2><span class="ph">それでも、</span><span class="ph">載らなかった</span><span class="ph">祭りがある。</span></h2>
+    <svg class="scene scene-calendar is-unlit" viewBox="0 0 400 244" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><circle class="lit gone" style="--dx:-40px;--dy:-13px" cx="44" cy="62" r="5"/><circle class="lit gone" style="--dx:-3px;--dy:-21px" cx="96" cy="62" r="5"/><circle class="lit gone" style="--dx:34px;--dy:-29px" cx="148" cy="62" r="5"/><circle class="lit gone" style="--dx:-10px;--dy:24px" cx="200" cy="62" r="5"/><circle class="lit gone" style="--dx:27px;--dy:16px" cx="252" cy="62" r="5"/><circle class="lit gone" style="--dx:-17px;--dy:8px" cx="304" cy="62" r="5"/><circle class="lit gone" style="--dx:20px;--dy:0px" cx="356" cy="62" r="5"/><circle class="lit gone" style="--dx:-24px;--dy:-8px" cx="44" cy="102" r="5"/><circle class="lit gone" style="--dx:13px;--dy:-16px" cx="96" cy="102" r="5"/><circle class="lit gone" style="--dx:-31px;--dy:-24px" cx="148" cy="102" r="5"/><circle class="lit gone" style="--dx:6px;--dy:29px" cx="200" cy="102" r="5"/><circle class="lit gone" style="--dx:-38px;--dy:21px" cx="252" cy="102" r="5"/><circle class="lit gone" style="--dx:-1px;--dy:13px" cx="304" cy="102" r="5"/><circle class="lit gone" style="--dx:36px;--dy:5px" cx="356" cy="102" r="5"/><circle class="lit" style="--dx:-8px;--dy:-3px" cx="44" cy="142" r="5"/><circle class="lit" style="--dx:29px;--dy:-11px" cx="96" cy="142" r="5"/><circle class="lit" style="--dx:-15px;--dy:-19px" cx="148" cy="142" r="5"/><circle class="lit" style="--dx:22px;--dy:-27px" cx="200" cy="142" r="5"/><circle class="lit" style="--dx:-22px;--dy:26px" cx="252" cy="142" r="5"/><circle class="lit" style="--dx:15px;--dy:18px" cx="304" cy="142" r="5"/><circle class="lit" style="--dx:-29px;--dy:10px" cx="356" cy="142" r="5"/><circle class="lit" style="--dx:8px;--dy:2px" cx="44" cy="182" r="5"/><circle class="lit" style="--dx:-36px;--dy:-6px" cx="96" cy="182" r="5"/><circle class="lit" style="--dx:1px;--dy:-14px" cx="148" cy="182" r="5"/><circle class="lit" style="--dx:38px;--dy:-22px" cx="200" cy="182" r="5"/><circle class="lit" style="--dx:-6px;--dy:-30px" cx="252" cy="182" r="5"/><circle class="lit" style="--dx:31px;--dy:23px" cx="304" cy="182" r="5"/><circle class="lit" style="--dx:-13px;--dy:15px" cx="356" cy="182" r="5"/><circle class="lit" style="--dx:24px;--dy:7px" cx="44" cy="222" r="5"/><circle class="lit" style="--dx:-20px;--dy:-1px" cx="96" cy="222" r="5"/><circle class="unlit" cx="356" cy="22" r="5.5"/></svg>
+    <p>石見暦を公開して最初の週のことです。</p>
+    <p>浜田でいちばん大きな祭りが、開催の前日まで載っていませんでした。告知はおよそ1か月前に出ていたのに、仕組みの目が届く範囲の外にありました。人づてに聞くまで、気づけませんでした。</p>
+    <p>載っていないものは、画面を見ても分かりません。</p>
+    <p>無いものは、目に入らないからです。</p>
+  </section>
+
+  <section class="ch ch6">
+    <h2><span class="ph">あなたの町の催しを、</span><span class="ph">教えてください。</span></h2>
+    <p>仕組みが拾えない催しは、これからも必ずあります。それを知っているのは、その町に住むあなたです。</p>
+    <p>地区の祭り、小さな市、公民館の講座。載っていないものを見つけたら、教えてください。</p>
+    <p>それが、石見のこれからを一緒に編む最初の一歩になります。</p>
+    <svg class="scene scene-calendar is-lit" viewBox="0 0 400 244" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><circle class="lit gone" style="--dx:-40px;--dy:-13px" cx="44" cy="62" r="5"/><circle class="lit gone" style="--dx:-3px;--dy:-21px" cx="96" cy="62" r="5"/><circle class="lit gone" style="--dx:34px;--dy:-29px" cx="148" cy="62" r="5"/><circle class="lit gone" style="--dx:-10px;--dy:24px" cx="200" cy="62" r="5"/><circle class="lit gone" style="--dx:27px;--dy:16px" cx="252" cy="62" r="5"/><circle class="lit gone" style="--dx:-17px;--dy:8px" cx="304" cy="62" r="5"/><circle class="lit gone" style="--dx:20px;--dy:0px" cx="356" cy="62" r="5"/><circle class="lit gone" style="--dx:-24px;--dy:-8px" cx="44" cy="102" r="5"/><circle class="lit gone" style="--dx:13px;--dy:-16px" cx="96" cy="102" r="5"/><circle class="lit gone" style="--dx:-31px;--dy:-24px" cx="148" cy="102" r="5"/><circle class="lit gone" style="--dx:6px;--dy:29px" cx="200" cy="102" r="5"/><circle class="lit gone" style="--dx:-38px;--dy:21px" cx="252" cy="102" r="5"/><circle class="lit gone" style="--dx:-1px;--dy:13px" cx="304" cy="102" r="5"/><circle class="lit gone" style="--dx:36px;--dy:5px" cx="356" cy="102" r="5"/><circle class="lit" style="--dx:-8px;--dy:-3px" cx="44" cy="142" r="5"/><circle class="lit" style="--dx:29px;--dy:-11px" cx="96" cy="142" r="5"/><circle class="lit" style="--dx:-15px;--dy:-19px" cx="148" cy="142" r="5"/><circle class="lit" style="--dx:22px;--dy:-27px" cx="200" cy="142" r="5"/><circle class="lit" style="--dx:-22px;--dy:26px" cx="252" cy="142" r="5"/><circle class="lit" style="--dx:15px;--dy:18px" cx="304" cy="142" r="5"/><circle class="lit" style="--dx:-29px;--dy:10px" cx="356" cy="142" r="5"/><circle class="lit" style="--dx:8px;--dy:2px" cx="44" cy="182" r="5"/><circle class="lit" style="--dx:-36px;--dy:-6px" cx="96" cy="182" r="5"/><circle class="lit" style="--dx:1px;--dy:-14px" cx="148" cy="182" r="5"/><circle class="lit" style="--dx:38px;--dy:-22px" cx="200" cy="182" r="5"/><circle class="lit" style="--dx:-6px;--dy:-30px" cx="252" cy="182" r="5"/><circle class="lit" style="--dx:31px;--dy:23px" cx="304" cy="182" r="5"/><circle class="lit" style="--dx:-13px;--dy:15px" cx="356" cy="182" r="5"/><circle class="lit" style="--dx:24px;--dy:7px" cx="44" cy="222" r="5"/><circle class="lit" style="--dx:-20px;--dy:-1px" cx="96" cy="222" r="5"/><defs><radialGradient id="halo-last"><stop offset="0" stop-color="#F0A63A" stop-opacity=".55"/><stop offset="1" stop-color="#F0A63A" stop-opacity="0"/></radialGradient></defs><circle class="unlit" cx="356" cy="22" r="5.5"/><circle class="halo" cx="356" cy="22" r="22" fill="url(#halo-last)"/><circle class="lit last" cx="356" cy="22" r="5.5"/></svg>
+    <div class="act">
+      <a class="btn" href="https://forms.gle/5ayQ1xFfUFX9kva69" target="_blank" rel="noopener">催しの掲載を依頼する</a>
+      <p class="hint">催しの名前、日付、場所、元のページのURLが分かれば、書き添えてください。分かる範囲でかまいません。</p>
+      <p class="more"><a href="./">石見暦を見る</a><a href="about.html">掲載の方針</a></p>
+    </div>
+  </section>
+</main>
+<footer>
+  <p class="sign">T&amp;N design</p>
+</footer>
+</body></html>
