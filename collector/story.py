@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import calendar
 import html as _html
+import math
 import re
 from datetime import date
 
@@ -79,116 +80,350 @@ def sample_events(events: list[Event], today: date) -> list[Event]:
 
 # ---- 絵（インライン SVG）------------------------------------------------
 # どの絵も飾りで、伝えることは本文に全部書いてある（aria-hidden）。
+# 6枚とも同じ夜の入り江の景色: 奥に山、沖に漁火、手前に赤瓦の家並み。
+# 灯りは提灯として描く。位置は乱数を使わず、番号から決める（build のたびに同じ絵になる）。
 
-def _svg(view: str, body: str, cls: str, style: str = "") -> str:
+_W, _H = 1200, 500
+# 幅の狭い画面では左右が切れる（高さを保って中央を見せる）。
+# 意味のあるものは、スマホでも見えるこの範囲に置く
+_SAFE_L, _SAFE_R = 285, 915
+
+_ROOF, _ROOF_EDGE = "#3A2630", "#6E3D36"   # 石州瓦の赤を、夜の色に沈めたもの
+_WALL = "#0E1628"
+_ROPE = "#40507A"
+
+
+def _svg(body: str, cls: str, style: str = "", align: str = "xMidYMid") -> str:
     style = f' style="{style}"' if style else ""
-    return (f'<svg class="scene {cls}"{style} viewBox="{view}" aria-hidden="true" '
-            f'focusable="false" xmlns="http://www.w3.org/2000/svg">{body}</svg>')
+    return (f'<svg class="scene {cls}"{style} viewBox="0 0 {_W} {_H}" '
+            f'preserveAspectRatio="{align} slice" aria-hidden="true" focusable="false" '
+            f'xmlns="http://www.w3.org/2000/svg">{body}</svg>')
 
 
-_HALO_DEF = ('<defs><radialGradient id="{id}">'
-             '<stop offset="0" stop-color="#F0A63A" stop-opacity=".55"/>'
-             '<stop offset="1" stop-color="#F0A63A" stop-opacity="0"/>'
-             '</radialGradient></defs>')
+def _defs(k: int, extra: str = "", sky_from: float = 0) -> str:
+    """場面ごとの塗り。id は場面の番号つき（1ページに6枚あるので重ならないように）。
 
-# 第1章: 遠くの町の灯りの位置（x, y, 半径）。手前ほど大きい
+    空の上端はページの地の色。sky_from までは地の色のままにする（上を切って見せる
+    場面で、切り口に色の段差が出ないように）。
+    """
+    return (
+        f'<defs>'
+        f'<linearGradient id="sky-{k}" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="{sky_from:g}" stop-color="{NIGHT}"/>'
+        f'<stop offset="{sky_from + (1 - sky_from) * .3:.2f}" stop-color="#0C1426"/>'
+        f'<stop offset="{sky_from + (1 - sky_from) * .78:.2f}" stop-color="#131E38"/>'
+        f'<stop offset="1" stop-color="#1B2848"/>'
+        f'</linearGradient>'
+        f'<radialGradient id="halo-{k}">'
+        f'<stop offset="0" stop-color="#F0A63A" stop-opacity=".5"/>'
+        f'<stop offset=".45" stop-color="#F0A63A" stop-opacity=".14"/>'
+        f'<stop offset="1" stop-color="#F0A63A" stop-opacity="0"/></radialGradient>'
+        f'<radialGradient id="paper-{k}" cx=".5" cy=".42" r=".7">'
+        f'<stop offset="0" stop-color="#FFE2A0"/><stop offset=".5" stop-color="#F6B64E"/>'
+        f'<stop offset="1" stop-color="#D4851F"/></radialGradient>'
+        f'<linearGradient id="foot-{k}" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0" stop-color="{NIGHT}" stop-opacity="0"/>'
+        f'<stop offset="1" stop-color="{NIGHT}"/></linearGradient>'
+        f'<linearGradient id="edge-{k}">'
+        f'<stop offset="0" stop-color="{NIGHT}"/>'
+        f'<stop offset=".06" stop-color="{NIGHT}" stop-opacity="0"/>'
+        f'<stop offset=".94" stop-color="{NIGHT}" stop-opacity="0"/>'
+        f'<stop offset="1" stop-color="{NIGHT}"/></linearGradient>'
+        f'{extra}</defs>')
+
+
+def _lantern_defs(k: int) -> str:
+    """提灯のかたち（灯っているもの lan / 灯っていないもの off）。中心が原点。"""
+    def ribs(color: str) -> str:
+        out = []
+        for f in (-0.5, 0, 0.5):
+            half = 9.6 * math.sqrt(1 - f * f)
+            out.append(f'<path d="M{-half:.1f} {f * 13.5:.1f}q{half:.1f} 2.4 {2 * half:.1f} 0" '
+                       f'stroke="{color}" stroke-width=".8" fill="none" opacity=".55"/>')
+        return "".join(out)
+
+    def caps(color: str) -> str:
+        return (f'<rect x="-5.5" y="-16.5" width="11" height="3.4" rx="1" fill="{color}"/>'
+                f'<rect x="-5" y="12.9" width="10" height="3" rx="1" fill="{color}"/>')
+
+    return (f'<g id="lan-{k}"><ellipse rx="10" ry="13.5" fill="url(#paper-{k})"/>'
+            f'{ribs("#9A5A12")}{caps("#2A1B10")}</g>'
+            f'<g id="off-{k}"><ellipse rx="10" ry="13.5" fill="{NIGHT}" stroke="#5A6A8C" '
+            f'stroke-width="1.4"/>{ribs("#5A6A8C")}{caps("#5A6A8C")}</g>')
+
+
+def _use(ref: str, x: float, y: float, s: float) -> str:
+    return f'<use href="#{ref}" transform="translate({x:g} {y:g}) scale({s:g})"/>'
+
+
+def _halo(k: int, x: float, y: float, r: float, cls: str = "") -> str:
+    cls = f' class="{cls}"' if cls else ""
+    return f'<circle{cls} cx="{x:g}" cy="{y:g}" r="{r:g}" fill="url(#halo-{k})"/>'
+
+
+def _lantern(k: int, x: float, y: float, s: float, cls: str = "lit", style: str = "") -> str:
+    """灯った提灯1つ（にじみつき）。動かすときは、この g ごと動かす。"""
+    style = f' style="{style}"' if style else ""
+    return (f'<g class="{cls}"{style}>{_halo(k, x, y, 46 * s)}'
+            f'{_use(f"lan-{k}", x, y, s)}</g>')
+
+
+def _ridge(base: float, amp: float, seed: float) -> str:
+    """山の稜線。正弦を重ねて決める。"""
+    pts = []
+    for x in range(0, _W + 24, 24):
+        y = base - amp * (0.55 * math.sin(x / 190 + seed) + 0.3 * math.sin(x / 83 + seed * 2.3)
+                          + 0.15 * math.sin(x / 37 + seed * 4.1))
+        pts.append(f"{x},{y:.0f}")
+    return f'M0,{_H}L' + "L".join(pts) + f'L{_W},{_H}Z'
+
+
+def _stars(clear: tuple[int, int, int, int] | None = None) -> str:
+    """星。clear（左, 上, 右, 下）の中には置かない（暗い提灯ごしに透けて見えるため）。"""
+    out = []
+    for i in range(46):
+        x, y = (i * 263 + 71) % _W, (i * 149 + 23) % 260
+        if clear and clear[0] < x < clear[2] and clear[1] < y < clear[3]:
+            continue
+        r = 0.6 + ((i * 7) % 5) * 0.18
+        o = 0.18 + ((i * 11) % 6) * 0.07
+        out.append(f'<circle cx="{x}" cy="{y}" r="{r:.2f}" opacity="{o:.2f}"/>')
+    return f'<g fill="#E9E6DC">{"".join(out)}</g>'
+
+
+_BOATS = (96, 168, 262, 930, 1010, 1124)   # 沖の漁火
+
+
+def _night(k: int, dawn: bool = False,
+           clear: tuple[int, int, int, int] | None = None) -> str:
+    """夜空・星・山並み・海。どの場面でも動かさない。"""
+    s = f'<rect width="{_W}" height="{_H}" fill="url(#sky-{k})"/>'
+    if dawn:   # 第3章だけ、山の向こうが明るみはじめている
+        s += f'<rect y="200" width="{_W}" height="170" fill="url(#dawn-{k})"/>'
+    s += _stars(clear)
+    s += f'<path d="{_ridge(322, 50, 0.6)}" fill="#16223D"/>'
+    s += f'<path d="{_ridge(378, 30, 2.1)}" fill="#1A2947"/>'
+    s += f'<rect y="408" width="{_W}" height="92" fill="#131E36"/>'
+    s += f'<path d="M0 408H{_W}" stroke="#2B3A5C" stroke-width="1.2"/>'
+    for i, x in enumerate(_BOATS):
+        y = 413 + (i % 2) * 3
+        s += (f'<circle cx="{x}" cy="{y}" r="1.6" fill="#F0A63A" opacity=".75"/>'
+              f'<path d="M{x} {y + 4}v9" stroke="#F0A63A" opacity=".22"/>')
+    return s
+
+
+def _finish(k: int) -> str:
+    """絵の下と左右を、ページの地の色へなじませる。"""
+    return (f'<rect y="{_H - 30}" width="{_W}" height="30" fill="url(#foot-{k})"/>'
+            f'<rect width="{_W}" height="{_H}" fill="url(#edge-{k})"/>')
+
+
+def _house(x: float, top: float, w: float, rise: float) -> str:
+    """赤瓦の家1軒（屋根と壁）。壁は絵の下端まで。"""
+    return (f'<path d="M{x - 10:g} {top:g}L{x + w / 2:g} {top - rise:g}L{x + w + 10:g} {top:g}Z" '
+            f'fill="{_ROOF}" stroke="{_ROOF_EDGE}" stroke-width="1.2" stroke-linejoin="round"/>'
+            f'<rect x="{x:g}" y="{top:g}" width="{w:g}" height="{_H - top:g}" fill="{_WALL}"/>')
+
+
+def _houses(k: int, lit: bool) -> str:
+    """手前の家並み。lit のとき、3軒に2軒の窓に灯りがある。"""
+    out, x, i = [], -30, 0
+    while x < _W + 40:
+        w, h, rise = 92 + (i * 37) % 58, 44 + (i * 23) % 30, 20 + (i * 13) % 12
+        top = _H - h
+        out.append(_house(x, top, w, rise))
+        if lit and i % 3 != 1:
+            wx = x + 16 + (i * 17) % (w - 44)
+            out.append(f'<rect x="{wx}" y="{top + 13}" width="13" height="16" '
+                       f'fill="#F0A63A" opacity=".82"/>' + _halo(k, wx + 6, top + 21, 22))
+        x += w + 14
+        i += 1
+    return "".join(out)
+
+
+# 第1章: ほかの町の灯りの位置（x, y）。入り江の向こうの山すそと海辺
 _FAR_LIGHTS = [
-    (164, 94, 2.2), (220, 72, 2.0), (279, 88, 2.1), (331, 61, 1.8),
-    (374, 82, 2.0), (249, 42, 1.6), (304, 31, 1.5), (188, 52, 1.7),
-    (358, 39, 1.5), (132, 66, 1.7), (92, 46, 1.5),
+    (648, 402), (742, 396), (566, 404), (836, 388), (694, 372),
+    (792, 364), (884, 400), (610, 380), (520, 398), (858, 352), (474, 404),
 ]
+_HOME = (436, 406, 1.7)   # 自分の町の提灯（x, y, 大きさ）
 
 
 def scene_towns(n_towns: int) -> str:
-    """第1章。自分の町の灯りが1つ、ほかの町の灯りは遠くに小さく。"""
+    """第1章。自分の町の提灯が1つ。ほかの町の灯りは、入り江の向こうに小さく。"""
     far = "".join(
-        f'<circle class="far" style="--i:{i}" cx="{x}" cy="{y}" r="{r}"/>'
-        for i, (x, y, r) in enumerate(_FAR_LIGHTS[:max(n_towns - 1, 0)]))
-    body = (_HALO_DEF.format(id="halo-home")
-            + '<path class="rule" d="M0 150 H400"/>'
-            + far
-            + '<circle cx="64" cy="136" r="24" fill="url(#halo-home)"/>'
-            + '<circle class="lit" cx="64" cy="136" r="4.2"/>')
-    return _svg("0 0 400 164", body, "scene-towns")
+        f'<g class="far" style="--i:{i}">{_halo(1, x, y, 15)}'
+        f'<circle cx="{x}" cy="{y}" r="2.6" fill="#F6B64E"/></g>'
+        for i, (x, y) in enumerate(_FAR_LIGHTS[:max(n_towns - 1, 0)]))
+    hx, hy, hs = _HOME
+    cap = hy - 16.5 * hs               # 提灯の上端
+    px, arm = hx - 22, cap - 12        # 竿の位置と、腕木の高さ
+    pole = (f'<path d="M{px} {_H}V{arm - 6:g}M{px - 5} {arm:g}H{hx + 5}M{hx} {arm:g}V{cap:g}" '
+            f'stroke="#2E3D63" stroke-width="2.4" stroke-linecap="round" fill="none"/>')
+    body = (_defs(1, _lantern_defs(1), sky_from=.42) + _night(1) + far
+            + _houses(1, lit=False) + pole + _lantern(1, hx, hy, hs) + _finish(1))
+    # 高さを抑える画面では、空を切って家並みを残す
+    return _svg(body, "scene-towns", align="xMidYMax")
 
 
-_ROW_LENGTHS = [272, 210, 334, 174, 251, 309, 195, 356, 232, 150,
-                284, 205, 326, 182, 263, 345, 223, 165, 298, 242]
-_ROWS_WITH_EVENT = (3, 10, 16)   # 20行に3行。お知らせのおよそ8〜9割は催し以外
+_LAMPS_BURIED = [(470, 236, 1.5), (760, 300, 1.4), (352, 322, 1.3)]
+_SHEET_FILLS = ("#152038", "#18243F", "#131D34")
+_SHEET_SLICE = 6   # 紙1枚が現れるのに使う区間（%）。全体は35%
+
+
+def _sheet_def(k: int, name: str, w: int, h: int, lines: int) -> str:
+    """お知らせの紙1枚。見出しの太い線と、本文の細い線。地の色は使う側で決める。"""
+    rows = "".join(
+        f'<path d="M14 {40 + i * 15}h{(w - 28) * (0.55 + ((i * 37 + w) % 40) / 100):.0f}" '
+        f'stroke="#26345A" stroke-width="2" stroke-linecap="round"/>' for i in range(lines))
+    return (f'<g id="{name}-{k}"><rect width="{w}" height="{h}" rx="2" stroke="#2B3A5C" '
+            f'stroke-width="1.2"/><path d="M14 20h{w // 2}" stroke="#3B4C74" stroke-width="4" '
+            f'stroke-linecap="round"/>{rows}</g>')
 
 
 def scene_notices() -> str:
-    """第2章。行政のお知らせの行に、催しの小さな灯りが埋もれている。"""
-    rows = []
-    for i, length in enumerate(_ROW_LENGTHS):
-        y = 8 + i * 14.5
-        dot = (f'<circle class="buried" cx="10" cy="{y:g}" r="3.2"/>'
-               if i in _ROWS_WITH_EVENT else "")
-        rows.append(f'<g class="row" style="--i:{i}">{dot}'
-                    f'<path class="rule" d="M24 {y:g} h{length}"/></g>')
-    return _svg("0 0 400 292", "".join(rows), "scene-notices")
+    """第2章。積み重なったお知らせの紙に、催しの提灯が埋もれている。
+
+    紙は37枚、提灯は3つ。お知らせの大半は催し以外で、催しはその中に埋もれている
+    （CLAUDE.md「何をするツールか」）。絵は割合を正確に写したものではない。
+    """
+    kinds = (("sa", 170, 226), ("sb", 205, 262))
+    back, front = [], []
+    for i in range(34):
+        name, w, h = kinds[i % 2]
+        x, y = -40 + (i * 173) % 1180, 40 + (i * 97) % 300
+        rot = (i * 13) % 17 - 8
+        # 提灯に重なる紙は奥へ回す（提灯が丸ごと隠れないように）
+        near = any(x - 30 < lx < x + w + 30 and y - 30 < ly < y + h + 30
+                   for lx, ly, _ in _LAMPS_BURIED)
+        (back if i % 2 == 0 or near else front).append((name, x, y, w, h, rot, i))
+    # 提灯の半分を隠す紙を、1枚ずつ手前に重ねる
+    cover = [("sa", x - 4 + j * 3, y - 6 + j * 4, 170, 226, (-6, 5, -3)[j], j)
+             for j, (x, y, _) in enumerate(_LAMPS_BURIED)]
+    order = back + cover + front
+    step = (35 - _SHEET_SLICE) / (len(order) - 1)
+
+    def draw(n: int) -> str:
+        name, x, y, w, h, rot, tone = order[n]
+        return (f'<use class="sheet" style="--i:{n}" href="#{name}-2" '
+                f'fill="{_SHEET_FILLS[tone % 3]}" '
+                f'transform="translate({x} {y}) rotate({rot} {w // 2} {h // 2})"/>')
+
+    lamps = "".join(_lantern(2, x, y, s, "buried") for x, y, s in _LAMPS_BURIED)
+    body = (_defs(2, _lantern_defs(2) + _sheet_def(2, "sa", 170, 226, 9)
+                  + _sheet_def(2, "sb", 205, 262, 11))
+            + f'<rect width="{_W}" height="{_H}" fill="url(#sky-2)"/>'
+            + "".join(draw(n) for n in range(len(back)))
+            + lamps
+            + "".join(draw(n) for n in range(len(back), len(order)))
+            + f'<rect y="{_H - 150}" width="{_W}" height="150" fill="url(#foot-2)"/>'
+            + f'<rect width="{_W}" height="{_H}" fill="url(#edge-2)"/>')
+    return _svg(body, "scene-notices", f"--step:{step:.3f}%")
 
 
 _WINDOW_SLICE = 5.25   # 窓1つが灯るのに使う区間。全体35%のおよそ15%ぶん
 
 
 def scene_windows(n_sources: int) -> str:
-    """第3章。情報源の数だけ窓があり、灯りが入っている。"""
-    w, h, pitch = 34, 44, 56
-    top = (n_sources + 1) // 2
-    rows = [top, n_sources - top]
-    parts, i = [], 0
-    for r, count in enumerate(rows):
-        x0 = (400 - (count * w + (count - 1) * (pitch - w))) / 2
-        y = 6 + r * 70
-        for c in range(count):
-            x = x0 + c * pitch
-            parts.append(
-                f'<g class="window" style="--i:{i}">'
-                f'<rect class="glow" x="{x + 4:g}" y="{y + 4}" width="{w - 8}" height="{h - 8}"/>'
-                f'<path class="pane" d="M{x + w / 2:g} {y + 4} v{h - 8} M{x + 4:g} {y + h / 2:g} h{w - 8}"/>'
-                f'<rect class="frame" x="{x:g}" y="{y}" width="{w}" height="{h}" rx="1"/>'
-                f'</g>')
-            i += 1
+    """第3章。夜明け前の家並みに、情報源の数だけ窓があり、灯りが入っている。"""
+    front_n = (n_sources + 1) // 2
+    pitch = min(90.0, (_SAFE_R - _SAFE_L) / max(front_n, 1))
+    front_x0 = _W / 2 - front_n * pitch / 2     # 窓のある家は中央に寄せる
+    rows = (   # (段, 窓のある軒数, 左端, 屋根の下端, 屋根の高さ, 窓の位置, 窓の幅, 窓の高さ)
+        # 奥の段は半軒ずらす（手前の屋根の谷間から、奥の窓が見えるように）
+        (0, n_sources - front_n, front_x0 + pitch / 2, 352, 24, 10, 22, 28),
+        (1, front_n, front_x0, 410, 26, 16, 26, 36),
+    )
+    houses: dict[int, list[str]] = {0: [], 1: []}
+    windows = []
+    for row, count, x0, top0, rise0, wdy, ww, wh in rows:
+        for j in range(-8, count + 9):           # 窓の無い家で、絵の両端まで埋める
+            x = x0 + j * pitch
+            if x + pitch < -20 or x > _W + 20:
+                continue
+            top = top0 + ((j * 5) % 3 - 1) * 5   # 軒の高さを少しずつ変える
+            rise = rise0 + (j * 7) % 3 * 3
+            houses[row].append(_house(x, top, pitch + 2, rise))
+            if 0 <= j < count:
+                windows.append((x + (pitch + 2 - ww) / 2, top + wdy, ww, wh, row))
+
+    def draw(i: int, x: float, y: float, ww: float, wh: float) -> str:
+        cx, cy = x + ww / 2, y + wh / 2
+        return (f'<g class="window" style="--i:{i}">'
+                f'<circle class="glow" cx="{cx:g}" cy="{cy:g}" r="34" fill="url(#halo-3)"/>'
+                f'<rect class="glow" x="{x:g}" y="{y:g}" width="{ww}" height="{wh}"/>'
+                f'<path class="pane" d="M{cx:g} {y:g}v{wh}M{x:g} {cy:g}h{ww}"/>'
+                f'<rect class="frame" x="{x:g}" y="{y:g}" width="{ww}" height="{wh}"/></g>')
+
+    # 灯る順は左から（奥と手前を行き来する）
+    ordered = list(enumerate(sorted(windows)))
+    layer = {row: "".join(draw(i, *wd[:4]) for i, wd in ordered if wd[4] == row)
+             for row in (0, 1)}
+    dawn = ('<linearGradient id="dawn-3" x1="0" y1="0" x2="0" y2="1">'
+            '<stop offset="0" stop-color="#F0A63A" stop-opacity="0"/>'
+            '<stop offset=".55" stop-color="#F0A63A" stop-opacity=".1"/>'
+            '<stop offset="1" stop-color="#F6B64E" stop-opacity=".4"/></linearGradient>')
+    body = (_defs(3, dawn) + _night(3, dawn=True)
+            + "".join(houses[0]) + layer[0] + "".join(houses[1]) + layer[1] + _finish(3))
     # 窓が順に灯る間隔。全体の区間（35%）を窓の数で割り振る（動きの CSS が使う）
     step = (35 - _WINDOW_SLICE) / max(n_sources - 1, 1)
-    return _svg("0 0 400 126", "".join(parts), "scene-windows", f"--step:{step:.3f}%")
+    return _svg(body, "scene-windows", f"--step:{step:.3f}%")
 
 
-def _grid_xy(row: int, col: int) -> tuple[int, int]:
-    return 44 + col * 52, 22 + row * 40
+_GRID_X0, _GRID_DX = 336, 88     # 日曜の列の x と、列の間隔
+_GRID_Y0, _GRID_DY = 26, 62      # 1段目の綱の y と、段の間隔
+_LAN = 1.25                      # 暦の提灯の大きさ
+
+
+def _rope(xa: float, xb: float, y: float, sag: float) -> str:
+    return (f'<path d="M{xa:g} {y:g}Q{(xa + xb) / 2:g} {y + 2 * sag:g} {xb:g} {y:g}" '
+            f'stroke="{_ROPE}" stroke-width="1.4" fill="none"/>')
 
 
 def scene_calendar(missing: str) -> str:
-    """第4〜6章。灯りが暦の形に並ぶ。
+    """第4〜6章。綱に下げた提灯が、暦の形に並ぶ。
 
-    missing: "absent"（第4章。描かない）/ "unlit"（第5章。輪郭だけ）/
+    missing: "absent"（第4章。描かない）/ "unlit"（第5章。灯っていない提灯）/
              "lit"（第6章。灯りが入る）
     """
+    k = {"absent": 4, "unlit": 5, "lit": 6}[missing]
     weeks = calendar.Calendar(firstweekday=6).monthdayscalendar(_GRID_YEAR, _GRID_MONTH)
-    dots, hole, i = [], "", 0
+    ropes, lamps, hole, i = [], [], "", 0
     for r, week in enumerate(weeks):
+        y = _GRID_Y0 + r * _GRID_DY
+        cols = [c for c, day in enumerate(week) if day and day != _MISSING_DAY]
+        if cols:
+            xa = _GRID_X0 + cols[0] * _GRID_DX - 70
+            xb = _GRID_X0 + cols[-1] * _GRID_DX + 70
+            sag = 16 if len(cols) > 2 else 6
+            ropes.append(_rope(xa, xb, y, sag))
         for c, day in enumerate(week):
             if not day:
                 continue
-            x, y = _grid_xy(r, c)
+            x = _GRID_X0 + c * _GRID_DX
             if day == _MISSING_DAY:
+                # 載らなかった日。短い綱ごと、第4章では描かない
+                hy = y + 4 + 20 * _LAN
+                off = (f'<g class="unlit">{_rope(x - 60, x + 70, y, 5)}'
+                       f'{_use(f"off-{k}", x, hy, _LAN)}</g>')
                 if missing == "unlit":
-                    hole = f'<circle class="unlit" cx="{x}" cy="{y}" r="5.5"/>'
+                    hole = off
                 elif missing == "lit":
-                    hole = (_HALO_DEF.format(id="halo-last")
-                            + f'<circle class="unlit" cx="{x}" cy="{y}" r="5.5"/>'
-                            + f'<circle class="halo" cx="{x}" cy="{y}" r="22" fill="url(#halo-last)"/>'
-                            + f'<circle class="lit last" cx="{x}" cy="{y}" r="5.5"/>')
+                    hole = (off + _halo(k, x, hy, 46 * _LAN, "halo")
+                            + f'<g class="last">{_use(f"lan-{k}", x, hy, _LAN)}</g>')
                 continue
+            t = (x - xa) / (xb - xa)
+            ly = y + 4 * sag * t * (1 - t) + 20 * _LAN      # 綱のたるみに沿って下がる
             # 上の2段は過ぎた週。暗くはなるが、消えない
             cls = "lit gone" if r in (1, 2) else "lit"
-            # 集まる前に散らばっている位置（格子からのずれ）。乱数ではなく番号から決める
+            # 集まる前に散らばっている位置（綱からのずれ）。乱数ではなく番号から決める
             dx, dy = (i * 37) % 81 - 40, (i * 53 + 17) % 61 - 30
-            dots.append(f'<circle class="{cls}" style="--dx:{dx}px;--dy:{dy}px" '
-                        f'cx="{x}" cy="{y}" r="5"/>')
+            lamps.append(_lantern(k, x, ly, _LAN, cls, f"--dx:{dx}px;--dy:{dy}px"))
             i += 1
-    return _svg("0 0 400 244", "".join(dots) + hole, f"scene-calendar is-{missing}")
+    body = (_defs(k, _lantern_defs(k)) + _night(k, clear=(280, 60, 920, 260))
+            + _houses(k, lit=True)
+            + "".join(ropes) + "".join(lamps) + hole + _finish(k))
+    return _svg(body, f"scene-calendar is-{missing}")
 
 
 # ---- ページ ---------------------------------------------------------------
@@ -299,10 +534,15 @@ _TPL = """<!doctype html>
     letter-spacing:.12em;text-decoration:none}
   .top img{width:1.6rem;height:1.6rem}
 
-  .ch{padding:clamp(5rem,15vh,9rem) var(--gutter)}
-  .ch > *{max-width:var(--col);margin-left:auto;margin-right:auto}
-  .ch > .scene{display:block;width:100%;height:auto}
-  .ch1 > .scene{max-width:var(--wide)}
+  /* 余白は文字の側に持たせる。絵は左右の余白を越えて、画面の幅いっぱいに置く */
+  .ch{padding:clamp(5rem,15vh,9rem) 0}
+  .ch > *{max-width:calc(var(--col) + 2 * var(--gutter));margin-left:auto;margin-right:auto;
+    padding-left:var(--gutter);padding-right:var(--gutter)}
+  /* 絵は 12:5。幅の狭い画面では高さを保ち、左右を切って中央を見せる。
+     切りすぎると暦の両端の提灯が欠けるので、高さは幅の83%まで */
+  .ch > .scene{display:block;width:100%;max-width:90rem;padding:0;
+    height:clamp(min(300px,83vw),41.67vw,600px)}
+  .ch1 > .scene{height:max(min(280px,83vw),min(41.67vw,46svh))}
   .ch1{min-height:calc(100svh - 5rem);display:flex;flex-direction:column;
     justify-content:center;padding-top:2rem;padding-bottom:clamp(4rem,12vh,7rem)}
   .ch1 > *{width:100%}
@@ -318,20 +558,17 @@ _TPL = """<!doctype html>
   h2 + .scene{margin-bottom:clamp(2.5rem,7vh,4rem)}
 
   /* 灯り。ここが完成形で、動きはこの上に重ねる */
-  .lit{fill:var(--light)}
   .gone{opacity:.5}
-  .far{fill:var(--light);opacity:.6}
-  .buried{fill:var(--light);opacity:.45}
-  .rule{stroke:var(--rule);stroke-width:2;stroke-linecap:round;fill:none}
-  .unlit{fill:none;stroke:var(--unlit);stroke-width:1.5}
+  .far{opacity:.6}
+  .buried{opacity:.5}
   .frame{fill:none;stroke:var(--unlit);stroke-width:1.5}
-  .glow{fill:var(--light)}
-  .pane{stroke:var(--night);stroke-width:2;fill:none}
+  rect.glow{fill:var(--light)}
+  .pane{stroke:#0E1628;stroke-width:2;fill:none}
 
-  .titles{list-style:none;padding:0;margin-top:0;margin-bottom:1.8em;
-    border-top:1px solid var(--rule)}
+  .titles{list-style:none;padding-top:0;padding-bottom:0;margin-top:0;margin-bottom:1.8em}
   .titles li{display:flex;gap:1em;align-items:baseline;
     border-bottom:1px solid var(--rule);line-height:1.7}
+  .titles li:first-child{border-top:1px solid var(--rule)}
   .where{flex:0 0 4.2em;color:var(--soft);font-size:.875rem}
   /* 余白はリンクの側に持たせる（1行の題名でも押せる高さが44pxを下回らないように） */
   .titles a{flex:1;min-width:0;padding:.75em 0;overflow-wrap:anywhere}
@@ -364,33 +601,34 @@ _TPL = """<!doctype html>
     @keyframes gather{from{opacity:var(--from,.5);transform:translate(var(--dx),var(--dy))}}
     @keyframes bloom{from{opacity:0;transform:scale(.6)}}
 
-    /* 第1章だけは時間で進む。ほかの町の灯りが、遠くに1つずつ現れる */
+    /* 第1章だけは時間で進む。ほかの町の灯りが、入り江の向こうに1つずつ現れる */
     .scene-towns .far{animation:appear 1200ms cubic-bezier(.2,.6,.3,1) both;
       animation-delay:calc(800ms + var(--i) * 600ms)}
 
     /* 第2〜6章は読者のスクロールに連動する。対応していないブラウザでは静止表示のまま */
     @supports (animation-timeline:view()){
-      .scene{view-timeline-name:--scene;overflow:visible}
+      .scene{view-timeline-name:--scene}
 
-      /* 第2章: お知らせの行が上から順に現れる。灯りは暗いまま埋もれていく */
-      .scene-notices .row{animation:appear linear both;animation-timeline:--scene;
-        animation-range:cover calc(15% + var(--i) * 1.5%) cover calc(21% + var(--i) * 1.5%)}
+      /* 第2章: お知らせの紙が奥から1枚ずつ重なる。提灯は暗いまま埋もれていく */
+      .scene-notices .sheet{animation:appear linear both;animation-timeline:--scene;
+        animation-range:cover calc(15% + var(--i) * var(--step))
+                        cover calc(21% + var(--i) * var(--step))}
 
       /* 第3章: 窓に左から順に灯りが入る */
       .scene-windows .glow{animation:appear linear both;animation-timeline:--scene;
         animation-range:cover calc(15% + var(--i) * var(--step))
                         cover calc(20.25% + var(--i) * var(--step))}
 
-      /* 第4章: 散らばっていた灯りが、暦の形に集まる */
+      /* 第4章: 散らばっていた提灯が、綱に下がる位置へ集まる */
       .is-absent .lit{animation:gather cubic-bezier(.35,.1,.25,1) both;
         animation-timeline:--scene;animation-range:cover 0% cover 50%}
       .is-absent .gone{--from:.25}
 
-      /* 第5章: 輪郭だけの円が1つ、ゆっくり見えてくる。ほかは何も動かさない */
+      /* 第5章: 灯っていない提灯が1つ、ゆっくり見えてくる。ほかは何も動かさない */
       .is-unlit .unlit{animation:appear linear both;animation-timeline:--scene;
         animation-range:cover 30% cover 58%}
 
-      /* 第6章: 行動のボタンが画面に入ると、輪郭だけだった円に灯りが入る */
+      /* 第6章: 行動のボタンが画面に入ると、灯っていなかった提灯に灯りが入る */
       .ch6{timeline-scope:--cta}
       .ch6 .btn{view-timeline-name:--cta}
       .is-lit .last,.is-lit .halo{animation:appear cubic-bezier(.2,.6,.3,1) both;
