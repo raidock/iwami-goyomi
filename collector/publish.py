@@ -21,7 +21,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 
 from .models import Event, now_jst, today_jst
-from .site_meta import MARK_PATH, brand_meta
+from .site_meta import MARK_PATH, STORY_PATH, STORY_TITLE, brand_meta
 
 _WD = ["月", "火", "水", "木", "金", "土", "日"]
 URGENT_DAYS = 14          # これ以内の締切があれば募集を最上段へ
@@ -325,6 +325,7 @@ def to_public_site(events: list[Event], region: str = "石見",
                        h1_html=h1_html,
                        contact_html=contact_html, operator_html=operator_html,
                        meta_html=meta_html, mark_path=MARK_PATH,
+                       story_path=STORY_PATH, story_title=_html.escape(STORY_TITLE),
                        filter_nav=filter_nav, filter_css=filter_css)
 
 
@@ -459,6 +460,7 @@ _TPL = """<!doctype html>
   <footer>
     {operator_html}
     <a href="about.html">このサイトについて・掲載方針・修正/削除のご依頼</a><br>
+    <a href="{story_path}">読みもの「{story_title}」</a><br>
     各情報の権利は発信元に帰属します。掲載内容は各リンク先の公式ページでご確認ください。<br>
     {contact_html}
   </footer>

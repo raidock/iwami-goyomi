@@ -415,6 +415,7 @@ collector/
   manual.py                手で足す掲載（data/manual.json。収集は書き換えない）
   publish.py               公開サイトのレンダラー
   about.py                 掲載方針ページ
+  story.py                 読みもの「隣の町の灯り」（story.html。数は config と公開データから数える）
   filters.py               山陰フィルタ（蚤の市版の名残）
   renderers.py             JSON / ICS 出力
   sources/
@@ -466,6 +467,7 @@ python tests/test_workflow.py       # ワークフローのYAML（CIは手元で
 python tests/test_fetch_delay.py    # 取得間隔が情報源ごとに効くか（Crawl-delay 対応）
 python tests/test_oda_city.py       # 大田市の掲載日補完（フィードに日付が無い）
 python tests/test_skipped.py        # 除外記録（is_finished の永久除外・無駄な再取得の防止）
+python tests/test_story.py          # 読みもの（数を手書きしない・本文を載せない・「毎朝6時」が cron と合う）
 ```
 
 ### テストの「今日」は固定する
