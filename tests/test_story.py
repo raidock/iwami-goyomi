@@ -285,6 +285,28 @@ def test_calendar_is_the_same_picture_three_times():
     assert ch6.count('class="unlit"') == 1 and ch6.count('class="last"') == 1
 
 
+def test_added_colors_stay_where_they_were_approved():
+    """足した3色（朱・黄みの白・青緑）の置き場。品質基準（2026-11-12）。
+
+    第4〜6章は提灯の色を3つ混ぜる。第1章の灯りは橙の提灯1つのまま。
+    第2章（お知らせの紙）には足さない（紙は催しを埋もれさせる側）。紫は使わない。
+    """
+    import colorsys
+    scenes = _scenes(_page())
+    assert len(re.findall(r'<use href="#lan-', scenes[0])) == 1
+    assert '<use href="#lan-a-1"' in scenes[0]
+    for added in ("#E8512D", "#FFF0C8", "#1E5560"):
+        assert added not in scenes[1], added
+    for n in (4, 5, 6):
+        for tone in "arw":
+            assert f'<use href="#lan-{tone}-{n}"' in scenes[n - 1], (n, tone)
+    for svg in scenes:
+        for code in set(re.findall(r"#[0-9A-Fa-f]{6}\b", svg)):
+            r, g, b = (int(code[i:i + 2], 16) / 255 for i in (1, 3, 5))
+            hue, _, sat = colorsys.rgb_to_hls(r, g, b)
+            assert not (250 <= hue * 360 <= 320 and sat > .15), f"紫に入る色: {code}"
+
+
 def test_text_never_moves():
     """動くのは灯り（SVG の中）だけ。見出し・本文・ボタンに animation を当てない。"""
     html = _page()
