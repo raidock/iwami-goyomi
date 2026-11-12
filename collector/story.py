@@ -82,8 +82,13 @@ def sample_events(events: list[Event], today: date) -> list[Event]:
 # どの絵も飾りで、伝えることは本文に全部書いてある（aria-hidden）。
 # 6枚とも同じ夜の入り江の景色: 奥に山、沖に漁火、手前に赤瓦の家並み。
 # 灯りは提灯として描く。位置は乱数を使わず、番号から決める（build のたびに同じ絵になる）。
+#
+# 章ごとに温度差をつける（品質基準 2026-11-12）。第2章は暗いまま、第4章がいちばん
+# 華やか。華やかさは光の色と大小で作り、意味のある形（暦の7列・30個、冒頭の灯り1つ）
+# は崩さない。
 
 _W, _H = 1200, 500
+_SEA = 408   # 水平線の y
 # 幅の狭い画面では左右が切れる（高さを保って中央を見せる）。
 # 意味のあるものは、スマホでも見えるこの範囲に置く
 _SAFE_L, _SAFE_R = 285, 915
@@ -91,6 +96,14 @@ _SAFE_L, _SAFE_R = 285, 915
 _ROOF, _ROOF_EDGE = "#3A2630", "#6E3D36"   # 石州瓦の赤を、夜の色に沈めたもの
 _WALL = "#0E1628"
 _ROPE = "#40507A"
+_TEAL = "#1E5560"                          # 青緑。空の下端と海
+
+# 灯りの色は3つ: (紙の中心, 中ほど, 縁, 骨, にじみ)
+_TONES = {
+    "a": ("#FFE2A0", "#F6B64E", "#D4851F", "#9A5A12", "#F0A63A"),   # 橙（差し色）
+    "r": ("#FF9E6E", "#E8512D", "#B03418", "#7A2410", "#E8512D"),   # 朱
+    "w": ("#FFFDF2", "#FFF0C8", "#EBCB86", "#B08C48", "#FFF0C8"),   # 黄みの白
+}
 
 
 def _svg(body: str, cls: str, style: str = "", align: str = "xMidYMid") -> str:
@@ -100,27 +113,47 @@ def _svg(body: str, cls: str, style: str = "", align: str = "xMidYMid") -> str:
             f'xmlns="http://www.w3.org/2000/svg">{body}</svg>')
 
 
-def _defs(k: int, extra: str = "", sky_from: float = 0) -> str:
+def _defs(k: int, extra: str = "", sky_from: float = 0, tones: str = "a",
+          teal: bool = True, haze: float = .16) -> str:
     """場面ごとの塗り。id は場面の番号つき（1ページに6枚あるので重ならないように）。
 
     空の上端はページの地の色。sky_from までは地の色のままにする（上を切って見せる
-    場面で、切り口に色の段差が出ないように）。
+    場面で、切り口に色の段差が出ないように）。teal のとき、空は藍から青緑へ移る。
+    haze は、山の稜線に沿わせる橙の明るみの濃さ。
     """
+    span = 1 - sky_from
+    if teal:
+        # 青緑は山の稜線より上で見え始める（山に隠れると、ぼかしが海にしか残らない）
+        low = (f'<stop offset="{sky_from + span * .5:.2f}" stop-color="#13224A"/>'
+               f'<stop offset="{sky_from + span * .68:.2f}" stop-color="{_TEAL}"/>')
+    else:
+        low = (f'<stop offset="{sky_from + span * .78:.2f}" stop-color="#131E38"/>'
+               f'<stop offset="1" stop-color="#1B2848"/>')
+    water = (   # 稜線の明るみと海。青緑を使わない場面（第2章）には置かない
+        f'<linearGradient id="haze-{k}" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0" stop-color="#F0A63A" stop-opacity="0"/>'
+        f'<stop offset=".3" stop-color="#F0A63A" stop-opacity="{haze * .05:.3f}"/>'
+        f'<stop offset=".6" stop-color="#F0A63A" stop-opacity="{haze * .3:.2f}"/>'
+        f'<stop offset="1" stop-color="#F6B64E" stop-opacity="{haze:.2f}"/></linearGradient>'
+        f'<linearGradient id="sea-{k}" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0" stop-color="#1A4652"/><stop offset=".5" stop-color="#132B45"/>'
+        f'<stop offset="1" stop-color="#101A33"/></linearGradient>') if teal else ""
+    lights = "".join(
+        f'<radialGradient id="halo-{t}-{k}">'
+        f'<stop offset="0" stop-color="{_TONES[t][4]}" stop-opacity=".5"/>'
+        f'<stop offset=".45" stop-color="{_TONES[t][4]}" stop-opacity=".14"/>'
+        f'<stop offset="1" stop-color="{_TONES[t][4]}" stop-opacity="0"/></radialGradient>'
+        f'<radialGradient id="paper-{t}-{k}" cx=".5" cy=".42" r=".7">'
+        f'<stop offset="0" stop-color="{_TONES[t][0]}"/>'
+        f'<stop offset=".5" stop-color="{_TONES[t][1]}"/>'
+        f'<stop offset="1" stop-color="{_TONES[t][2]}"/></radialGradient>'
+        for t in tones)
     return (
         f'<defs>'
         f'<linearGradient id="sky-{k}" x1="0" y1="0" x2="0" y2="1">'
         f'<stop offset="{sky_from:g}" stop-color="{NIGHT}"/>'
-        f'<stop offset="{sky_from + (1 - sky_from) * .3:.2f}" stop-color="#0C1426"/>'
-        f'<stop offset="{sky_from + (1 - sky_from) * .78:.2f}" stop-color="#131E38"/>'
-        f'<stop offset="1" stop-color="#1B2848"/>'
-        f'</linearGradient>'
-        f'<radialGradient id="halo-{k}">'
-        f'<stop offset="0" stop-color="#F0A63A" stop-opacity=".5"/>'
-        f'<stop offset=".45" stop-color="#F0A63A" stop-opacity=".14"/>'
-        f'<stop offset="1" stop-color="#F0A63A" stop-opacity="0"/></radialGradient>'
-        f'<radialGradient id="paper-{k}" cx=".5" cy=".42" r=".7">'
-        f'<stop offset="0" stop-color="#FFE2A0"/><stop offset=".5" stop-color="#F6B64E"/>'
-        f'<stop offset="1" stop-color="#D4851F"/></radialGradient>'
+        f'<stop offset="{sky_from + span * .3:.2f}" stop-color="#0C1426"/>{low}'
+        f'</linearGradient>{water}{lights}'
         f'<linearGradient id="foot-{k}" x1="0" y1="0" x2="0" y2="1">'
         f'<stop offset="0" stop-color="{NIGHT}" stop-opacity="0"/>'
         f'<stop offset="1" stop-color="{NIGHT}"/></linearGradient>'
@@ -132,8 +165,8 @@ def _defs(k: int, extra: str = "", sky_from: float = 0) -> str:
         f'{extra}</defs>')
 
 
-def _lantern_defs(k: int) -> str:
-    """提灯のかたち（灯っているもの lan / 灯っていないもの off）。中心が原点。"""
+def _lantern_defs(k: int, tones: str = "a") -> str:
+    """提灯のかたち（灯っているもの lan-色 / 灯っていないもの off）。中心が原点。"""
     def ribs(color: str) -> str:
         out = []
         for f in (-0.5, 0, 0.5):
@@ -146,9 +179,10 @@ def _lantern_defs(k: int) -> str:
         return (f'<rect x="-5.5" y="-16.5" width="11" height="3.4" rx="1" fill="{color}"/>'
                 f'<rect x="-5" y="12.9" width="10" height="3" rx="1" fill="{color}"/>')
 
-    return (f'<g id="lan-{k}"><ellipse rx="10" ry="13.5" fill="url(#paper-{k})"/>'
-            f'{ribs("#9A5A12")}{caps("#2A1B10")}</g>'
-            f'<g id="off-{k}"><ellipse rx="10" ry="13.5" fill="{NIGHT}" stroke="#5A6A8C" '
+    lit = "".join(
+        f'<g id="lan-{t}-{k}"><ellipse rx="10" ry="13.5" fill="url(#paper-{t}-{k})"/>'
+        f'{ribs(_TONES[t][3])}{caps("#2A1B10")}</g>' for t in tones)
+    return (lit + f'<g id="off-{k}"><ellipse rx="10" ry="13.5" fill="{NIGHT}" stroke="#5A6A8C" '
             f'stroke-width="1.4"/>{ribs("#5A6A8C")}{caps("#5A6A8C")}</g>')
 
 
@@ -156,16 +190,29 @@ def _use(ref: str, x: float, y: float, s: float) -> str:
     return f'<use href="#{ref}" transform="translate({x:g} {y:g}) scale({s:g})"/>'
 
 
-def _halo(k: int, x: float, y: float, r: float, cls: str = "") -> str:
+def _halo(k: int, x: float, y: float, r: float, cls: str = "", tone: str = "a") -> str:
     cls = f' class="{cls}"' if cls else ""
-    return f'<circle{cls} cx="{x:g}" cy="{y:g}" r="{r:g}" fill="url(#halo-{k})"/>'
+    return f'<circle{cls} cx="{x:g}" cy="{y:g}" r="{r:g}" fill="url(#halo-{tone}-{k})"/>'
 
 
-def _lantern(k: int, x: float, y: float, s: float, cls: str = "lit", style: str = "") -> str:
+def _lantern(k: int, x: float, y: float, s: float, cls: str = "lit", style: str = "",
+             tone: str = "a", glow: float = 46) -> str:
     """灯った提灯1つ（にじみつき）。動かすときは、この g ごと動かす。"""
     style = f' style="{style}"' if style else ""
-    return (f'<g class="{cls}"{style}>{_halo(k, x, y, 46 * s)}'
-            f'{_use(f"lan-{k}", x, y, s)}</g>')
+    return (f'<g class="{cls}"{style}>{_halo(k, x, y, glow * s, tone=tone)}'
+            f'{_use(f"lan-{tone}-{k}", x, y, s)}</g>')
+
+
+def _reflect(x: float, tone: str, width: float, rows: int = 4, strength: float = .5) -> str:
+    """水面に落ちる灯りの映り。短い横線を、下へ行くほど細く薄く。"""
+    out = []
+    for j in range(rows):
+        w = width * (1 - j * .17)
+        dx = (-1, 1.5, -2, 1)[j % 4]
+        out.append(f'<path d="M{x - w / 2 + dx:.1f} {_SEA + 5 + j * 6.5:.1f}h{w:.1f}" '
+                   f'opacity="{strength * (1 - j * .2):.2f}"/>')
+    return (f'<g stroke="{_TONES[tone][4]}" stroke-width="1.8" stroke-linecap="round">'
+            f'{"".join(out)}</g>')
 
 
 def _ridge(base: float, amp: float, seed: float) -> str:
@@ -178,8 +225,11 @@ def _ridge(base: float, amp: float, seed: float) -> str:
     return f'M0,{_H}L' + "L".join(pts) + f'L{_W},{_H}Z'
 
 
-def _stars(clear: tuple[int, int, int, int] | None = None) -> str:
-    """星。clear（左, 上, 右, 下）の中には置かない（暗い提灯ごしに透けて見えるため）。"""
+def _stars(clear: tuple[int, int, int, int] | None = None, big: bool = False) -> str:
+    """星。clear（左, 上, 右, 下）の中には置かない（暗い提灯ごしに透けて見えるため）。
+
+    big のとき、粒の大きさの差を広げる（華やかな場面で使う）。
+    """
     out = []
     for i in range(46):
         x, y = (i * 263 + 71) % _W, (i * 149 + 23) % 260
@@ -187,6 +237,8 @@ def _stars(clear: tuple[int, int, int, int] | None = None) -> str:
             continue
         r = 0.6 + ((i * 7) % 5) * 0.18
         o = 0.18 + ((i * 11) % 6) * 0.07
+        if big and i % 4 == 0:
+            r, o = r * 2.1, min(o + .3, .85)
         out.append(f'<circle cx="{x}" cy="{y}" r="{r:.2f}" opacity="{o:.2f}"/>')
     return f'<g fill="#E9E6DC">{"".join(out)}</g>'
 
@@ -194,19 +246,23 @@ def _stars(clear: tuple[int, int, int, int] | None = None) -> str:
 _BOATS = (96, 168, 262, 930, 1010, 1124)   # 沖の漁火
 
 
-def _night(k: int, dawn: bool = False,
-           clear: tuple[int, int, int, int] | None = None) -> str:
+def _night(k: int, clear: tuple[int, int, int, int] | None = None, teal: bool = True,
+           big_stars: bool = False, haze_y: int = 372) -> str:
     """夜空・星・山並み・海。どの場面でも動かさない。"""
     s = f'<rect width="{_W}" height="{_H}" fill="url(#sky-{k})"/>'
-    if dawn:   # 第3章だけ、山の向こうが明るみはじめている
-        s += f'<rect y="200" width="{_W}" height="170" fill="url(#dawn-{k})"/>'
-    s += _stars(clear)
-    s += f'<path d="{_ridge(322, 50, 0.6)}" fill="#16223D"/>'
-    s += f'<path d="{_ridge(378, 30, 2.1)}" fill="#1A2947"/>'
-    s += f'<rect y="408" width="{_W}" height="92" fill="#131E36"/>'
-    s += f'<path d="M0 408H{_W}" stroke="#2B3A5C" stroke-width="1.2"/>'
+    s += _stars(clear, big_stars)
+    # 山並みは、空が青緑へ移る場面では少し青緑に寄せる
+    far, near = ("#15294A", "#173349") if teal else ("#16223D", "#1A2947")
+    if teal:   # 水平線の上の、橙のにじみ（山の向こうの明るみ）
+        # 稜線に沿う細い帯にする（広く敷くと、青緑と混ざって濁る）
+        s += f'<rect y="{haze_y - 110}" width="{_W}" height="110" fill="url(#haze-{k})"/>'
+    s += f'<path d="{_ridge(322, 50, 0.6)}" fill="{far}"/>'
+    s += f'<path d="{_ridge(378, 30, 2.1)}" fill="{near}"/>'
+    sea = f"url(#sea-{k})" if teal else "#131E36"
+    s += f'<rect y="{_SEA}" width="{_W}" height="{_H - _SEA}" fill="{sea}"/>'
+    s += f'<path d="M0 {_SEA}H{_W}" stroke="#2B3A5C" stroke-width="1.2"/>'
     for i, x in enumerate(_BOATS):
-        y = 413 + (i % 2) * 3
+        y = _SEA + 5 + (i % 2) * 3
         s += (f'<circle cx="{x}" cy="{y}" r="1.6" fill="#F0A63A" opacity=".75"/>'
               f'<path d="M{x} {y + 4}v9" stroke="#F0A63A" opacity=".22"/>')
     return s
@@ -214,7 +270,7 @@ def _night(k: int, dawn: bool = False,
 
 def _finish(k: int) -> str:
     """絵の下と左右を、ページの地の色へなじませる。"""
-    return (f'<rect y="{_H - 30}" width="{_W}" height="30" fill="url(#foot-{k})"/>'
+    return (f'<rect y="{_H - 16}" width="{_W}" height="16" fill="url(#foot-{k})"/>'
             f'<rect width="{_W}" height="{_H}" fill="url(#edge-{k})"/>')
 
 
@@ -225,43 +281,61 @@ def _house(x: float, top: float, w: float, rise: float) -> str:
             f'<rect x="{x:g}" y="{top:g}" width="{w:g}" height="{_H - top:g}" fill="{_WALL}"/>')
 
 
+_WINDOW_FILLS = ("#F0A63A", "#FFD98A", "#F3B45A", "#EE8A45")   # 橙〜黄〜朱寄り
+
+
 def _houses(k: int, lit: bool) -> str:
-    """手前の家並み。lit のとき、3軒に2軒の窓に灯りがある。"""
+    """手前の家並み。海が見えるよう低く置く。lit のとき、どの家の窓にも灯りがある。"""
     out, x, i = [], -30, 0
     while x < _W + 40:
-        w, h, rise = 92 + (i * 37) % 58, 44 + (i * 23) % 30, 20 + (i * 13) % 12
+        w, h, rise = 92 + (i * 37) % 58, 38 + (i * 23) % 22, 16 + (i * 13) % 10
         top = _H - h
         out.append(_house(x, top, w, rise))
-        if lit and i % 3 != 1:
-            wx = x + 16 + (i * 17) % (w - 44)
-            out.append(f'<rect x="{wx}" y="{top + 13}" width="13" height="16" '
-                       f'fill="#F0A63A" opacity=".82"/>' + _halo(k, wx + 6, top + 21, 22))
+        if lit:
+            # 広い家には窓が2つ。色味と大きさを少しずつ変える
+            for n in range(2 if w > 118 else 1):
+                wx = x + 14 + (i * 17 + n * 53) % (w - 40)
+                ww, wh = 11 + (i + n) % 3 * 2, 11 + (i * 2 + n) % 3 * 2
+                out.append(f'<rect x="{wx}" y="{top + 7}" width="{ww}" height="{wh}" '
+                           f'fill="{_WINDOW_FILLS[(i + n * 2) % 4]}" opacity=".88"/>'
+                           + _halo(k, wx + ww / 2, top + 7 + wh / 2, 24))
         x += w + 14
         i += 1
     return "".join(out)
 
 
-# 第1章: ほかの町の灯りの位置（x, y）。入り江の向こうの山すそと海辺
+# ほかの町の灯りの位置（x, y）。入り江の向こうの山すそと海辺
 _FAR_LIGHTS = [
     (648, 402), (742, 396), (566, 404), (836, 388), (694, 372),
     (792, 364), (884, 400), (610, 380), (520, 398), (858, 352), (474, 404),
 ]
-_HOME = (436, 406, 1.7)   # 自分の町の提灯（x, y, 大きさ）
+
+
+def _far_light(k: int, i: int, x: float, y: float) -> str:
+    """遠くの町の灯り1つ。大きさは番号で変える。海辺のものは水面に映る。"""
+    r = 1.8 + (i * 5) % 4 * 0.6
+    mirror = _reflect(x, "a", r * 4, rows=2, strength=.45) if y >= 396 else ""
+    return (f'{_halo(k, x, y, r * 6)}<circle cx="{x}" cy="{y}" r="{r:.1f}" fill="#F6B64E"/>'
+            f'{mirror}')
+
+
+_HOME = (436, 362, 2.3)   # 自分の町の提灯（x, y, 大きさ）
 
 
 def scene_towns(n_towns: int) -> str:
     """第1章。自分の町の提灯が1つ。ほかの町の灯りは、入り江の向こうに小さく。"""
     far = "".join(
-        f'<g class="far" style="--i:{i}">{_halo(1, x, y, 15)}'
-        f'<circle cx="{x}" cy="{y}" r="2.6" fill="#F6B64E"/></g>'
+        f'<g class="far" style="--i:{i}">{_far_light(1, i, x, y)}</g>'
         for i, (x, y) in enumerate(_FAR_LIGHTS[:max(n_towns - 1, 0)]))
     hx, hy, hs = _HOME
     cap = hy - 16.5 * hs               # 提灯の上端
-    px, arm = hx - 22, cap - 12        # 竿の位置と、腕木の高さ
-    pole = (f'<path d="M{px} {_H}V{arm - 6:g}M{px - 5} {arm:g}H{hx + 5}M{hx} {arm:g}V{cap:g}" '
-            f'stroke="#2E3D63" stroke-width="2.4" stroke-linecap="round" fill="none"/>')
-    body = (_defs(1, _lantern_defs(1), sky_from=.42) + _night(1) + far
-            + _houses(1, lit=False) + pole + _lantern(1, hx, hy, hs) + _finish(1))
+    px, arm = hx - 30, cap - 14        # 竿の位置と、腕木の高さ
+    pole = (f'<path d="M{px} {_H}V{arm - 7:g}M{px - 6} {arm:g}H{hx + 6}M{hx} {arm:g}V{cap:g}" '
+            f'stroke="#2E3D63" stroke-width="3" stroke-linecap="round" fill="none"/>')
+    # 主役の光は面積を取る: 広いにじみを1枚敷き、その上に提灯のにじみを重ねる
+    home = (_halo(1, hx, hy, 190) + _reflect(hx, "a", 46, rows=5, strength=.7)
+            + _houses(1, lit=False) + pole + _lantern(1, hx, hy, hs, glow=52))
+    body = (_defs(1, _lantern_defs(1), sky_from=.36) + _night(1) + far + home + _finish(1))
     # 高さを抑える画面では、空を切って家並みを残す
     return _svg(body, "scene-towns", align="xMidYMax")
 
@@ -286,6 +360,7 @@ def scene_notices() -> str:
 
     紙は37枚、提灯は3つ。お知らせの大半は催し以外で、催しはその中に埋もれている
     （CLAUDE.md「何をするツールか」）。絵は割合を正確に写したものではない。
+    この章だけ色を足さない。紙は催しを埋もれさせる側で、華やかにすると意味が逆になる。
     """
     kinds = (("sa", 170, 226), ("sb", 205, 262))
     back, front = [], []
@@ -311,7 +386,7 @@ def scene_notices() -> str:
 
     lamps = "".join(_lantern(2, x, y, s, "buried") for x, y, s in _LAMPS_BURIED)
     body = (_defs(2, _lantern_defs(2) + _sheet_def(2, "sa", 170, 226, 9)
-                  + _sheet_def(2, "sb", 205, 262, 11))
+                  + _sheet_def(2, "sb", 205, 262, 11), teal=False)
             + f'<rect width="{_W}" height="{_H}" fill="url(#sky-2)"/>'
             + "".join(draw(n) for n in range(len(back)))
             + lamps
@@ -345,13 +420,18 @@ def scene_windows(n_sources: int) -> str:
             rise = rise0 + (j * 7) % 3 * 3
             houses[row].append(_house(x, top, pitch + 2, rise))
             if 0 <= j < count:
-                windows.append((x + (pitch + 2 - ww) / 2, top + wdy, ww, wh, row))
+                windows.append((x + (pitch + 2) / 2, top + wdy, ww, wh, row))
 
-    def draw(i: int, x: float, y: float, ww: float, wh: float) -> str:
-        cx, cy = x + ww / 2, y + wh / 2
+    def draw(i: int, cx: float, y: float, ww: float, wh: float) -> str:
+        # 窓ごとに大きさと色味を少し変える（数と並ぶ順は変えない）
+        k = 0.88 + (i * 5) % 4 * 0.09
+        ww, wh = round(ww * k), round(wh * k)
+        x, cy = cx - ww / 2, y + wh / 2
+        fill = _WINDOW_FILLS[(i * 3 + i // 4) % 4]
         return (f'<g class="window" style="--i:{i}">'
-                f'<circle class="glow" cx="{cx:g}" cy="{cy:g}" r="34" fill="url(#halo-3)"/>'
-                f'<rect class="glow" x="{x:g}" y="{y:g}" width="{ww}" height="{wh}"/>'
+                f'<circle class="glow" cx="{cx:g}" cy="{cy:g}" r="{round(40 * k)}" '
+                f'fill="url(#halo-a-3)"/>'
+                f'<rect class="glow" x="{x:g}" y="{y:g}" width="{ww}" height="{wh}" fill="{fill}"/>'
                 f'<path class="pane" d="M{cx:g} {y:g}v{wh}M{x:g} {cy:g}h{ww}"/>'
                 f'<rect class="frame" x="{x:g}" y="{y:g}" width="{ww}" height="{wh}"/></g>')
 
@@ -359,11 +439,7 @@ def scene_windows(n_sources: int) -> str:
     ordered = list(enumerate(sorted(windows)))
     layer = {row: "".join(draw(i, *wd[:4]) for i, wd in ordered if wd[4] == row)
              for row in (0, 1)}
-    dawn = ('<linearGradient id="dawn-3" x1="0" y1="0" x2="0" y2="1">'
-            '<stop offset="0" stop-color="#F0A63A" stop-opacity="0"/>'
-            '<stop offset=".55" stop-color="#F0A63A" stop-opacity=".1"/>'
-            '<stop offset="1" stop-color="#F6B64E" stop-opacity=".4"/></linearGradient>')
-    body = (_defs(3, dawn) + _night(3, dawn=True)
+    body = (_defs(3, haze=.7) + _night(3, haze_y=356)
             + "".join(houses[0]) + layer[0] + "".join(houses[1]) + layer[1] + _finish(3))
     # 窓が順に灯る間隔。全体の区間（35%）を窓の数で割り振る（動きの CSS が使う）
     step = (35 - _WINDOW_SLICE) / max(n_sources - 1, 1)
@@ -372,7 +448,8 @@ def scene_windows(n_sources: int) -> str:
 
 _GRID_X0, _GRID_DX = 336, 88     # 日曜の列の x と、列の間隔
 _GRID_Y0, _GRID_DY = 26, 62      # 1段目の綱の y と、段の間隔
-_LAN = 1.25                      # 暦の提灯の大きさ
+_LAN = 1.25                      # 暦の提灯の大きさ（ここから少しずつ変える）
+_CALENDAR_TONES = "aaaarrrwww"   # 橙4・朱3・黄白3 の割合で混ぜる
 
 
 def _rope(xa: float, xb: float, y: float, sag: float) -> str:
@@ -380,15 +457,20 @@ def _rope(xa: float, xb: float, y: float, sag: float) -> str:
             f'stroke="{_ROPE}" stroke-width="1.4" fill="none"/>')
 
 
-def scene_calendar(missing: str) -> str:
-    """第4〜6章。綱に下げた提灯が、暦の形に並ぶ。
+def scene_calendar(missing: str, n_towns: int) -> str:
+    """第4〜6章。綱に下げた提灯が、暦の形に並ぶ。このページでいちばん華やかな絵。
 
     missing: "absent"（第4章。描かない）/ "unlit"（第5章。灯っていない提灯）/
              "lit"（第6章。灯りが入る）
+
+    提灯の色（橙・朱・黄白）と大きさは混ぜるが、位置と数は暦のまま（7列・30個）。
+    入り江の向こうには、第1章では暗かった町の灯りが、今度は明るくともっている
+    （数は第1章と同じ。市町の数から自分の町を引いたもの）。
     """
     k = {"absent": 4, "unlit": 5, "lit": 6}[missing]
     weeks = calendar.Calendar(firstweekday=6).monthdayscalendar(_GRID_YEAR, _GRID_MONTH)
     ropes, lamps, hole, i = [], [], "", 0
+    column_tone: dict[int, str] = {}
     for r, week in enumerate(weeks):
         y = _GRID_Y0 + r * _GRID_DY
         cols = [c for c, day in enumerate(week) if day and day != _MISSING_DAY]
@@ -409,20 +491,34 @@ def scene_calendar(missing: str) -> str:
                 if missing == "unlit":
                     hole = off
                 elif missing == "lit":
-                    hole = (off + _halo(k, x, hy, 46 * _LAN, "halo")
-                            + f'<g class="last">{_use(f"lan-{k}", x, hy, _LAN)}</g>')
+                    # 灯りが入る1つは、にじみを広く取る（差し色の橙。行動のボタンと同じ色）。
+                    # 絵の上端で切れないよう、中心を少し下げる（残りは上端のぼかしが受ける）
+                    hole = (off + _halo(k, x, hy + 18, 110, "halo")
+                            + f'<g class="last">{_use(f"lan-a-{k}", x, hy, _LAN)}</g>')
                 continue
+            tone = _CALENDAR_TONES[(i * 7 + r * 3) % 10]
+            size = _LAN * (0.92 + (i * 5) % 4 * 0.06)
             t = (x - xa) / (xb - xa)
-            ly = y + 4 * sag * t * (1 - t) + 20 * _LAN      # 綱のたるみに沿って下がる
+            ly = y + 4 * sag * t * (1 - t) + 20 * size      # 綱のたるみに沿って下がる
             # 上の2段は過ぎた週。暗くはなるが、消えない
             cls = "lit gone" if r in (1, 2) else "lit"
             # 集まる前に散らばっている位置（綱からのずれ）。乱数ではなく番号から決める
             dx, dy = (i * 37) % 81 - 40, (i * 53 + 17) % 61 - 30
-            lamps.append(_lantern(k, x, ly, _LAN, cls, f"--dx:{dx}px;--dy:{dy}px"))
+            lamps.append(_lantern(k, x, ly, size, cls, f"--dx:{dx}px;--dy:{dy}px", tone))
+            column_tone[c] = tone          # 水面に映すのは、その列のいちばん下の色
             i += 1
-    body = (_defs(k, _lantern_defs(k)) + _night(k, clear=(280, 60, 920, 260))
-            + _houses(k, lit=True)
-            + "".join(ropes) + "".join(lamps) + hole + _finish(k))
+    mirrors = "".join(_reflect(_GRID_X0 + c * _GRID_DX, tone, 30, rows=4, strength=.55)
+                      for c, tone in sorted(column_tone.items()))
+    far = "".join(_far_light(k, n, x, y)
+                  for n, (x, y) in enumerate(_FAR_LIGHTS[:max(n_towns - 1, 0)]))
+    top = (f'<linearGradient id="top-{k}" x1="0" y1="0" x2="0" y2="1">'
+           f'<stop offset="0" stop-color="{NIGHT}"/>'
+           f'<stop offset="1" stop-color="{NIGHT}" stop-opacity="0"/></linearGradient>')
+    body = (_defs(k, _lantern_defs(k, "arw") + top, tones="arw", haze=.22)
+            + _night(k, clear=(280, 60, 920, 260), big_stars=True)
+            + far + mirrors + _houses(k, lit=True)
+            + "".join(ropes) + "".join(lamps) + hole
+            + f'<rect width="{_W}" height="22" fill="url(#top-{k})"/>' + _finish(k))
     return _svg(body, f"scene-calendar is-{missing}")
 
 
@@ -487,9 +583,9 @@ def to_story_page(site: dict, sources: list[dict], events: list[Event],
         "scene1": scene_towns(n_towns),
         "scene2": scene_notices(),
         "scene3": scene_windows(n_sources),
-        "scene4": scene_calendar("absent"),
-        "scene5": scene_calendar("unlit"),
-        "scene6": scene_calendar("lit"),
+        "scene4": scene_calendar("absent", n_towns),
+        "scene5": scene_calendar("unlit", n_towns),
+        "scene6": scene_calendar("lit", n_towns),
         "sample_html": sample_html,
         "count_html": count_html,
         "cta": _cta(site.get("contact") or ""),
@@ -542,7 +638,9 @@ _TPL = """<!doctype html>
      切りすぎると暦の両端の提灯が欠けるので、高さは幅の83%まで */
   .ch > .scene{display:block;width:100%;max-width:90rem;padding:0;
     height:clamp(min(300px,83vw),41.67vw,600px)}
-  .ch1 > .scene{height:max(min(280px,83vw),min(41.67vw,46svh))}
+  /* 第1章もほかの章と同じ高さ。ただし背の低い画面では、見出しが最初の画面に
+     入るところまで縮める（空を切り、家並みと提灯は残す） */
+  .ch1 > .scene{height:min(clamp(min(300px,83vw),41.67vw,600px),max(300px,100svh - 19rem))}
   .ch1{min-height:calc(100svh - 5rem);display:flex;flex-direction:column;
     justify-content:center;padding-top:2rem;padding-bottom:clamp(4rem,12vh,7rem)}
   .ch1 > *{width:100%}
@@ -562,7 +660,6 @@ _TPL = """<!doctype html>
   .far{opacity:.6}
   .buried{opacity:.5}
   .frame{fill:none;stroke:var(--unlit);stroke-width:1.5}
-  rect.glow{fill:var(--light)}
   .pane{stroke:#0E1628;stroke-width:2;fill:none}
 
   .titles{list-style:none;padding-top:0;padding-bottom:0;margin-top:0;margin-bottom:1.8em}
