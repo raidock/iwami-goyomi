@@ -19,7 +19,7 @@ import yaml
 
 from collector.models import Event
 from collector.publish import to_public_site
-from collector.story import sample_events, to_story_page
+from collector.story import sample_events, to_story_page, tonight_label
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TODAY = date(2026, 11, 11)   # テストの「今日」は固定する（CLAUDE.md「開発のしかた」）
@@ -248,11 +248,12 @@ def test_pictures_are_decoration_and_carry_no_outside_files():
     html = _page()
     scenes = _scenes(html)
     assert len(scenes) == 6
-    for svg in scenes:
+    for n, svg in enumerate(scenes, 1):
         assert 'aria-hidden="true"' in svg.split(">")[0]
         assert "<image" not in svg
         assert "http" not in svg.replace('xmlns="http://www.w3.org/2000/svg"', "")
-        assert "<text" not in svg      # 絵の中に文字を置かない（伝えることは本文に書く）
+        # 絵の中に文字を置かない（伝えることは本文に書く）。例外は第1章の夜空の日付1つだけ
+        assert svg.count("<text") == (1 if n == 1 else 0), n
 
 
 def test_ids_do_not_collide_between_the_six_pictures():
@@ -305,6 +306,18 @@ def test_added_colors_stay_where_they_were_approved():
             r, g, b = (int(code[i:i + 2], 16) / 255 for i in (1, 3, 5))
             hue, _, sat = colorsys.rgb_to_hls(r, g, b)
             assert not (250 <= hue * 360 <= 320 and sat > .15), f"紫に入る色: {code}"
+
+
+def test_tonight_is_the_date_the_page_was_built():
+    """第1章の夜空には、ページを作った日（日本時間）の日付を、和風月名と漢数字で置く。"""
+    first = _scenes(_page())[0]
+    chars = re.findall(r'<text class="tonight".*?</text>', first, flags=re.S)[0]
+    assert "".join(re.findall(r">([^<])</tspan>", chars)) == "霜月十一日"   # TODAY = 11月11日
+    assert tonight_label(date(2026, 1, 1)) == "睦月一日"
+    assert tonight_label(date(2026, 6, 10)) == "水無月十日"
+    assert tonight_label(date(2026, 8, 20)) == "葉月二十日"
+    assert tonight_label(date(2026, 12, 31)) == "師走三十一日"
+    assert tonight_label(date(2026, 11, 18)) == "霜月十八日"
 
 
 def test_text_never_moves():
