@@ -3811,5 +3811,37 @@
     "session_count": null,
     "other_dates": 0,
     "uid": "71fc670be65068edf06d83a45efd3b7e"
+  },
+  {
+    "title": "【要申込】やさか表現大学～こんにゃく作り体験と新米を楽しむ一日",
+    "prefecture": "島根県",
+    "date_start": "2026-10-21",
+    "date_end": null,
+    "url": "https://kankou-hamada.or.jp/archives/37957",
+    "source": "hamanavi",
+    "raw_date_text": "",
+    "city": "浜田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "こんにゃく芋に触れ、昔ながらのこんにゃく作りを学ぶ。弥栄の姐さんに教わりながら、自分の手で作り、できたてを味わう。羽釜で炊いた新米とともに、手仕事と食がつながる学び。ぜひご参加ください。 【日時】 2026年10月21日... <a class=\"view-article\" href=\"https://kankou-hamada.or.jp/archives/37957\">View Article</a>",
+    "published_at": "2026-11-19",
+    "deadline": null,
+    "category": "学び・講座",
+    "tags": [
+      "要申込"
+    ],
+    "organizer": null,
+    "organizer_type": "観光協会",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "skipped",
+    "score": 3,
+    "reason": "イベント語: 体験 / 弱い手がかり: 参加",
+    "source_trust": "high",
+    "date_source": "見出し「日時」",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "2b93d362da619abd0a82308f6a8dea7a"
   }
 ]

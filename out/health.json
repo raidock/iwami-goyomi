@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-11-19T02:05:57",
+  "checked_at": "2026-11-20T01:56:00",
   "per_source": {
-    "hamada_city": 80,
+    "hamada_city": 82,
     "gotsu_city": 100,
-    "masuda_city": 20,
+    "masuda_city": 0,
     "ohnan_town": 63,
     "tsuwano_town": 17,
     "oda_city": 98,
@@ -12,7 +12,7 @@
     "ohnan_kanko": 30,
     "tsuwano_kanko": 21,
     "kawamoto_kanko": 30,
-    "misato_kanko": 33,
+    "misato_kanko": 32,
     "oda_kanko": 13
   }
 }
