@@ -321,9 +321,44 @@ def _far_light(k: int, i: int, x: float, y: float) -> str:
 
 _HOME = (436, 362, 2.3)   # 自分の町の提灯（x, y, 大きさ）
 
+# 夜空に置く「今夜」の日付。月は和風月名、日は漢数字で縦に並べる（例: 霜月十八日）。
+# ページは毎朝の収集で作り直すので、日付もそのとき変わる。
+_MONTH_NAMES = ("睦月", "如月", "弥生", "卯月", "皐月", "水無月",
+                "文月", "葉月", "長月", "神無月", "霜月", "師走")
+_KANJI_DIGITS = "〇一二三四五六七八九"
+_TONIGHT_X, _TONIGHT_FOOT = 780, 338   # 列の x（山の稜線がいちばん低い所）と、最後の字の位置
+_TONIGHT_SIZE, _TONIGHT_STEP = 26, 32   # 字の大きさと、字の送り。7字（水無月二十五日など）でも、
+                                        # 縦の短い画面で上が切れる範囲（y 120 前後まで）にかからない
 
-def scene_towns(n_towns: int) -> str:
-    """第1章。自分の町の提灯が1つ。ほかの町の灯りは、入り江の向こうに小さく。"""
+
+def tonight_label(day: date) -> str:
+    """日付を「霜月十八日」の形にする。"""
+    n = day.day
+    tens, ones = divmod(n, 10)
+    num = ("" if tens == 0 else "十" if tens == 1 else _KANJI_DIGITS[tens] + "十")
+    num += _KANJI_DIGITS[ones] if ones else ""
+    return f"{_MONTH_NAMES[day.month - 1]}{num}日"
+
+
+def _tonight(day: date) -> str:
+    """縦書きの日付。字を1つずつ置く（縦書きの指定に頼らず、どのブラウザでも同じ形にする）。
+
+    下端をそろえる: 幅の広い画面で縦が短いと、絵の上が切れる（xMidYMax）ため。
+    """
+    label = tonight_label(day)
+    top = _TONIGHT_FOOT - _TONIGHT_STEP * (len(label) - 1)
+    chars = "".join(f'<tspan x="{_TONIGHT_X}" y="{top + i * _TONIGHT_STEP}">{c}</tspan>'
+                    for i, c in enumerate(label))
+    return (f'<text class="tonight" text-anchor="middle" font-size="{_TONIGHT_SIZE}">'
+            f'{chars}</text>')
+
+
+def scene_towns(n_towns: int, today: date) -> str:
+    """第1章。自分の町の提灯が1つ。ほかの町の灯りは、入り江の向こうに小さく。
+
+    夜空には今夜の日付を置く（冒頭の問い「今夜なにがあるか」と、暦であること）。
+    動かさない。見出しより目立たせない。
+    """
     far = "".join(
         f'<g class="far" style="--i:{i}">{_far_light(1, i, x, y)}</g>'
         for i, (x, y) in enumerate(_FAR_LIGHTS[:max(n_towns - 1, 0)]))
@@ -335,7 +370,8 @@ def scene_towns(n_towns: int) -> str:
     # 主役の光は面積を取る: 広いにじみを1枚敷き、その上に提灯のにじみを重ねる
     home = (_halo(1, hx, hy, 190) + _reflect(hx, "a", 46, rows=5, strength=.7)
             + _houses(1, lit=False) + pole + _lantern(1, hx, hy, hs, glow=52))
-    body = (_defs(1, _lantern_defs(1), sky_from=.36) + _night(1) + far + home + _finish(1))
+    body = (_defs(1, _lantern_defs(1), sky_from=.36) + _night(1) + _tonight(today)
+            + far + home + _finish(1))
     # 高さを抑える画面では、空を切って家並みを残す
     return _svg(body, "scene-towns", align="xMidYMax")
 
@@ -580,7 +616,7 @@ def to_story_page(site: dict, sources: list[dict], events: list[Event],
         "h6": _phrases("あなたの町の催しを、", "教えてください。"),
         "n_sources": str(n_sources),
         "towns_label": _count_label(n_towns),
-        "scene1": scene_towns(n_towns),
+        "scene1": scene_towns(n_towns, today),
         "scene2": scene_notices(),
         "scene3": scene_windows(n_sources),
         "scene4": scene_calendar("absent", n_towns),
@@ -658,6 +694,7 @@ _TPL = """<!doctype html>
   /* 灯り。ここが完成形で、動きはこの上に重ねる */
   .gone{opacity:.5}
   .far{opacity:.6}
+  .tonight{font-family:"Zen Old Mincho",serif;font-weight:700;fill:var(--ink);opacity:.62}
   .buried{opacity:.5}
   .frame{fill:none;stroke:var(--unlit);stroke-width:1.5}
   .pane{stroke:#0E1628;stroke-width:2;fill:none}
