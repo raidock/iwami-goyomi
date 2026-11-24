@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "title": "クルーズ客船「MITSUI OCEAN FUJI」お見送りin浜田港",
+    "prefecture": "島根県",
+    "date_start": "2026-12-08",
+    "date_end": null,
+    "url": "https://kankou-hamada.or.jp/archives/37982",
+    "source": "hamanavi",
+    "raw_date_text": "",
+    "city": "浜田市",
+    "venue": null,
+    "distance_tier": null,
+    "description": "クルーズ客船「MITSUI OCEAN FUJI」が浜田港に寄港します！普段入ることのできない埠頭から「MITSUI OCEAN FUJI」を間近で見て、お見送りをしませんか？ぜひ浜田港へお越しください♪ 【日時】 20... <a class=\"view-article\" href=\"https://kankou-hamada.or.jp/archives/37982\">View Article</a>",
+    "published_at": "2026-11-23",
+    "deadline": null,
+    "category": null,
+    "tags": [],
+    "organizer": null,
+    "organizer_type": "観光協会",
+    "kind": "催し",
+    "status": "開催予定",
+    "review_state": "pending",
+    "score": 0,
+    "reason": "手がかりなし",
+    "source_trust": "high",
+    "date_source": "見出し「日時」",
+    "deadline_source": "",
+    "session_count": null,
+    "other_dates": 0,
+    "uid": "2e67b6c01198550985a6e21eca28b8cf"
+  }
+]
