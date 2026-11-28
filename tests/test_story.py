@@ -318,6 +318,7 @@ def test_tonight_is_the_date_the_page_was_built():
     assert tonight_label(date(2026, 8, 20)) == "葉月二十日"
     assert tonight_label(date(2026, 12, 31)) == "師走三十一日"
     assert tonight_label(date(2026, 11, 18)) == "霜月十八日"
+    assert tonight_label(date(2026, 10, 4)) == "神在月四日"   # 出雲の呼び方に合わせる。神無月ではない
 
 
 def test_text_never_moves():
